@@ -395,7 +395,7 @@ curl.exe -u loongcode:loongcode@241 http://127.0.0.1:4096/api/health
 
 1. 桌面版 → 设置 → 供应商
 2. 「龙岗数据」分组在最顶部，点连接
-3. 填入 LGDG API Key（在 `https://modelhub.lgdg.cc/auth` 获取）
+3. 填入 LGDG API Key（在 `https://modelhub.lgdg.cc` 获取）
 4. 保存后，模型列表自动从 `https://modelhub.lgdg.cc/aigateway/v1/models` 拉取
 
 > 即便 LGDG discoverModels 接口临时失败，LGDG 会始终保留在列表里（已修复"0 模型供应商被删除"问题），方便随时回来配置。

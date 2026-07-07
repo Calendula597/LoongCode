@@ -218,7 +218,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         async getModel(sdk: any, modelID: string) {
           if (!ok) {
             const err = new Error(
-              "LGDG_ModelHub 需要API密钥。请前往 https://modelhub.lgdg.cc/auth 获取",
+              "LGDG_ModelHub 需要API密钥。请前往 https://modelhub.lgdg.cc 获取",
             ) as Error & { providerID?: string }
             err.name = "LoadAPIKeyError"
             err.providerID = "lgdg"

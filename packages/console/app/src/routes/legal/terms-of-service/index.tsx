@@ -306,7 +306,7 @@ export default function TermsOfService() {
                 CONFIRMED BY US) THAT YOU HAVE TERMINATED THIS AUTHORIZATION OR WISH TO CHANGE YOUR PAYMENT METHOD. SUCH
                 NOTICE WILL NOT AFFECT CHARGES SUBMITTED BEFORE WE REASONABLY COULD ACT. TO TERMINATE YOUR AUTHORIZATION
                 OR CHANGE YOUR PAYMENT METHOD, GO TO ACCOUNT SETTINGS{" "}
-                <a href="https://modelhub.lgdg.cc/auth">https://modelhub.lgdg.cc/auth</a>.
+                <a href="https://modelhub.lgdg.cc">https://modelhub.lgdg.cc</a>.
               </p>
 
               <h3>Free Trials and Other Promotions</h3>

@@ -464,7 +464,7 @@ export const ProvidersLoginCommand = effectCmd({
     }
 
     if (provider === "loongcode") {
-      yield* Prompt.log.info("Create an api key at https://modelhub.lgdg.cc/auth")
+      yield* Prompt.log.info("Create an api key at https://modelhub.lgdg.cc")
     }
 
     if (provider === "vercel") {
