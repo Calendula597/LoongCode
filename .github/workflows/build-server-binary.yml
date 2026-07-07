@@ -28,6 +28,18 @@ jobs:
       - name: Install deps
         run: bun install
 
+      - name: Create release (if missing)
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # build.ts 在 LOONGCODE_RELEASE=1 时会自己 gh release upload，
+          # 需要 release 先存在，所以在 build 之前创建。
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --notes "LoongCode v${{ inputs.version }} — server binary builds (Linux x64/arm64)" \
+            --repo "$GH_REPO" || true
+
       - name: Build all binaries
         env:
           LOONGCODE_VERSION: ${{ inputs.version }}
@@ -38,30 +50,24 @@ jobs:
         run: ./packages/loongcode/script/build.ts
 
       - name: List Linux tarballs
-        run: ls -lh packages/loongcode/dist/*.tar.gz
+        if: always()
+        run: ls -lh packages/loongcode/dist/*.tar.gz || echo "无 tarball"
 
-      - name: Create release (if missing)
-        env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
-            --notes "LoongCode v${{ inputs.version }} — server binary builds (Linux x64/arm64)" \
-            --repo "$GH_REPO" || true
-
-      - name: Upload Linux tarballs to release
+      - name: Upload Linux tarballs to release (兜底)
+        if: always()
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "v${{ inputs.version }}" \
             packages/loongcode/dist/loongcode-linux-*.tar.gz \
-            --clobber --repo "$GH_REPO"
+            --clobber --repo "$GH_REPO" || echo "upload 兜底也失败，看上面日志"
 
-      - name: Upload artifacts (备用，release 拿不到时从这下)
+      - name: Upload artifacts (release 拿不到时从这下)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: loongcode-linux-binaries
           path: packages/loongcode/dist/loongcode-linux-*.tar.gz
           retention-days: 30
+          if-no-files-found: warn
