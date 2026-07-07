@@ -23,6 +23,10 @@ const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
 const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui")
+// 可选：--target=<name1>,<name2> 只编译指定目标（如 loongcode-linux-x64）。
+// 不传则编译全部目标。与 --single 互斥（--single 优先）。
+const targetFlag = process.argv.find((a) => a.startsWith("--target="))?.slice("--target=".length)
+const targetFilter = targetFlag ? new Set(targetFlag.split(",").map((s) => s.trim()).filter(Boolean)) : null
 
 const createEmbeddedWebUIBundle = async () => {
   console.log(`Building Web UI to embed in the binary`)
@@ -132,7 +136,21 @@ const targets = singleFlag
 
       return true
     })
-  : allTargets
+  : targetFilter
+    ? allTargets.filter((item) => {
+        // 复用下方 name 拼接规则：loongcode-{linux|darwin|windows}-{arch}[-baseline][-{abi}]
+        const name = [
+          pkg.name,
+          item.os === "win32" ? "windows" : item.os,
+          item.arch,
+          item.avx2 === false ? "baseline" : undefined,
+          item.abi === undefined ? undefined : item.abi,
+        ]
+          .filter(Boolean)
+          .join("-")
+        return targetFilter.has(name)
+      })
+    : allTargets
 
 await $`rm -rf dist`
 

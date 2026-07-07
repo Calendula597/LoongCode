@@ -47,7 +47,8 @@ jobs:
           LOONGCODE_CHANNEL: latest
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
-        run: ./packages/loongcode/script/build.ts
+        # 只编译 Linux 6 个目标（server 模式只在 Linux 服务器跑，darwin/windows server 二进制用不到）
+        run: ./packages/loongcode/script/build.ts --target=loongcode-linux-x64,loongcode-linux-x64-baseline,loongcode-linux-arm64,loongcode-linux-x64-musl,loongcode-linux-arm64-musl,loongcode-linux-x64-baseline-musl
 
       - name: List Linux tarballs
         if: always()
