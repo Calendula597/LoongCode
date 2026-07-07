@@ -80,7 +80,7 @@ export function toRequestError(error: Error) {
       return RequestError.authRequired(
         { providerId: error.providerId },
         isLgdg
-          ? "LGDG_ModelHub API key required. Get one at https://modelhub.lgdg.cc/auth"
+          ? "LGDG_ModelHub 需要API密钥。请前往 https://modelhub.lgdg.cc/auth 获取"
           : "provider authentication required",
       )
     }
