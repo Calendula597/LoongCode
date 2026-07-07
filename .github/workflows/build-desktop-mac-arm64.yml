@@ -52,10 +52,9 @@ jobs:
 
       - name: Upload to Release
         if: inputs.version != ''
+        shell: bash
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         working-directory: packages/desktop/dist
-        run: |
-          gh release upload "v${{ inputs.version }}" *.dmg *.zip \
-            --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+        run: gh release upload "v${{ inputs.version }}" *.dmg *.zip --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
