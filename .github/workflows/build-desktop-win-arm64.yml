@@ -12,6 +12,10 @@ on:
           - prod
           - beta
           - dev
+      version:
+        description: "Release 版本号 (如 0.0.1)，留空则只产 artifact 不上传 Release"
+        required: false
+        default: "0.0.1"
 
 permissions:
   contents: write
@@ -44,3 +48,13 @@ jobs:
             packages/desktop/dist/*.exe
             packages/desktop/dist/*.blockmap
           if-no-files-found: ignore
+
+      - name: Upload to Release
+        if: inputs.version != ''
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        working-directory: packages/desktop/dist
+        run: |
+          gh release upload "v${{ inputs.version }}" *.exe *.blockmap \
+            --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
