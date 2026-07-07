@@ -7,12 +7,12 @@ ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
 RUN apk add libgcc libstdc++ ripgrep
 
 FROM base AS build-amd64
-COPY dist/lgcode-linux-x64-baseline-musl/bin/lgcode /usr/local/bin/lgcode
+COPY dist/loongcode-linux-x64-baseline-musl/bin/loongcode /usr/local/bin/loongcode
 
 FROM base AS build-arm64
-COPY dist/lgcode-linux-arm64-musl/bin/lgcode /usr/local/bin/lgcode
+COPY dist/loongcode-linux-arm64-musl/bin/loongcode /usr/local/bin/loongcode
 
 ARG TARGETARCH
 FROM build-${TARGETARCH}
-RUN lgcode --version
-ENTRYPOINT ["lgcode"]
+RUN loongcode --version
+ENTRYPOINT ["loongcode"]
