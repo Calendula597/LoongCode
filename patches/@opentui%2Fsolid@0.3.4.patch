@@ -1,0 +1,30 @@
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -18,6 +18,14 @@
+     "./bun-plugin": {
+       "types": "./scripts/solid-plugin.d.ts",
+       "import": "./scripts/solid-plugin.ts"
++    },
++    "./jsx-dev-runtime": {
++      "types": "./jsx-runtime.d.ts",
++      "import": "./jsx-dev-runtime.js"
++    },
++    "./jsx-runtime": {
++      "types": "./jsx-runtime.d.ts",
++      "import": "./jsx-runtime.js"
+     }
+   },
+   "files": [
+diff --git a/jsx-dev-runtime.js b/jsx-dev-runtime.js
+new file mode 100644
+--- /dev/null
++++ b/jsx-dev-runtime.js
+@@ -0,0 +1 @@
++export { Fragment, jsx, jsxDEV, jsxs } from "solid-js/h/jsx-dev-runtime"
+diff --git a/jsx-runtime.js b/jsx-runtime.js
+new file mode 100644
+--- /dev/null
++++ b/jsx-runtime.js
+@@ -0,0 +1 @@
++export { Fragment, jsx, jsxs } from "solid-js/h/jsx-runtime"

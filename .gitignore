@@ -20,14 +20,14 @@ ts-dist
 /result
 refs
 Session.vim
-/lgcode.json
+/loongcode.json
 a.out
 target
 .scripts
 .direnv/
 
 # Local dev files
-lgcode-dev
+loongcode-dev
 UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
