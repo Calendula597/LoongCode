@@ -1,0 +1,67 @@
+name: publish-npm
+
+# 把 Linux x64 server CLI 二进制发到 npm（包名 loongcode-ai）。
+# 自包含单包：二进制直接打进包，不用 optionalDependencies 平台子包。
+# 因此只支持 Linux x64（glibc）——覆盖绝大多数服务器。arm64/musl 走 Releases 下载。
+#
+# 需要 secret: NPM_TOKEN（npm publish token，存仓库 secret）
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "npm 版本号 (如 0.0.1)，必须和已发 Release 版本一致"
+        required: true
+        default: "0.0.1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'Clearlove7Zz/LoongCode'
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Install deps
+        run: bun install
+
+      - name: Build Linux x64 binary
+        env:
+          LOONGCODE_VERSION: ${{ inputs.version }}
+          LOONGCODE_CHANNEL: latest
+        # 编译当前平台（x64 Linux runner）的单文件二进制；不需要 release 上传
+        run: ./packages/loongcode/script/build.ts --single
+
+      - name: Verify binary
+        run: |
+          B=packages/loongcode/dist/loongcode-linux-x64/bin/loongcode
+          ls -lh "$B"
+          "$B" --version
+
+      - name: Setup Node for npm publish
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Pack & publish loongcode-ai
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PKG_VERSION: ${{ inputs.version }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        working-directory: packages/loongcode/dist/loongcode-linux-x64
+        run: |
+          # 拷贝 LICENSE 到打包目录
+          cp "$GITHUB_WORKSPACE/LICENSE" .
+          # 用 node 写自包含 package.json：bin 直接指向包内二进制
+          node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode-ai",version:process.env.PKG_VERSION,description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"./bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
+          cat package.json
+          npm publish --access public
