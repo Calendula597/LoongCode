@@ -59,5 +59,5 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         working-directory: packages/desktop/dist
-        # 只传 exe 安装包；.blockmap 是增量更新索引，按需可去掉。
-        run: gh release upload "v${{ steps.version.outputs.version }}" *.exe --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+        # 传 exe 安装包 + latest*.yml（electron-updater 检查更新需要）
+        run: gh release upload "v${{ steps.version.outputs.version }}" *.exe latest*.yml --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"

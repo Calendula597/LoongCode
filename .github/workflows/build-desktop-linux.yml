@@ -65,4 +65,5 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         working-directory: packages/desktop/dist
-        run: gh release upload "v${{ steps.version.outputs.version }}" *.tar.gz *.deb *.rpm --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+        # 传安装包 + latest*.yml（electron-updater 检查更新需要）
+        run: gh release upload "v${{ steps.version.outputs.version }}" *.tar.gz *.deb *.rpm latest*.yml --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
