@@ -8,11 +8,6 @@ name: publish-npm
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "npm 版本号 (如 0.0.1)，必须和已发 Release 版本一致"
-        required: true
-        default: "0.0.1"
 
 permissions:
   contents: read
@@ -28,6 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
+      - name: Read version from package.json
+        id: version
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "将使用版本: $v"
+
       - uses: ./.github/actions/setup-bun
 
       - name: Install deps
@@ -35,7 +37,7 @@ jobs:
 
       - name: Build Linux x64 binary
         env:
-          LOONGCODE_VERSION: ${{ inputs.version }}
+          LOONGCODE_VERSION: ${{ steps.version.outputs.version }}
           LOONGCODE_CHANNEL: latest
         # 编译当前平台（x64 Linux runner）的单文件二进制；不需要 release 上传
         run: ./packages/loongcode/script/build.ts --single
@@ -55,7 +57,7 @@ jobs:
       - name: Pack & publish loongcode-ai
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PKG_VERSION: ${{ inputs.version }}
+          PKG_VERSION: ${{ steps.version.outputs.version }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
         working-directory: packages/loongcode/dist/loongcode-linux-x64
         run: |
