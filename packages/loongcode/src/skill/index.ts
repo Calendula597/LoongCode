@@ -16,6 +16,7 @@ import { ConfigMarkdown } from "@/config/markdown"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Glob } from "@loongcode/core/util/glob"
 import { Discovery } from "./discovery"
+import { SkillHub } from "./skillhub"
 import { isRecord } from "@/util/record"
 
 const CLAUDE_EXTERNAL_DIR = ".claude"
@@ -173,6 +174,7 @@ const scan = Effect.fnUntraced(function* (
 const discoverSkills = Effect.fnUntraced(function* (
   config: Config.Interface,
   discovery: Discovery.Interface,
+  skillhub: SkillHub.Interface,
   fsys: FSUtil.Interface,
   global: Global.Interface,
   disableExternalSkills: boolean,
@@ -226,6 +228,15 @@ const discoverSkills = Effect.fnUntraced(function* (
     }
   }
 
+  // 默认 SkillHub 源（所有用户开箱即用，含二进制用户）。尊重 disableExternalSkills
+  // 让想纯净模式的用户能用 LOONGCODE_DISABLE_EXTERNAL_SKILLS 关掉。
+  if (!disableExternalSkills) {
+    const skillhubDirs = yield* skillhub.pullAll()
+    for (const dir of skillhubDirs) {
+      yield* scan(state, dir, SKILL_PATTERN)
+    }
+  }
+
   return {
     matches: Array.from(state.matches),
     dirs: Array.from(state.dirs),
@@ -251,6 +262,7 @@ export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const discovery = yield* Discovery.Service
+    const skillhub = yield* SkillHub.Service
     const config = yield* Config.Service
     const events = yield* EventV2Bridge.Service
     const fsys = yield* FSUtil.Service
@@ -261,6 +273,7 @@ export const layer = Layer.effect(
         return yield* discoverSkills(
           config,
           discovery,
+          skillhub,
           fsys,
           global,
           flags.disableExternalSkills,
@@ -320,6 +333,7 @@ export const layer = Layer.effect(
 
 export const defaultLayer = layer.pipe(
   Layer.provide(Discovery.defaultLayer),
+  Layer.provide(SkillHub.defaultLayer),
   Layer.provide(Config.defaultLayer),
   Layer.provide(EventV2Bridge.defaultLayer),
   Layer.provide(FSUtil.defaultLayer),
@@ -356,6 +370,7 @@ export function fmt(list: Info[], opts: { verbose: boolean }) {
 
 export const node = LayerNode.make(layer, [
   Discovery.node,
+  SkillHub.node,
   Config.node,
   EventV2Bridge.node,
   FSUtil.node,

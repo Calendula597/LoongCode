@@ -2,6 +2,7 @@ import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { Skill } from "../../src/skill"
 import { Discovery } from "../../src/skill/discovery"
+import { SkillHub } from "../../src/skill/skillhub"
 import { RuntimeFlags } from "../../src/effect/runtime-flags"
 import { EventV2Bridge } from "../../src/event-v2-bridge"
 import { Config } from "../../src/config/config"
@@ -15,11 +16,30 @@ import fs from "fs/promises"
 
 const node = CrossSpawnSpawner.defaultLayer
 
-const it = testEffect(Layer.mergeAll(Skill.defaultLayer, node, testInstanceStoreLayer))
+// 测试用空 SkillHub layer，避免连真实 https://skillhub.lgdg.cc 拉公开 skill
+// 导致 skill 数量不确定（外部网络依赖）。生产用 SkillHub.defaultLayer。
+const emptySkillHubLayer = Layer.succeed(SkillHub.Service, SkillHub.Service.of({ pullAll: () => Effect.succeed([]) }))
+
+const it = testEffect(
+  Layer.mergeAll(
+    Skill.layer.pipe(
+      Layer.provide(Discovery.defaultLayer),
+      Layer.provide(emptySkillHubLayer),
+      Layer.provide(Config.defaultLayer),
+      Layer.provide(EventV2Bridge.defaultLayer),
+      Layer.provide(FSUtil.defaultLayer),
+      Layer.provide(Global.layer),
+      Layer.provide(RuntimeFlags.defaultLayer),
+    ),
+    node,
+    testInstanceStoreLayer,
+  ),
+)
 const itWithoutClaudeCodeSkills = testEffect(
   Layer.mergeAll(
     Skill.layer.pipe(
       Layer.provide(Discovery.defaultLayer),
+      Layer.provide(emptySkillHubLayer),
       Layer.provide(Config.defaultLayer),
       Layer.provide(EventV2Bridge.defaultLayer),
       Layer.provide(FSUtil.defaultLayer),
@@ -34,6 +54,7 @@ const itWithoutExternalSkills = testEffect(
   Layer.mergeAll(
     Skill.layer.pipe(
       Layer.provide(Discovery.defaultLayer),
+      Layer.provide(emptySkillHubLayer),
       Layer.provide(Config.defaultLayer),
       Layer.provide(EventV2Bridge.defaultLayer),
       Layer.provide(FSUtil.defaultLayer),
