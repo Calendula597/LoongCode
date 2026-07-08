@@ -285,7 +285,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
               const hasReasoning =
                 modelIdLower.includes("deepseek-r1") ||
                 modelIdLower.includes("deepseek-v4") ||
-                modelIdLower.includes("kimi-k2")
+                modelIdLower.includes("kimi-k2") ||
+                modelIdLower.includes("glm-5") ||
+                modelIdLower.includes("minimax")
 
               models[id] = {
                 id: ModelV2.ID.make(id),
