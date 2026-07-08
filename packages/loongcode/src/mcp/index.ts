@@ -177,7 +177,10 @@ export interface Interface {
   readonly startAuth: (
     mcpName: string,
   ) => Effect.Effect<{ authorizationUrl: string; oauthState: string }, NotFoundError>
-  readonly authenticate: (mcpName: string) => Effect.Effect<Status, NotFoundError>
+  readonly authenticate: (
+    mcpName: string,
+    onAuthorization?: (authorizationUrl: string) => void,
+  ) => Effect.Effect<Status, NotFoundError>
   readonly finishAuth: (mcpName: string, authorizationCode: string) => Effect.Effect<Status, NotFoundError>
   readonly removeAuth: (mcpName: string) => Effect.Effect<void>
   readonly supportsOAuth: (mcpName: string) => Effect.Effect<boolean, NotFoundError>
@@ -810,7 +813,10 @@ export const layer = Layer.effect(
       )
     })
 
-    const authenticate = Effect.fn("MCP.authenticate")(function* (mcpName: string) {
+    const authenticate = Effect.fn("MCP.authenticate")(function* (
+      mcpName: string,
+      onAuthorization?: (authorizationUrl: string) => void,
+    ) {
       const result = yield* startAuth(mcpName)
       if (!result.authorizationUrl) {
         const client = "client" in result ? result.client : undefined
@@ -834,6 +840,7 @@ export const layer = Layer.effect(
       }
 
       const callbackPromise = McpOAuthCallback.waitForCallback(result.oauthState, mcpName)
+      onAuthorization?.(result.authorizationUrl)
 
       yield* Effect.tryPromise(() => open(result.authorizationUrl)).pipe(
         Effect.flatMap((subprocess) =>
@@ -908,10 +915,15 @@ export const layer = Layer.effect(
     })
 
     const getAuthStatus = Effect.fn("MCP.getAuthStatus")(function* (mcpName: string) {
-      const entry = yield* auth.get(mcpName)
+      const runtimeConfig = (yield* InstanceState.has(state))
+        ? (yield* InstanceState.get(state)).config[mcpName]
+        : undefined
+      const mcpConfig = runtimeConfig ?? (yield* cfgSvc.get()).mcp?.[mcpName]
+      if (!mcpConfig || !isMcpConfigured(mcpConfig) || mcpConfig.type !== "remote") return "not_authenticated"
+      const entry = yield* auth.getForUrl(mcpName, mcpConfig.url)
       if (!entry?.tokens) return "not_authenticated"
-      const expired = yield* auth.isTokenExpired(mcpName)
-      return expired ? "expired" : "authenticated"
+      if (entry.tokens.expiresAt && entry.tokens.expiresAt < Date.now() / 1000) return "expired"
+      return "authenticated"
     })
 
     return Service.of({
