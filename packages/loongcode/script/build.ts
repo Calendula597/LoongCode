@@ -255,7 +255,14 @@ if (Script.release) {
       await $`zip -r ../../${key}.zip *`.cwd(`dist/${key}/bin`)
     }
   }
-  await $`gh release upload v${Script.version} ./dist/*.zip ./dist/*.tar.gz --clobber --repo ${process.env.GH_REPO}`
+  const tarballs = await Array.fromAsync(new Bun.Glob("*.tar.gz").scan({ cwd: "dist" }))
+  const zips = await Array.fromAsync(new Bun.Glob("*.zip").scan({ cwd: "dist" }))
+  const assets = [...tarballs.map((a) => `dist/${a}`), ...zips.map((a) => `dist/${a}`)]
+  if (assets.length === 0) {
+    console.log("no release assets to upload")
+  } else {
+    await $`gh release upload v${Script.version} ${assets} --clobber --repo ${process.env.GH_REPO}`
+  }
 }
 
 export { binaries }
