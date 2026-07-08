@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect } from "bun:test"
+import path from "path"
 import { Effect, Exit, Layer } from "effect"
 import { Config } from "@loongcode/core/config"
 import { ConfigAttachments } from "@loongcode/core/config/attachments"
@@ -10,6 +11,7 @@ import { PermissionV2 } from "@loongcode/core/permission"
 import { SessionV2 } from "@loongcode/core/session"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { Global } from "@loongcode/core/global"
+import { LocationMutation } from "@loongcode/core/location-mutation"
 import { location } from "./fixture/location"
 import { ToolRegistry } from "@loongcode/core/tool/registry"
 import { ReadTool } from "@loongcode/core/tool/read"
@@ -77,6 +79,30 @@ const infrastructure = Layer.mergeAll(
   Layer.succeed(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make(process.cwd()) }))),
   Global.layerWith({ data: Global.Path.data }),
 )
+const mutation = Layer.succeed(
+  LocationMutation.Service,
+  LocationMutation.Service.of({
+    resolve: (input: { path: string; kind?: "directory" | "file" }) => {
+      const canonical = path.resolve(process.cwd(), input.path)
+      const external = path.isAbsolute(input.path) && !FSUtil.contains(process.cwd(), canonical)
+      const resource = external ? canonical.replaceAll("\\", "/") : path.relative(process.cwd(), canonical) || "."
+      const directory = path.dirname(canonical)
+      const externalResource = path.join(directory, "*").replaceAll("\\", "/")
+      return Effect.succeed({
+        canonical,
+        resource,
+        externalDirectory: external
+          ? {
+              action: "external_directory" as const,
+              directory,
+              resource: externalResource,
+              save: externalResource,
+            }
+          : undefined,
+      })
+    },
+  }),
+)
 const unavailableImage = Layer.succeed(
   Image.Service,
   Image.Service.of({ normalize: () => Effect.fail(new Image.ResizerUnavailableError()) }),
@@ -87,19 +113,21 @@ const read = ReadTool.layer.pipe(
   Layer.provide(permission),
   Layer.provide(config),
   Layer.provide(image),
+  Layer.provide(mutation),
   Layer.provide(infrastructure),
 )
-const it = testEffect(Layer.mergeAll(registry, reader, permission, config, image, infrastructure, read))
+const it = testEffect(Layer.mergeAll(registry, reader, permission, config, image, mutation, infrastructure, read))
 const unavailableRead = ReadTool.layer.pipe(
   Layer.provide(registry),
   Layer.provide(reader),
   Layer.provide(permission),
   Layer.provide(config),
   Layer.provide(unavailableImage),
+  Layer.provide(mutation),
   Layer.provide(infrastructure),
 )
 const itWithoutResizer = testEffect(
-  Layer.mergeAll(registry, reader, permission, config, unavailableImage, infrastructure, unavailableRead),
+  Layer.mergeAll(registry, reader, permission, config, unavailableImage, mutation, infrastructure, unavailableRead),
 )
 const sessionID = SessionV2.ID.make("ses_read_tool_test")
 

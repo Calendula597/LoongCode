@@ -2090,8 +2090,9 @@ export const layer = Layer.effect(
       // Fall back to the first configured provider, then the best available model.
       // This mirrors opencode's original behavior, with lgdg taking the "preferred"
       // slot only in the ACP directory defaultModelFromConfig path.
+      const configured = Object.keys(cfg.provider ?? {})
       const provider = Object.values(s.providers).find(
-        (p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id),
+        (p) => configured.length === 0 || configured.includes(p.id),
       )
       if (!provider) return yield* new NoProvidersError()
       const [model] = sort(Object.values(provider.models))
