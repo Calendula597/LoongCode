@@ -1,6 +1,6 @@
 {
   "name": "@loongcode/app",
-  "version": "1.17.7",
+  "version": "0.0.2",
   "description": "",
   "type": "module",
   "exports": {

@@ -2,7 +2,7 @@
   "name": "@loongcode/web",
   "type": "module",
   "license": "MIT",
-  "version": "1.17.7",
+  "version": "0.0.2",
   "scripts": {
     "dev": "astro dev",
     "dev:remote": "",

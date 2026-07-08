@@ -1,6 +1,6 @@
 {
   "name": "@loongcode/console-support",
-  "version": "1.17.7",
+  "version": "0.0.2",
   "type": "module",
   "license": "MIT",
   "scripts": {
