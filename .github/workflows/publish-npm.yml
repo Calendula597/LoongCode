@@ -1,10 +1,11 @@
 name: publish-npm
 
-# 把 Linux x64 server CLI 二进制发到 npm（包名 loongcode-ai）。
+# 把 Linux x64 server CLI 二进制发到 npm（包名 loongcode）。
 # 自包含单包：二进制直接打进包，不用 optionalDependencies 平台子包。
 # 因此只支持 Linux x64（glibc）——覆盖绝大多数服务器。arm64/musl 走 Releases 下载。
 #
 # 需要 secret: NPM_TOKEN（npm publish token，存仓库 secret）
+# 注：之前用 loongcode-ai 被 unpublish 进 24h 冷却，改用可用的 loongcode。
 
 on:
   workflow_dispatch:
@@ -54,7 +55,7 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Pack & publish loongcode-ai
+      - name: Pack & publish loongcode
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           PKG_VERSION: ${{ steps.version.outputs.version }}
@@ -64,6 +65,6 @@ jobs:
           # 拷贝 LICENSE 到打包目录
           cp "$GITHUB_WORKSPACE/LICENSE" .
           # 用 node 写自包含 package.json：bin 直接指向包内二进制
-          node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode-ai",version:process.env.PKG_VERSION,description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"./bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
+          node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode",version:process.env.PKG_VERSION,description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"./bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
           cat package.json
           npm publish --access public
