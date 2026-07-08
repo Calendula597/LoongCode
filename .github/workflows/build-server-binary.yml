@@ -2,11 +2,6 @@ name: build-server-binary
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "版本号 (如 0.0.1)"
-        required: true
-        default: "0.0.1"
 
 # 只在本仓库跑，避免被 fork 误触发
 permissions:
@@ -23,6 +18,13 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
+      - name: Read version from package.json
+        id: version
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "将使用版本: $v"
+
       - uses: ./.github/actions/setup-bun
 
       - name: Install deps
@@ -35,14 +37,14 @@ jobs:
         run: |
           # build.ts 在 LOONGCODE_RELEASE=1 时会自己 gh release upload，
           # 需要 release 先存在，所以在 build 之前创建。
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
-            --notes "LoongCode v${{ inputs.version }} — server binary builds (Linux x64/arm64)" \
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "LoongCode v${{ steps.version.outputs.version }} — server binary builds (Linux x64/arm64)" \
             --repo "$GH_REPO" || true
 
       - name: Build all binaries
         env:
-          LOONGCODE_VERSION: ${{ inputs.version }}
+          LOONGCODE_VERSION: ${{ steps.version.outputs.version }}
           LOONGCODE_RELEASE: "1"
           LOONGCODE_CHANNEL: latest
           GH_REPO: ${{ github.repository }}
@@ -60,7 +62,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "v${{ inputs.version }}" \
+          gh release upload "v${{ steps.version.outputs.version }}" \
             packages/loongcode/dist/loongcode-linux-*.tar.gz \
             --clobber --repo "$GH_REPO" || echo "upload 兜底也失败，看上面日志"
 

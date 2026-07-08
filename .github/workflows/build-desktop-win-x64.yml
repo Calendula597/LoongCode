@@ -12,10 +12,6 @@ on:
           - prod
           - beta
           - dev
-      version:
-        description: "Release 版本号 (如 0.0.1)，留空则只产 artifact 不上传 Release"
-        required: false
-        default: "0.0.1"
 
 permissions:
   contents: write
@@ -25,6 +21,14 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: version
+        shell: bash
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "将使用版本: $v"
 
       - uses: ./.github/actions/setup-bun
 
@@ -50,11 +54,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload to Release
-        if: inputs.version != ''
         shell: bash
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         working-directory: packages/desktop/dist
         # 只传 exe 安装包；.blockmap 是增量更新索引，按需可去掉。
-        run: gh release upload "v${{ inputs.version }}" *.exe --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+        run: gh release upload "v${{ steps.version.outputs.version }}" *.exe --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
