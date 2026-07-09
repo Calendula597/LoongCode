@@ -61,7 +61,7 @@ async function start(command: StartCommand) {
       hostname: command.hostname,
       username: "loongcode",
       password: command.password,
-      cors: ["oc://renderer"],
+      cors: ["app://renderer"],
     })
     parentPort.postMessage({ type: "ready" })
   } catch (error) {

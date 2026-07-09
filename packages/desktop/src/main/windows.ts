@@ -13,7 +13,8 @@ import { createUnresponsiveSampler } from "./unresponsive"
 
 const root = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(root, "../renderer")
-const rendererProtocol = "oc"
+// 渲染层内部加载协议用 app://，与外部 deep-link 的 loongcode:// 分开，避免共享 scheme 的潜在冲突。
+const rendererProtocol = "app"
 const rendererHost = "renderer"
 const clipboardWritePermission = "clipboard-sanitized-write"
 const notificationPermission = "notifications"
