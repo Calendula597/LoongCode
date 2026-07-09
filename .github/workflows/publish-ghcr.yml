@@ -48,11 +48,12 @@ jobs:
           LOONGCODE_CHANNEL: latest
         run: ./packages/loongcode/script/build.ts --target=loongcode-linux-x64-baseline-musl
 
-      - name: Verify binary
+      - name: Verify binary exists
         run: |
           B=packages/loongcode/dist/loongcode-linux-x64-baseline-musl/bin/loongcode
           ls -lh "$B"
-          "$B" --version
+          # 注意：musl 静态二进制不能在 ubuntu(glibc) runner 上直接执行，
+          # 验证 loongcode --version 留给 Dockerfile 在 Alpine 容器内做。
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
