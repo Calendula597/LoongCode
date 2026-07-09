@@ -55,17 +55,17 @@ jobs:
           "$B" --version
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2a61f3ed659c5504fdd3 # v3.10.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to ghcr
-        uses: docker/login-action@74a5d142397b4f21dbc6ea8407f3d2e2e8f339e7 # v3.4.0
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe1985713b1cd928 # v6.18.0
+        uses: docker/build-push-action@v6
         with:
           context: packages/loongcode
           file: packages/loongcode/Dockerfile
