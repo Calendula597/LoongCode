@@ -51,21 +51,41 @@ Windows 桌面版  ──HTTP/WebSocket──▶  Linux 服务器 (loongcode ser
 
 ## 2. 服务器侧准备（首次部署）
 
-> **先看第 2.0 节**：有 4 种快捷安装方式可以跳过「git clone + bun install 4000+ 包」。能联网的机器推荐 2.0 方式一或方式二，几秒钟装好。
+> **先看第 2.0 节**：有 5 种快捷安装方式可以跳过「git clone + bun install 4000+ 包」。能联网的 Linux x64 机器推荐方式一(npm)，最省事。
 
 ### 2.0 快捷安装（推荐，跳过源码安装）
 
 loongcode 是用 `bun build --compile` 编译成**单文件自包含二进制**的，能跑 `serve` 命令，不需要 node_modules。服务器装好这个二进制就能直接用。
 
-**已发版 `v0.0.1`**，Releases 里有现成的 Linux 二进制（`loongcode-linux-x64.tar.gz` 等）。**没有 Linux 本机也能用 GitHub Actions 编译**——见 [附：触发发版](#附触发发版)。下面 4 种方式任选其一。
+已发版，npm 和 GitHub Releases 都有现成的二进制。下面 4 种方式任选其一：
 
-#### 方式一：GitHub Releases 下载预编译二进制（推荐，离线/内网友好）
+#### 方式一：npm 全局安装（推荐，最省事）
 
-Releases `v0.0.1` 里已有 `loongcode-linux-x64.tar.gz`、`loongcode-linux-arm64.tar.gz` 等，解压就是单文件二进制。**服务器只需 3 条命令**：
+npm 上有 `loongcode` 包（Linux x64 自包含二进制），一条命令装好，还能 `npm update -g loongcode` 升级。
+
+```bash
+# 装（npm/yarn/pnpm 都行；服务器没装 node 先装 node）
+npm install -g loongcode
+
+# 运行时依赖：ripgrep（server 会调用 rg 做代码搜索）
+sudo apt install -y ripgrep     # Debian/Ubuntu
+# sudo yum install -y ripgrep   # CentOS/RHEL
+
+# 验证
+loongcode --version
+```
+
+> 适合：联网的 **Linux x64** 服务器（绝大多数服务器）。一条命令搞定、升级方便。
+>
+> ⚠ npm 包只含 **Linux x64** 二进制。arm64 服务器、musl(Alpine)、老 CPU(baseline) 走方式二 Releases 下载对应变体。
+
+#### 方式二：GitHub Releases 下载预编译二进制（覆盖所有架构/离线）
+
+Releases 里有各架构 Linux 二进制（`loongcode-linux-x64.tar.gz`、`loongcode-linux-arm64.tar.gz` 等），解压就是单文件二进制。**服务器只需 3 条命令**：
 
 ```bash
 # 1. 下载二进制（x64 服务器；arm64 换成 loongcode-linux-arm64.tar.gz）
-curl -L https://github.com/Clearlove7Zz/LoongCode/releases/download/v0.0.1/loongcode-linux-x64.tar.gz | tar xz
+curl -L https://github.com/Clearlove7Zz/LoongCode/releases/latest/download/loongcode-linux-x64.tar.gz | tar xz
 sudo mv loongcode /usr/local/bin/
 
 # 2. 运行时依赖：ripgrep（server 会调用 rg 做代码搜索）
@@ -76,7 +96,7 @@ sudo apt install -y ripgrep     # Debian/Ubuntu
 loongcode --version
 ```
 
-> 其他 Linux 变体（按服务器实际情况选）：
+> 其他 Linux 变体（按服务器实际情况选，替换上面 URL 里的文件名）：
 > - `loongcode-linux-arm64.tar.gz` — ARM 服务器（AWS Graviton、树莓派等）
 > - `loongcode-linux-x64-baseline.tar.gz` — 老 CPU（无 AVX2，跑起来报 `Illegal instruction` 时换这个）
 > - `loongcode-linux-x64-musl.tar.gz` — Alpine Linux（musl libc）
@@ -89,15 +109,15 @@ loongcode --version
 > ```
 > 脚本装到 `~/.loongcode/bin/loongcode`，并自动写入 shell 的 PATH。
 
-#### 方式二：自己用 GitHub Actions 编译（没有 Linux 本机时）
+#### 方式三：自己用 GitHub Actions 编译（没有 Linux 本机、想自建 Release 时）
 
 如果你只有 Windows、手头没有 Linux 机器来 `--single` 编译，可以让 **GitHub Actions 帮你编**，编完直接发到 Releases，你从 Windows 浏览器下载即可。**零密钥**，仓库已有现成工作流 `build-server-binary.yml`。
 
-操作：GitHub 仓库 → Actions 页 → 选 `build-server-binary` → Run workflow → 填版本号（如 `0.0.1`）→ 等约 5 分钟。编完自动建 Release 并上传 12 个平台二进制。详见 [附：触发发版](#附触发发版)。
+操作：GitHub 仓库 → Actions 页 → 选 `build-server-binary` → Run workflow → 等约 5 分钟。编完自动建 Release 并上传 Linux 各架构二进制。详见 [附：触发发版](#附触发发版)。
 
-> 适合：本机非 Linux、想出 Release 给多台服务器复用。比手编更适合你。
+> 适合：本机非 Linux、想出 Release 给多台服务器复用。
 
-#### 方式三：在 Linux 机器上 `--single` 自编译（有 Linux 本机时）
+#### 方式四：在 Linux 机器上 `--single` 自编译（有 Linux 本机时）
 
 如果手头有 Linux 机器（架构 = 服务器架构），可以本地编一个二进制，scp 到服务器。**编一次，多处复用**。
 
@@ -117,9 +137,9 @@ ssh root@10.18.23.241 'chmod +x /usr/local/bin/loongcode && apt install -y ripgr
 > ⚠ `--single` 只编译**当前机器**的平台。Windows 上编不出 Linux 二进制，必须有 Linux 构建机。没有的话用方式二让 GitHub Actions 编。
 > 也可以不传 `--single`，会编译全部 12 个目标（含各 Linux/macOS/Windows 变体），慢但全。
 
-#### 方式四：Docker 镜像（容器化部署）
+#### 方式五：Docker 镜像（容器化部署）
 
-发版后会有 `ghcr.io/clearlove7zz/loongcode:<版本>` 镜像（Alpine 基础，amd64+arm64，已含 ripgrep）。注意：此镜像由 `publish.yml` 流程产出（需密钥），`build-server-binary` 工作流**不产 Docker 镜像**；若 Releases 阶段还没推镜像，先用方式一/二/三。
+发版后会有 `ghcr.io/clearlove7zz/loongcode:<版本>` 镜像（Alpine 基础，amd64+arm64，已含 ripgrep）。注意：此镜像由 `publish.yml` 流程产出（需密钥），`build-server-binary` 工作流**不产 Docker 镜像**；若 Releases 阶段还没推镜像，先用方式一/二/三/四。
 
 ```bash
 # 拉镜像
@@ -156,7 +176,7 @@ curl -u loongcode:loongcode@241 http://127.0.0.1:4096/api/health
 | macOS Intel | 暂无预编译包，用 `build-desktop-mac-x64` 或源码 | — |
 | Linux | `loongcode-desktop-linux-x64.tar.gz` / `.deb` / `.rpm` | 按发行版选 |
 
-下载页：https://github.com/Clearlove7Zz/LoongCode/releases/tag/v0.0.1
+下载页：https://github.com/Clearlove7Zz/LoongCode/releases/latest
 
 > 桌面版产物由 4 个 `build-desktop-*` 工作流产出并自动发到 Release。若 Release 里还没有桌面包（比如某次只触发了 server 构建），到 Actions 页面手动触发对应的 `build-desktop-*` 工作流，填同样的版本号 `0.0.1`，跑完自动补传。详见 [附：触发发版](#附触发发版)。
 >
@@ -264,7 +284,7 @@ Environment="LOONGCODE_SERVER_PASSWORD=loongcode@241"
 Environment="LOONGCODE_SERVER_USERNAME=loongcode"
 # 直连场景:--hostname 0.0.0.0 对外可达
 # 隧道场景:去掉 --hostname 0.0.0.0(用默认 127.0.0.1,只听本地最安全)
-# 二进制在 /usr/local/bin/loongcode(npm/Releases/build --single 装法)
+# 二进制在 /usr/local/bin/loongcode（npm/Releases/build --single 装法）或 npm 全局 bin 目录
 # 或 /root/loongcode/packages/loongcode/bin/loongcode(源码软链后用 loongcode)
 ExecStart=/usr/local/bin/loongcode serve --hostname 0.0.0.0 --port 4096
 Restart=on-failure
@@ -497,7 +517,7 @@ ssh -N -o ServerAliveInterval=30 -L 4096:127.0.0.1:4096 root@10.18.23.241
 
 ### 1. `build-server-binary.yml` — 编译 server 二进制发到 Releases
 
-手动触发，输入版本号。跑 `build.ts` 编 12 个平台二进制，`gh release upload` 上传到对应 Release。约 5 分钟。详见第 2.0 节方式一/二。
+手动触发，跑 `build.ts` 编 Linux 各架构二进制，`gh release upload` 上传到对应 Release。约 5 分钟。详见第 2.0 节方式一/二。
 
 ```bash
 # 触发（gh 已登录时），或去 Actions 页面手动 Run workflow
@@ -506,14 +526,13 @@ gh workflow run build-server-binary.yml --repo Clearlove7Zz/LoongCode -f version
 
 环境变量：`LOONGCODE_VERSION`（版本号）+ `LOONGCODE_RELEASE=1`（触发上传）+ `GH_REPO` + `GH_TOKEN`（自带）。
 
-### 2. `build-desktop-*.yml`（4 个）— 编译桌面安装包发到 Releases
+### 2. `build-desktop-*.yml`（3 个）— 编译桌面安装包发到 Releases
 
-`build-desktop-win-x64` / `win-arm64` / `mac-arm64` / `linux`，各自手动触发，输入 `channel`（prod/beta/dev，默认 prod）和 `version`（默认 0.0.1）。构建后 `gh release upload` 把 `.exe`/`.dmg`/`.deb` 等传到对应 Release。
+`build-desktop-windows`（一次出 x64+arm64 双架构）、`build-desktop-mac-arm64`、`build-desktop-linux`，各自手动触发，输入 `channel`（prod/beta/dev，默认 prod）。版本号自动从 `packages/loongcode/package.json` 读取，无需手填。构建后 `gh release upload` 把 `.exe`/`.dmg`/`.deb` 等传到对应 Release。
 
 ```bash
-# 例：触发 Windows x64 桌面构建并传到 v0.0.1
-gh workflow run build-desktop-win-x64.yml --repo Clearlove7Zz/LoongCode \
-  -f channel=prod -f version=0.0.1
+# 例：触发 Windows 桌面构建（版本随 package.json）
+gh workflow run build-desktop-windows.yml --repo Clearlove7Zz/LoongCode -f channel=prod
 ```
 
 4 个平台可同时触发，互不冲突（产物文件名不同，传同一个 Release）。
@@ -538,6 +557,6 @@ gh workflow run build-desktop-win-x64.yml --repo Clearlove7Zz/LoongCode \
 
 ### 关于 `publish.yml`（完整发版，可选）
 
-如果想走完整发版（npm 包 `loongcode-ai`、Apple/Azure 代码签名、AUR/Homebrew、Docker 镜像），才需要配齐 `publish.yml` 那 18 个 secrets。**只做 server + 桌面端部署完全用不到它**，本教程的两个零密钥工作流就够。配 `publish.yml` 的细节见仓库 `publish.yml` 顶部和 `packages/loongcode/script/publish.ts`。
+如果想走完整发版（npm 包 `loongcode`、Apple/Azure 代码签名、AUR/Homebrew、Docker 镜像），才需要配齐 `publish.yml` 那 18 个 secrets。**只做 server + 桌面端部署完全用不到它**，本教程的两个零密钥工作流就够。配 `publish.yml` 的细节见仓库 `publish.yml` 顶部和 `packages/loongcode/script/publish.ts`。
 
 
