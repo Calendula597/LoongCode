@@ -1,18 +1,10 @@
-FROM alpine AS base
+FROM alpine:3.20
 
-# Disable the runtime transpiler cache by default inside Docker containers.
-# On ephemeral containers, the cache is not useful
-ARG BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
-ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
-RUN apk add libgcc libstdc++ ripgrep
+# loongcode 二进制是 musl 静态编译，Alpine 基础镜像体积小、原生兼容。
+# 镜像只含 x64（amd64）架构。ripgrep 是 server 做代码搜索的运行时依赖。
+RUN apk add --no-cache libgcc libstdc++ ripgrep ca-certificates
 
-FROM base AS build-amd64
 COPY dist/loongcode-linux-x64-baseline-musl/bin/loongcode /usr/local/bin/loongcode
+RUN chmod +x /usr/local/bin/loongcode && loongcode --version
 
-FROM base AS build-arm64
-COPY dist/loongcode-linux-arm64-musl/bin/loongcode /usr/local/bin/loongcode
-
-ARG TARGETARCH
-FROM build-${TARGETARCH}
-RUN loongcode --version
 ENTRYPOINT ["loongcode"]

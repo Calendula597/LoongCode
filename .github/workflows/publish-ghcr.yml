@@ -1,0 +1,80 @@
+name: publish-ghcr
+
+# 构建单架构(amd64) loongcode server 镜像，推到 ghcr.io/clearlove7zz/loongcode
+# 零额外密钥：用 Actions 自带 GITHUB_TOKEN 推 ghcr（permissions: packages: write）
+# 镜像 musl 静态二进制 + Alpine 基础，体积小、原生兼容。
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "镜像 tag（如 latest、0.0.5）。留空则用 package.json 版本号 + latest"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write   # 推 ghcr 需要
+
+concurrency:
+  group: publish-ghcr
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/clearlove7zz/loongcode
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'Clearlove7Zz/LoongCode'
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - name: Read version from package.json
+        id: version
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "将使用版本: $v"
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Install deps
+        run: bun install
+
+      - name: Build x64-musl binary（Dockerfile 用 musl 二进制，配合 Alpine）
+        env:
+          LOONGCODE_VERSION: ${{ steps.version.outputs.version }}
+          LOONGCODE_CHANNEL: latest
+        run: ./packages/loongcode/script/build.ts --target=loongcode-linux-x64-baseline-musl
+
+      - name: Verify binary
+        run: |
+          B=packages/loongcode/dist/loongcode-linux-x64-baseline-musl/bin/loongcode
+          ls -lh "$B"
+          "$B" --version
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2a61f3ed659c5504fdd3 # v3.10.0
+
+      - name: Log in to ghcr
+        uses: docker/login-action@74a5d142397b4f21dbc6ea8407f3d2e2e8f339e7 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe1985713b1cd928 # v6.18.0
+        with:
+          context: packages/loongcode
+          file: packages/loongcode/Dockerfile
+          push: true
+          tags: |
+            ${{ inputs.tag != '' && format('{0}:{1}', env.IMAGE, inputs.tag) || format('{0}:{1}\n{0}:latest', env.IMAGE, steps.version.outputs.version) }}
+
+      - name: Show pushed image
+        run: |
+          echo "镜像已推到: $IMAGE"
+          echo "查看: https://github.com/Clearlove7Zz/LoongCode/pkgs/container/loongcode"
+
