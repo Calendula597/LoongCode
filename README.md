@@ -1,10 +1,6 @@
 <p align="center">
   <a href="https://modelhub.lgdg.cc">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.png" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.png" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
-    </picture>
+    <img src="https://raw.githubusercontent.com/Clearlove7Zz/LoongCode/dev/packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
   </a>
 </p>
 <p align="center">AI-powered development tool by Loongcode.</p>
@@ -105,4 +101,4 @@ If you are working on a project that's related to Loongcode and is using "loongc
 
 ---
 
-**Join our community** [Discord](https://discord.gg/loongcode) | [X.com](https://x.com/loongcode)
+**Join our community** [X.com](https://x.com/loongcode)

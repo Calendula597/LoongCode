@@ -1,15 +1,10 @@
 <p align="center">
   <a href="https://modelhub.lgdg.cc">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.png" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.png" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
-    </picture>
+    <img src="https://raw.githubusercontent.com/Clearlove7Zz/LoongCode/dev/packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
   </a>
 </p>
 <p align="center">开源的 AI Coding Agent。</p>
 <p align="center">
-  <a href="https://modelhub.lgdg.cc/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
   <a href="https://www.npmjs.com/package/loongcode"><img alt="npm" src="https://img.shields.io/npm/v/loongcode?style=flat-square" /></a>
   <a href="https://github.com/Clearlove7Zz/LoongCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Clearlove7Zz/LoongCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
