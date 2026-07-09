@@ -1,4 +1,4 @@
-name: build-desktop-win-arm64
+name: build-desktop-windows
 
 on:
   workflow_dispatch:
@@ -18,9 +18,12 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-11-arm
+    runs-on: windows-2022
+    if: github.repository == 'Clearlove7Zz/LoongCode'
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-bun
 
       - name: Read version from package.json
         id: version
@@ -30,16 +33,14 @@ jobs:
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "将使用版本: $v"
 
-      - uses: ./.github/actions/setup-bun
-
       - name: Build
         run: bun run build
         working-directory: packages/desktop
         env:
           LOONGCODE_CHANNEL: ${{ inputs.channel }}
 
-      - name: Package
-        run: npx electron-builder --win --arm64 --publish never --config electron-builder.config.ts
+      - name: Package (x64 + arm64 一次出双架构，生成单一含两架构的 latest.yml)
+        run: npx electron-builder --win --x64 --arm64 --publish never --config electron-builder.config.ts
         working-directory: packages/desktop
         env:
           LOONGCODE_CHANNEL: ${{ inputs.channel }}
@@ -47,17 +48,19 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: loongcode-desktop-win-arm64
+          name: loongcode-desktop-windows
           path: |
             packages/desktop/dist/*.exe
             packages/desktop/dist/*.blockmap
+            packages/desktop/dist/latest*.yml
           if-no-files-found: ignore
 
       - name: Upload to Release
+        if: ${{ true }}
         shell: bash
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         working-directory: packages/desktop/dist
-        # 传 exe 安装包 + latest*.yml（electron-updater 检查更新需要）
-        run: gh release upload "v${{ steps.version.outputs.version }}" *.exe latest*.yml --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+        # 传双架构 exe + 单个 latest.yml（含 x64 和 arm64 两架构，electron-updater 据此找匹配架构）
+        run: gh release upload "v${{ steps.version.outputs.version }}" *.exe latest.yml --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
