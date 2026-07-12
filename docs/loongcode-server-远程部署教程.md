@@ -51,7 +51,7 @@ Windows 桌面版  ──HTTP/WebSocket──▶  Linux 服务器 (loongcode ser
 
 ## 2. 服务器侧准备（首次部署）
 
-> **先看第 2.0 节**：有 5 种快捷安装方式可以跳过「git clone + bun install 4000+ 包」。能联网的 Linux x64 机器推荐方式一(npm)，最省事。
+> **先看第 2.0 节**：有 4 种快捷安装方式可以跳过「git clone + bun install 4000+ 包」。能联网的 Linux x64 机器推荐方式一(npm)，最省事。
 
 ### 2.0 快捷安装（推荐，跳过源码安装）
 
@@ -134,33 +134,27 @@ scp packages/loongcode/dist/loongcode-linux-x64/bin/loongcode root@10.18.23.241:
 ssh root@10.18.23.241 'chmod +x /usr/local/bin/loongcode && apt install -y ripgrep'
 ```
 
-> ⚠ `--single` 只编译**当前机器**的平台。Windows 上编不出 Linux 二进制，必须有 Linux 构建机。没有的话用方式二让 GitHub Actions 编。
-> 也可以不传 `--single`，会编译全部 12 个目标（含各 Linux/macOS/Windows 变体），慢但全。
+> ⚠ `--single` 只编译**当前机器**的平台。Windows 上编不出 Linux 二进制，必须有 Linux 构建机。没有的话用方式三让 GitHub Actions 编。
 
-#### 方式五：Docker 镜像（容器化部署）
+---
 
-发版后会有 `ghcr.io/clearlove7zz/loongcode:<版本>` 镜像（Alpine 基础，amd64+arm64，已含 ripgrep）。注意：此镜像由 `publish.yml` 流程产出（需密钥），`build-server-binary` 工作流**不产 Docker 镜像**；若 Releases 阶段还没推镜像，先用方式一/二/三/四。
+#### 桌面版安装（客户端，连远程 server 用）
 
-```bash
-# 拉镜像
-docker pull ghcr.io/clearlove7zz/loongcode:latest
+以上 4 种是**服务器端**装法。你本机（Windows/Mac）要装的是**桌面版客户端**——同样是 Release 里现成的安装包，下载双击装即可：```bash
+# 在 Linux 构建机上
+git clone -b dev https://github.com/Clearlove7Zz/LoongCode.git
+cd Loongcode
+bun install
+./packages/loongcode/script/build.ts --single
+# 产出：packages/loongcode/dist/loongcode-linux-x64/bin/loongcode
 
-# 起容器（--hostname 0.0.0.0 + 端口 + 密码 + 工作目录卷）
-docker run -d --name loongcode \
-  --restart on-failure \
-  -p 4096:4096 \
-  -e LOONGCODE_SERVER_PASSWORD='loongcode@241' \
-  -e LOONGCODE_SERVER_USERNAME='loongcode' \
-  -v /root/loongcode-data:/root \
-  ghcr.io/clearlove7zz/loongcode:latest \
-  serve --hostname 0.0.0.0 --port 4096
-
-# 健康检查
-curl -u loongcode:loongcode@241 http://127.0.0.1:4096/api/health
+# scp 到服务器
+scp packages/loongcode/dist/loongcode-linux-x64/bin/loongcode root@10.18.23.241:/usr/local/bin/loongcode
+ssh root@10.18.23.241 'chmod +x /usr/local/bin/loongcode && apt install -y ripgrep'
 ```
 
-> ENTRYPOINT 是 `loongcode`，CMD/参数传 `serve ...`。工作目录用 `-v` 挂载持久化。
-> 镜像名小写 `ghcr.io/clearlove7zz/loongcode`（GitHub Container Registry 自动小写）。
+> ⚠ `--single` 只编译**当前机器**的平台。Windows 上编不出 Linux 二进制，必须有 Linux 构建机。没有的话用方式二让 GitHub Actions 编。
+> 也可以不传 `--single`，会编译全部 12 个目标（含各 Linux/macOS/Windows 变体），慢但全。
 
 ---
 
