@@ -72,7 +72,8 @@ jobs:
           file: packages/loongcode/Dockerfile
           push: true
           tags: |
-            ${{ inputs.tag != '' && format('{0}:{1}', env.IMAGE, inputs.tag) || format('{0}:{1}\n{0}:latest', env.IMAGE, steps.version.outputs.version) }}
+            ghcr.io/clearlove7zz/loongcode:${{ steps.version.outputs.version }}
+            ghcr.io/clearlove7zz/loongcode:latest
 
       - name: Show pushed image
         run: |
