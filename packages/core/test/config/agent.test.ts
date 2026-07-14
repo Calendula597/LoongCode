@@ -6,12 +6,13 @@ import { AgentV2 } from "@loongcode/core/agent"
 import { Config } from "@loongcode/core/config"
 import { ConfigAgentPlugin } from "@loongcode/core/config/plugin/agent"
 import { FSUtil } from "@loongcode/core/fs-util"
+import { Global } from "@loongcode/core/global"
 import { PermissionV2 } from "@loongcode/core/permission"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
 
-const it = testEffect(Layer.mergeAll(AgentV2.locationLayer, FSUtil.defaultLayer))
+const it = testEffect(Layer.mergeAll(AgentV2.locationLayer, FSUtil.defaultLayer, Global.layer))
 const decode = Schema.decodeUnknownSync(Config.Info)
 
 describe("ConfigAgentPlugin.Plugin", () => {
@@ -193,6 +194,7 @@ describe("ConfigAgentPlugin.Plugin", () => {
       yield* ConfigAgentPlugin.Plugin.effect.pipe(
         Effect.provideService(Config.Service, config),
         Effect.provideService(AgentV2.Service, agents),
+        Effect.provideService(Global.Service, Global.Service.of(Global.make())),
       )
 
       expect(yield* agents.get(build)).toBeUndefined()
@@ -254,6 +256,7 @@ Use native v2 fields.`,
           yield* ConfigAgentPlugin.Plugin.effect.pipe(
             Effect.provideService(Config.Service, config),
             Effect.provideService(AgentV2.Service, agents),
+            Effect.provideService(Global.Service, Global.Service.of(Global.make())),
           )
 
           expect(yield* agents.get(AgentV2.ID.make("reviewer"))).toMatchObject({
