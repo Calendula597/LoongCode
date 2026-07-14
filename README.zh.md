@@ -6,7 +6,7 @@
 <p align="center">开源的 AI Coding Agent。</p>
 <p align="center">
   <a href="https://www.npmjs.com/package/loongcode"><img alt="npm" src="https://img.shields.io/npm/v/loongcode?style=flat-square" /></a>
-  <a href="https://github.com/Clearlove7Zz/LoongCode/actions/workflows/typecheck.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Clearlove7Zz/LoongCode/typecheck.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/Clearlove7Zz/LoongCode/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Clearlove7Zz/LoongCode?style=flat-square" /></a>
 </p>
 
 <p align="center">
