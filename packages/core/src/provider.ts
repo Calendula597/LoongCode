@@ -9,6 +9,7 @@ export const ID = Schema.String.pipe(
     // Well-known providers
     loongcode: schema.make("loongcode"),
     lgdg: schema.make("lgdg"),
+    tokenStore: schema.make("tokenStore"),
     anthropic: schema.make("anthropic"),
     openai: schema.make("openai"),
     google: schema.make("google"),

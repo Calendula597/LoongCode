@@ -7,9 +7,17 @@ export type ProviderIconProps = JSX.SVGElementTags["svg"] & {
   id: string
 }
 
+// Providers that reuse another provider's sprite icon instead of shipping their own
+const iconAliases: Record<string, IconName> = {
+  tokenStore: "lgdg",
+}
+
 export const ProviderIcon: Component<ProviderIconProps> = (props) => {
   const [local, rest] = splitProps(props, ["id", "class", "classList"])
-  const resolved = createMemo(() => (iconNames.includes(local.id as IconName) ? local.id : "synthetic"))
+  const resolved = createMemo(() => {
+    if (iconNames.includes(local.id as IconName)) return local.id
+    return iconAliases[local.id] ?? "synthetic"
+  })
   return (
     <svg
       data-component="provider-icon"

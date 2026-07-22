@@ -19,7 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-2022
-    if: github.repository == 'Clearlove7Zz/LoongCode'
+    if: github.repository == 'Calendula597/LoongCode'
     steps:
       - uses: actions/checkout@v4
 

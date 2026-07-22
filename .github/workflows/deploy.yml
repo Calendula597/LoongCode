@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   deploy:
-    if: github.repository == 'Clearlove7Zz/LoongCode' && (github.ref_name == 'dev' || github.ref_name == 'production')
+    if: github.repository == 'Calendula597/LoongCode' && (github.ref_name == 'dev' || github.ref_name == 'production')
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
     steps:

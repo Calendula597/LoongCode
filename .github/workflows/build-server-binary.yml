@@ -14,7 +14,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    if: github.repository == 'Clearlove7Zz/LoongCode'
+    if: github.repository == 'Calendula597/LoongCode'
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 

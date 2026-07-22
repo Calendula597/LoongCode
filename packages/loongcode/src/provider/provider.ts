@@ -344,6 +344,154 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         },
       }
     }),
+    tokenStore: Effect.fnUntraced(function* (input: Info) {
+      const env = yield* dep.env()
+      const auth = yield* dep.auth(input.id)
+      const hasKey = iife(() => {
+        if (input.env.some((item) => env[item])) return true
+        return false
+      })
+      const ok =
+        hasKey ||
+        Boolean(auth) ||
+        Boolean((yield* dep.config()).provider?.["tokenStore"]?.options?.apiKey)
+
+      const baseURL = input.options?.baseURL ?? "http://172.16.198.28:3000/v1"
+
+      return {
+        autoload: true,
+        options: {},
+        async getModel(sdk: any, modelID: string) {
+          if (!ok) {
+            const err = new Error("TokenStore 需要API密钥，请配置 TOKEN_STORE_API_KEY 环境变量") as Error & {
+              providerID?: string
+            }
+            err.name = "LoadAPIKeyError"
+            err.providerID = "tokenStore"
+            throw err
+          }
+          return sdk.chat?.(modelID) ?? sdk.languageModel(modelID)
+        },
+        async discoverModels(): Promise<Record<string, Model>> {
+          try {
+            const apiKey =
+              env["TOKEN_STORE_API_KEY"] ??
+              (auth?.type === "api" ? auth.key : undefined) ??
+              (typeof input.options?.apiKey === "string" ? input.options.apiKey : undefined)
+
+            const headers: Record<string, string> = { "Content-Type": "application/json" }
+            if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`
+
+            const response = await fetch(`${baseURL}/models`, {
+              method: "GET",
+              headers,
+              signal: AbortSignal.timeout(10_000),
+            })
+
+            if (!response.ok) return {}
+
+            const data = (await response.json()) as {
+              object: string
+              data?: Array<{
+                id: string
+                object: string
+                created: number
+                owned_by: string
+                task: string
+                metadata?: {
+                  is_csgbot_default_model?: boolean
+                  is_csgbot_model?: boolean
+                  llm_type?: string
+                  pricing?: {
+                    input_token_price?: { currency?: string; price_per_million?: number }
+                    output_token_price?: { currency?: string; price_per_million?: number }
+                  }
+                  tasks?: string[]
+                }
+                availability?: { is_available?: boolean }
+              }>
+            }
+
+            if (!data?.data) return {}
+
+            const models: Record<string, Model> = {}
+            for (const m of data.data) {
+              // TokenStore's /models omits availability; treat absent as available
+              if (m.availability && !m.availability.is_available) continue
+
+              const id = m.id
+              // Skip models that already exist to avoid duplicates from the API.
+              if (input.models[id]) continue
+
+              const pricing = m.metadata?.pricing
+              const inputPrice = pricing?.input_token_price?.price_per_million ?? 0
+              const outputPrice = pricing?.output_token_price?.price_per_million ?? 0
+
+              const tasks = m.metadata?.tasks ?? []
+              const hasVision = tasks.some((t) => t.toLowerCase().includes("image"))
+              const modelIdLower = id.toLowerCase()
+              const hasReasoning =
+                modelIdLower.includes("deepseek-r1") ||
+                modelIdLower.includes("deepseek-v4") ||
+                modelIdLower.includes("kimi-k2") ||
+                modelIdLower.includes("glm-5") ||
+                modelIdLower.includes("minimax")
+
+              models[id] = {
+                id: ModelV2.ID.make(id),
+                providerID: ProviderV2.ID.make("tokenStore"),
+                name: id,
+                family: "",
+                api: {
+                  id,
+                  url: baseURL,
+                  npm: "@ai-sdk/openai-compatible",
+                },
+                status: "active",
+                headers: {},
+                options: {},
+                cost: {
+                  input: inputPrice,
+                  output: outputPrice,
+                  cache: { read: 0, write: 0 },
+                },
+                limit: {
+                  context: 128000,
+                  input: 128000,
+                  output: 8192,
+                },
+                capabilities: {
+                  temperature: true,
+                  reasoning: hasReasoning,
+                  attachment: false,
+                  toolcall: true,
+                  input: {
+                    text: true,
+                    audio: false,
+                    image: hasVision,
+                    video: false,
+                    pdf: false,
+                  },
+                  output: {
+                    text: true,
+                    audio: false,
+                    image: false,
+                    video: false,
+                    pdf: false,
+                  },
+                  interleaved: false,
+                },
+                release_date: "",
+              }
+            }
+
+            return models
+          } catch {
+            return {}
+          }
+        },
+      }
+    }),
     openai: () =>
       Effect.succeed({
         autoload: false,
@@ -1219,7 +1367,14 @@ export function toPublicInfo(provider: Info): Info {
 }
 
 export function defaultModelIDs<T extends { models: Record<string, { id: string }> }>(providers: Record<string, T>) {
-  return mapValues(providers, (item) => sort(Object.values(item.models))[0].id)
+  // Providers kept visible without any discovered models (e.g. lgdg/tokenStore
+  // before a key is configured) have no default model; omit them.
+  return Object.fromEntries(
+    Object.entries(providers).flatMap(([id, item]) => {
+      const [model] = sort(Object.values(item.models))
+      return model ? [[id, model.id]] : []
+    }),
+  )
 }
 
 export class ModelNotFoundError extends Schema.TaggedErrorClass<ModelNotFoundError>()("ProviderModelNotFoundError", {
@@ -1462,6 +1617,21 @@ export const layer = Layer.effect(
             id: lgdgID,
             name: "LGDG_ModelHub",
             env: ["LG_CODE_API_KEY"],
+            source: "config",
+            options: {},
+            models: {},
+          }
+        }
+
+        // Add TokenStore as a built-in provider (temporary, mirrors the lgdg
+        // setup above). Models are fetched dynamically from its API so users
+        // can browse the catalog without a key. Requests still require a key.
+        const tokenStoreID = ProviderV2.ID.make("tokenStore")
+        if (!database[tokenStoreID]) {
+          database[tokenStoreID] = {
+            id: tokenStoreID,
+            name: "TokenStore",
+            env: ["TOKEN_STORE_API_KEY"],
             source: "config",
             options: {},
             models: {},
@@ -1775,8 +1945,8 @@ export const layer = Layer.effect(
           }
 
           if (Object.keys(provider.models).length === 0) {
-            // Always keep LGDG visible so users can discover and configure it
-            if (providerID !== lgdgID) {
+            // Always keep LGDG and TokenStore visible so users can discover and configure them
+            if (providerID !== lgdgID && providerID !== tokenStoreID) {
               delete providers[providerID]
             }
             continue
@@ -2037,7 +2207,7 @@ export const layer = Layer.effect(
         "gemini-2.5-flash",
         "gpt-5-nano",
       ]
-      const priority = providerID === "lgdg"
+      const priority = providerID === "lgdg" || providerID === "tokenStore"
         ? ["qwen3-30b-a3b", "deepseek-v4-flash"]
         : providerID.startsWith("loongcode")
           ? ["gpt-5-nano"]

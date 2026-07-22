@@ -1,6 +1,6 @@
 name: publish-ghcr
 
-# 构建单架构(amd64) loongcode server 镜像，推到 ghcr.io/clearlove7zz/loongcode
+# 构建单架构(amd64) loongcode server 镜像，推到 ghcr.io/Calendula597/LoongCode
 # 零额外密钥：用 Actions 自带 GITHUB_TOKEN 推 ghcr（permissions: packages: write）
 # 镜像 musl 静态二进制 + Alpine 基础，体积小、原生兼容。
 
@@ -21,12 +21,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/clearlove7zz/loongcode
+  IMAGE: ghcr.io/Calendula597/LoongCode
 
 jobs:
   publish:
     runs-on: ubuntu-24.04
-    if: github.repository == 'Clearlove7Zz/LoongCode'
+    if: github.repository == 'Calendula597/LoongCode'
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
@@ -72,11 +72,11 @@ jobs:
           file: packages/loongcode/Dockerfile
           push: true
           tags: |
-            ghcr.io/clearlove7zz/loongcode:${{ steps.version.outputs.version }}
-            ghcr.io/clearlove7zz/loongcode:latest
+            ghcr.io/Calendula597/LoongCode:${{ steps.version.outputs.version }}
+            ghcr.io/Calendula597/LoongCode:latest
 
       - name: Show pushed image
         run: |
           echo "镜像已推到: $IMAGE"
-          echo "查看: https://github.com/Clearlove7Zz/LoongCode/pkgs/container/loongcode"
+          echo "查看: https://github.com/Calendula597/LoongCode/pkgs/container/loongcode"
 
