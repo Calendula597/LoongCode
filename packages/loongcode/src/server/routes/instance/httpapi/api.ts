@@ -21,6 +21,7 @@ import { SessionApi } from "./groups/session"
 import { SyncApi } from "./groups/sync"
 import { TuiApi } from "./groups/tui"
 import { WorkspaceApi } from "./groups/workspace"
+import { SshDeployApi } from "./groups/ssh-deploy"
 import { Api } from "@loongcode/server/api"
 // GlobalEventSchema snapshots the registry after event-producing groups register their variants.
 import { GlobalApi } from "./groups/global"
@@ -41,10 +42,12 @@ const EventSchema = Schema.Union([
   InstanceDisposed,
 ]).annotate({ identifier: "Event" })
 
+// SSH Deploy is added to RootHttpApi because it doesn't need workspace routing
 export const RootHttpApi = HttpApi.make("loongcode-root")
   .addHttpApi(ControlApi)
   .addHttpApi(ControlPlaneApi)
   .addHttpApi(GlobalApi)
+  .addHttpApi(SshDeployApi)
   .middleware(SchemaErrorMiddleware)
   .middleware(Authorization)
 

@@ -1979,6 +1979,21 @@ export type Config = {
         }
   }
   /**
+   * SSH remote server connection configuration
+   */
+  remote_ssh?: {
+    enabled?: boolean
+    host?: string
+    port?: number
+    username?: string
+    private_key?: string
+    password?: string
+    remote_port?: number
+    local_port?: number
+    install_command?: string
+    auto_install?: boolean
+  }
+  /**
    * Enable or configure formatters. Omit or set to false to disable, true to enable built-ins, or an object to enable built-ins with overrides.
    */
   formatter?:
