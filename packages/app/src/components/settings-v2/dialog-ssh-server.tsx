@@ -8,6 +8,7 @@ import { useServerSync } from "@/context/server-sync"
 import { useServerSDK } from "@/context/server-sdk"
 import { ServerConnection, useServer } from "@/context/server"
 import { useCheckServerHealth } from "@/utils/server-health"
+import { authTokenFromCredentials } from "@/utils/server"
 import { XTermTerminal, writeLine, writeError, writeSuccess, writeInfo } from "./xterm-terminal"
 import type { Terminal } from "xterm"
 import "./settings-v2.css"
@@ -43,6 +44,20 @@ export const DialogSSHServer: Component<{}> = () => {
 
   const isFormValid = () => host().trim() && username().trim()
 
+  // The desktop sidecar always sets a server password, so raw fetch/EventSource
+  // calls must carry credentials explicitly (the SDK client does this automatically).
+  const serverAuthToken = () => {
+    const http = server.current?.http
+    if (!http?.password) return
+    return authTokenFromCredentials({ username: http.username, password: http.password })
+  }
+
+  const authHeaders = (): Record<string, string> => {
+    const token = serverAuthToken()
+    if (!token) return { "Content-Type": "application/json" }
+    return { "Content-Type": "application/json", Authorization: `Basic ${token}` }
+  }
+
   const handleConnect = async () => {
     if (!isFormValid()) return
 
@@ -61,7 +76,7 @@ export const DialogSSHServer: Component<{}> = () => {
       // Call SSH deploy API
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({
           host: host(),
           port: parseInt(port()) || 22,
@@ -97,12 +112,16 @@ export const DialogSSHServer: Component<{}> = () => {
       // Start installation
       await fetch(`${baseUrl}/ssh-deploy/install`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ sessionId }),
       })
 
-      // Subscribe to logs via SSE
-      const source = new EventSource(`${baseUrl}/ssh-deploy/logs?sessionId=${sessionId}`)
+      // EventSource cannot set headers, so credentials go in the auth_token query param
+      const logsUrl = new URL(`${baseUrl}/ssh-deploy/logs`)
+      logsUrl.searchParams.set("sessionId", sessionId)
+      const token = serverAuthToken()
+      if (token) logsUrl.searchParams.set("auth_token", token)
+      const source = new EventSource(logsUrl)
       setEventSource(source)
 
       source.onmessage = async (event) => {

@@ -18,7 +18,7 @@ await Bun.build({
   outdir: "./dist/node",
   format: "esm",
   sourcemap: "linked",
-  external: ["jsonc-parser", "@lydell/node-pty"],
+  external: ["jsonc-parser", "@lydell/node-pty", "cpu-features"],
   define: {
     LOONGCODE_MODELS_DEV: generated.modelsData,
     LOONGCODE_CHANNEL: `'${Script.channel}'`,
