@@ -5,7 +5,8 @@ import { Iterable, pipe } from "effect"
 import { createMemo } from "solid-js"
 
 export const popularProviders = [
-  "lgdg",
+  // lgdg (ModelHub) is deprecated
+  // "lgdg",
   "loongcode",
   "loongcode-go",
   "anthropic",

@@ -8,7 +8,8 @@ export const ID = Schema.String.pipe(
   withStatics((schema) => ({
     // Well-known providers
     loongcode: schema.make("loongcode"),
-    lgdg: schema.make("lgdg"),
+    // lgdg (ModelHub) is deprecated
+    // lgdg: schema.make("lgdg"),
     tokenStore: schema.make("tokenStore"),
     anthropic: schema.make("anthropic"),
     openai: schema.make("openai"),

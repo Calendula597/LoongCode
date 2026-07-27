@@ -62,5 +62,6 @@ export const deepinfra = define(profiles.deepinfra)
 export const deepseek = define(profiles.deepseek)
 export const fireworks = define(profiles.fireworks)
 export const groq = define(profiles.groq)
-export const lgdg = define(profiles.lgdg)
+// lgdg (ModelHub) is deprecated
+// export const lgdg = define(profiles.lgdg)
 export const togetherai = define(profiles.togetherai)

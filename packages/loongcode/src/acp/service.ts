@@ -780,11 +780,12 @@ function defaultModelFromConfig(
   if (configured && providers[configured.providerID]?.models[configured.modelID]) return configured
 
   // First-session ACP startup must not scan historical sessions just to infer
-  // a default. Configured model, lgdg provider, then sorted best model keep
+  // a default. Configured model, then sorted best model keep
   // the protocol response deterministic without extra session/message reads.
-  const lgdgProvider = providers[ProviderV2.ID.make("lgdg")]
-  const lgdgModel = lgdgProvider ? Provider.sort(Object.values(lgdgProvider.models))[0] : undefined
-  if (lgdgProvider && lgdgModel) return { providerID: lgdgProvider.id, modelID: lgdgModel.id }
+  // lgdg (ModelHub) is deprecated
+  // const lgdgProvider = providers[ProviderV2.ID.make("lgdg")]
+  // const lgdgModel = lgdgProvider ? Provider.sort(Object.values(lgdgProvider.models))[0] : undefined
+  // if (lgdgProvider && lgdgModel) return { providerID: lgdgProvider.id, modelID: lgdgModel.id }
 
   const best = Provider.sort(Object.values(providers).flatMap((provider) => Object.values(provider.models)))[0]
   if (best) return { providerID: best.providerID, modelID: best.id }

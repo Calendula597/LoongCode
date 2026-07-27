@@ -198,9 +198,10 @@ const SettingsProvidersContent: Component = () => {
                       <Show when={item.id === "loongcode"}>
                         <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
                       </Show>
-                      <Show when={item.id === "lgdg"}>
-                        <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
-                      </Show>
+                      {/* lgdg (ModelHub) is deprecated */}
+                      {/* <Show when={item.id === "lgdg"}> */}
+                      {/*   <Tag>{language.t("dialog.provider.tag.recommended")}</Tag> */}
+                      {/* </Show> */}
                       <Show when={item.id === "loongcode-go"}>
                         <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
                       </Show>

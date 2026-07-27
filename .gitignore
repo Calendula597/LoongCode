@@ -33,6 +33,13 @@ logs/
 *.bun-build
 tsconfig.tsbuildinfo
 
+# Branch-specific loongcode config directories
+.loongcode-memory/
+.loongcode-*/
+
+# Branch-specific XDG config home directories
+.config-*/
+
 # Local handover & session artifacts (do not commit; HANDOVER.md contains plaintext secrets)
 HANDOVER.md
 ghcr5.log

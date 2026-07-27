@@ -199,7 +199,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         options: ok ? {} : { apiKey: "public" },
       }
     }),
-    lgdg: Effect.fnUntraced(function* (input: Info) {
+    // lgdg (ModelHub) is deprecated
+    /* lgdg: Effect.fnUntraced(function* (input: Info) {
       const env = yield* dep.env()
       const hasKey = iife(() => {
         if (input.env.some((item) => env[item])) return true
@@ -343,7 +344,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           }
         },
       }
-    }),
+    }), */
     tokenStore: Effect.fnUntraced(function* (input: Info) {
       const env = yield* dep.env()
       const auth = yield* dep.auth(input.id)
@@ -356,14 +357,14 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         Boolean(auth) ||
         Boolean((yield* dep.config()).provider?.["tokenStore"]?.options?.apiKey)
 
-      const baseURL = input.options?.baseURL ?? "http://172.16.198.28:3000/v1"
+      const baseURL = input.options?.baseURL ?? "https://tokens.store/v1"
 
       return {
         autoload: true,
         options: {},
         async getModel(sdk: any, modelID: string) {
           if (!ok) {
-            const err = new Error("TokenStore 需要API密钥，请配置 TOKEN_STORE_API_KEY 环境变量") as Error & {
+            const err = new Error("灵拓·Tokens Store 需要API密钥，请配置 TOKEN_STORE_API_KEY 环境变量") as Error & {
               providerID?: string
             }
             err.name = "LoadAPIKeyError"
@@ -1367,7 +1368,7 @@ export function toPublicInfo(provider: Info): Info {
 }
 
 export function defaultModelIDs<T extends { models: Record<string, { id: string }> }>(providers: Record<string, T>) {
-  // Providers kept visible without any discovered models (e.g. lgdg/tokenStore
+  // Providers kept visible without any discovered models (e.g. tokenStore
   // before a key is configured) have no default model; omit them.
   return Object.fromEntries(
     Object.entries(providers).flatMap(([id, item]) => {
@@ -1608,29 +1609,30 @@ export const layer = Layer.effect(
         const catalog = mapValues(modelsDev, fromModelsDevProvider)
         const database = mapValues(catalog, toPublicInfo)
 
-        // Add LGdg (company model cluster) as a built-in provider.
-        // Models are always fetched dynamically from the modelhub API so users
-        // can browse the catalog without a key. Requests still require a key.
-        const lgdgID = ProviderV2.ID.make("lgdg")
-        if (!database[lgdgID]) {
-          database[lgdgID] = {
-            id: lgdgID,
-            name: "LGDG_ModelHub",
-            env: ["LG_CODE_API_KEY"],
-            source: "config",
-            options: {},
-            models: {},
-          }
-        }
+        // lgdg (ModelHub) is deprecated
+        // // Add LGdg (company model cluster) as a built-in provider.
+        // // Models are always fetched dynamically from the modelhub API so users
+        // // can browse the catalog without a key. Requests still require a key.
+        // const lgdgID = ProviderV2.ID.make("lgdg")
+        // if (!database[lgdgID]) {
+        //   database[lgdgID] = {
+        //     id: lgdgID,
+        //     name: "LGDG_ModelHub",
+        //     env: ["LG_CODE_API_KEY"],
+        //     source: "config",
+        //     options: {},
+        //     models: {},
+        //   }
+        // }
 
-        // Add TokenStore as a built-in provider (temporary, mirrors the lgdg
+        // Add TokenStore as a built-in provider (temporary, mirrors the deprecated lgdg
         // setup above). Models are fetched dynamically from its API so users
         // can browse the catalog without a key. Requests still require a key.
         const tokenStoreID = ProviderV2.ID.make("tokenStore")
         if (!database[tokenStoreID]) {
           database[tokenStoreID] = {
             id: tokenStoreID,
-            name: "TokenStore",
+            name: "灵拓·Tokens Store",
             env: ["TOKEN_STORE_API_KEY"],
             source: "config",
             options: {},
@@ -1945,8 +1947,9 @@ export const layer = Layer.effect(
           }
 
           if (Object.keys(provider.models).length === 0) {
-            // Always keep LGDG and TokenStore visible so users can discover and configure them
-            if (providerID !== lgdgID && providerID !== tokenStoreID) {
+            // Always keep TokenStore visible so users can discover and configure it
+            // lgdg (ModelHub) is deprecated
+            if (providerID !== tokenStoreID) {
               delete providers[providerID]
             }
             continue
@@ -2207,7 +2210,8 @@ export const layer = Layer.effect(
         "gemini-2.5-flash",
         "gpt-5-nano",
       ]
-      const priority = providerID === "lgdg" || providerID === "tokenStore"
+      // lgdg (ModelHub) is deprecated
+      const priority = providerID === "tokenStore"
         ? ["qwen3-30b-a3b", "deepseek-v4-flash"]
         : providerID.startsWith("loongcode")
           ? ["gpt-5-nano"]
@@ -2268,8 +2272,8 @@ export const layer = Layer.effect(
       }
 
       // Fall back to the first configured provider, then the best available model.
-      // This mirrors opencode's original behavior, with lgdg taking the "preferred"
-      // slot only in the ACP directory defaultModelFromConfig path.
+      // This mirrors opencode's original behavior, with no provider taking a
+      // "preferred" slot (lgdg/ModelHub is deprecated).
       const configured = Object.keys(cfg.provider ?? {})
       const provider = Object.values(s.providers).find(
         (p) => configured.length === 0 || configured.includes(p.id),

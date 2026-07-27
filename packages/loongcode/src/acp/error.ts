@@ -76,13 +76,12 @@ export function toRequestError(error: Error) {
     case "ACPInvalidModeError":
       return RequestError.invalidParams({ mode: error.mode }, `mode not found: ${error.mode}`)
     case "ACPAuthRequiredError": {
-      const isLgdg = error.providerId === ProviderV2.ID.make("lgdg")
+      // lgdg (ModelHub) is deprecated
+      // const isLgdg = error.providerId === ProviderV2.ID.make("lgdg")
       const isTokenStore = error.providerId === ProviderV2.ID.make("tokenStore")
-      const message = isLgdg
-        ? "LGDG_ModelHub 需要API密钥。请前往 https://modelhub.lgdg.cc 获取"
-        : isTokenStore
-          ? "TokenStore 需要API密钥，请配置 TOKEN_STORE_API_KEY 环境变量"
-          : "provider authentication required"
+      const message = isTokenStore
+        ? "灵拓·Tokens Store 需要API密钥，请配置 TOKEN_STORE_API_KEY 环境变量"
+        : "provider authentication required"
       return RequestError.authRequired({ providerId: error.providerId }, message)
     }
     case "ACPUnknownAuthMethodError":
