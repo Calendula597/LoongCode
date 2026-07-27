@@ -110,6 +110,40 @@ export const Info = Schema.Struct({
   mcp: Schema.optional(
     Schema.Record(Schema.String, Schema.Union([ConfigMCPV1.Info, Schema.Struct({ enabled: Schema.Boolean })])),
   ).annotate({ description: "MCP (Model Context Protocol) server configurations" }),
+  remote_ssh: Schema.optional(
+    Schema.Struct({
+      enabled: Schema.optional(Schema.Boolean).annotate({
+        description: "Enable SSH remote connection plugin (default: false)",
+      }),
+      host: Schema.optional(Schema.String).annotate({
+        description: "Remote server hostname or IP address",
+      }),
+      port: Schema.optional(Schema.Number).annotate({
+        description: "SSH port (default: 22)",
+      }),
+      username: Schema.optional(Schema.String).annotate({
+        description: "SSH username for authentication",
+      }),
+      private_key: Schema.optional(Schema.String).annotate({
+        description: "Path to SSH private key file (e.g., ~/.ssh/id_rsa)",
+      }),
+      password: Schema.optional(Schema.String).annotate({
+        description: "SSH password (use private_key instead for better security)",
+      }),
+      remote_port: Schema.optional(Schema.Number).annotate({
+        description: "Port for loongcode serve on remote server (default: 4096)",
+      }),
+      local_port: Schema.optional(Schema.Number).annotate({
+        description: "Local port for SSH tunnel (default: 4097)",
+      }),
+      install_command: Schema.optional(Schema.String).annotate({
+        description: "Custom command to install loongcode on remote server",
+      }),
+      auto_install: Schema.optional(Schema.Boolean).annotate({
+        description: "Automatically install loongcode if not found (default: true)",
+      }),
+    }),
+  ).annotate({ description: "SSH remote server connection configuration" }),
   formatter: Schema.optional(ConfigFormatterV1.Info).annotate({
     description:
       "Enable or configure formatters. Omit or set to false to disable, true to enable built-ins, or an object to enable built-ins with overrides.",
