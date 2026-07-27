@@ -1,24 +1,20 @@
-import { Effect, Data, Queue, Stream } from "effect"
+import { Effect, Queue, Stream } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
-import { HttpServerResponse, HttpServerRequest } from "effect/unstable/http"
+import { HttpServerResponse } from "effect/unstable/http"
 import * as Sse from "effect/unstable/encoding/Sse"
-import { SshDeployApi } from "../groups/ssh-deploy"
+import { RootHttpApi } from "../api"
+import { InvalidRequestError } from "../errors"
 import { randomUUID } from "node:crypto"
 import * as fs from "node:fs"
 import * as path from "node:path"
 import * as os from "node:os"
 import * as net from "node:net"
-import { Client } from "ssh2"
+import { Client, type ConnectConfig } from "ssh2"
 import { EventEmitter } from "node:events"
 
 const DEFAULT_SSH_PORT = 22
 const DEFAULT_REMOTE_PORT = 4096
 const DEFAULT_LOCAL_PORT = 4097
-
-// Define a proper error type
-class SSHDeployError extends Data.TaggedError("SSHDeployError")<{
-  readonly message: string
-}> {}
 
 interface SSHSession {
   id: string
@@ -85,7 +81,7 @@ function connectSSH(session: SSHSession): Promise<Client> {
   return new Promise((resolve, reject) => {
     const client = new Client()
 
-    const config: ConstructorParameters<typeof Client>[0] = {
+    const config: ConnectConfig = {
       host: session.host,
       port: session.port,
       username: session.username,
@@ -204,7 +200,7 @@ function establishTunnel(session: SSHSession, client: Client): Promise<{ localPo
               console.error("[SSH Deploy] Local socket error:", e)
               channel.destroy()
             })
-            channel.on("error", (e) => {
+            channel.on("error", (e: Error) => {
               console.error("[SSH Deploy] Channel error:", e)
               localSocket.destroy()
             })
@@ -316,8 +312,8 @@ async function verifyTunnel(localPort: number, attempts = 10): Promise<{ ok: boo
   return { ok: false, reason }
 }
 
-// Helper to create error effect
-const sshError = (message: string) => new SSHDeployError({ message })
+// Helper to create a bad request error effect
+const badRequest = (message: string) => new InvalidRequestError({ message })
 
 // SSE event data
 function sseEvent(data: unknown): Sse.Event {
@@ -329,7 +325,7 @@ function sseEvent(data: unknown): Sse.Event {
   }
 }
 
-export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy", (handlers) =>
+export const sshDeployHandlers = HttpApiBuilder.group(RootHttpApi, "ssh-deploy", (handlers) =>
   Effect.gen(function* () {
     const connect = Effect.fn("SshDeploy.connect")(function* (ctx: { payload: any }) {
       console.log("[SSH Deploy] Connect request received:", { ...ctx.payload, password: "***" })
@@ -338,10 +334,10 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
 
       // Validate required fields
       if (!payload.host) {
-        return yield* Effect.fail(sshError("Host is required"))
+        return yield* Effect.fail(badRequest("Host is required"))
       }
       if (!payload.username) {
-        return yield* Effect.fail(sshError("Username is required"))
+        return yield* Effect.fail(badRequest("Username is required"))
       }
 
       const sessionId = randomUUID()
@@ -376,14 +372,14 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
             errorMsg = "Host not found. Please check the hostname or IP address."
           }
 
-          return sshError(`Connection failed: ${errorMsg}`)
+          return badRequest(`Connection failed: ${errorMsg}`)
         },
       })
 
       // Test execute a simple command
       const testResult = yield* Effect.tryPromise({
         try: () => execSSH(client, "echo CONNECTION_OK", 10000),
-        catch: (error) => sshError(`Command execution failed: ${error}`),
+        catch: (error) => badRequest(`Command execution failed: ${error}`),
       })
 
       if (testResult.stdout.includes("CONNECTION_OK")) {
@@ -415,7 +411,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
 
       // Close connection if test failed
       client.end()
-      return yield* Effect.fail(sshError(`Connection test failed: ${testResult.stderr || "Unknown error"}`))
+      return yield* Effect.fail(badRequest(`Connection test failed: ${testResult.stderr || "Unknown error"}`))
     })
 
     const install = Effect.fn("SshDeploy.install")(function* (ctx: { payload: { sessionId: string } }) {
@@ -425,7 +421,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
       const session = sessions.get(sessionId)
 
       if (!session || !session.client) {
-        return yield* Effect.fail(sshError("Session not found or not connected"))
+        return yield* Effect.fail(badRequest("Session not found or not connected"))
       }
 
       const client = session.client
@@ -659,7 +655,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
       const session = sessions.get(sessionId)
 
       if (!session || !session.client) {
-        return yield* Effect.fail(sshError("Session not found or not connected"))
+        return yield* Effect.fail(badRequest("Session not found or not connected"))
       }
 
       const client = session.client
@@ -667,7 +663,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
       // Kill existing loongcode serve process (bracket trick avoids pkill matching itself)
       yield* Effect.tryPromise({
         try: () => execSSH(client, `pkill -f "[l]oongcode serve" || true`, 10000),
-        catch: (error) => sshError(`Failed to kill existing process: ${error}`),
+        catch: (error) => badRequest(`Failed to kill existing process: ${error}`),
       })
 
       // Start loongcode serve via a login shell so the global npm bin dir is on PATH
@@ -678,7 +674,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
             `nohup bash -lc "loongcode serve --hostname 0.0.0.0 --port ${DEFAULT_REMOTE_PORT}" > /tmp/loongcode-serve.log 2>&1 &`,
             10000,
           ),
-        catch: (error) => sshError(`Failed to start service: ${error}`),
+        catch: (error) => badRequest(`Failed to start service: ${error}`),
       })
 
       // Wait for service to start
@@ -689,11 +685,11 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
 
       const tunnelResult = yield* Effect.tryPromise({
         try: () => establishTunnel(session, client),
-        catch: (error) => sshError(`Failed to establish tunnel: ${error}`),
+        catch: (error) => badRequest(`Failed to establish tunnel: ${error}`),
       })
 
       if (!tunnelResult.localPort) {
-        return yield* Effect.fail(sshError(tunnelResult.error ?? "Failed to establish tunnel"))
+        return yield* Effect.fail(badRequest(tunnelResult.error ?? "Failed to establish tunnel"))
       }
 
       console.log("[SSH Deploy] Tunnel established on port", tunnelResult.localPort)
@@ -725,70 +721,8 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
     })
 
     // SSE logs endpoint using handleRaw
-    const logs = Effect.fn("SshDeploy.logs")(function* () {
-      // Get sessionId from query parameters
-      const request = yield* HttpServerRequest.HttpServerRequest
-      const url = new URL(request.url, `http://${request.headers.host || "localhost"}`)
-      const sessionId = url.searchParams.get("sessionId")
-
-      console.log("[SSH Deploy] Logs endpoint called with sessionId:", sessionId)
-
-      if (!sessionId) {
-        return HttpServerResponse.json({ error: "sessionId is required" }, { status: 400 })
-      }
-
-      const emitter = logEmitters.get(sessionId)
-
-      if (!emitter) {
-        // Session not found, return error
-        return HttpServerResponse.json({ error: "Session not found" }, { status: 404 })
-      }
-
-      console.log("[SSH Deploy] Creating SSE stream for session:", sessionId)
-
-      // Create log stream from EventEmitter using Stream.callback (same pattern as event.ts)
-      const logStream = Stream.callback<LogEvent>((queue) => {
-        const onLog = (event: LogEvent) => {
-          Queue.offerUnsafe(queue, event)
-        }
-        emitter.on("log", onLog)
-        return Effect.acquireRelease(
-          Effect.sync(() => {
-            // Listener is already registered above
-          }),
-          () => Effect.sync(() => {
-            emitter.off("log", onLog)
-          }),
-        )
-      })
-
-      // Create heartbeat stream (same pattern as event.ts)
-      const heartbeat = Stream.tick("10 seconds").pipe(
-        Stream.drop(1),
-        Stream.map(() => ({ type: "heartbeat" as const })),
-      )
-
-      // Merge log stream with heartbeat
-      const output = logStream.pipe(
-        Stream.merge(heartbeat, { haltStrategy: "left" }),
-        Stream.map(sseEvent),
-      )
-
-      // Start with initial heartbeat, then output
-      const stream = Stream.make(sseEvent({ type: "heartbeat" })).pipe(
-        Stream.concat(output),
-        Stream.pipeThroughChannel(Sse.encode()),
-        Stream.encodeText,
-      )
-
-      return HttpServerResponse.stream(stream, {
-        contentType: "text/event-stream",
-        headers: {
-          "Cache-Control": "no-cache, no-transform",
-          "X-Accel-Buffering": "no",
-          "X-Content-Type-Options": "nosniff",
-        },
-      })
+    const logs = Effect.fn("SshDeploy.logs")(function* (ctx: { query: { sessionId: string } }) {
+      return yield* logsResponse(ctx.query.sessionId)
     })
 
     return handlers
@@ -799,3 +733,66 @@ export const sshDeployHandlers = HttpApiBuilder.group(SshDeployApi, "ssh-deploy"
       .handleRaw("logs", logs)
   }),
 )
+
+function logsResponse(sessionId: string) {
+  return Effect.gen(function* () {
+    console.log("[SSH Deploy] Logs endpoint called with sessionId:", sessionId)
+
+    if (!sessionId) {
+      return HttpServerResponse.jsonUnsafe({ error: "sessionId is required" }, { status: 400 })
+    }
+
+    const emitter = logEmitters.get(sessionId)
+
+    if (!emitter) {
+      // Session not found, return error
+      return HttpServerResponse.jsonUnsafe({ error: "Session not found" }, { status: 404 })
+    }
+
+    console.log("[SSH Deploy] Creating SSE stream for session:", sessionId)
+
+    // Create log stream from EventEmitter using Stream.callback (same pattern as event.ts)
+    const logStream = Stream.callback<LogEvent>((queue) => {
+      const onLog = (event: LogEvent) => {
+        Queue.offerUnsafe(queue, event)
+      }
+      emitter.on("log", onLog)
+      return Effect.acquireRelease(
+        Effect.sync(() => {
+          // Listener is already registered above
+        }),
+        () => Effect.sync(() => {
+          emitter.off("log", onLog)
+        }),
+      )
+    })
+
+    // Create heartbeat stream (same pattern as event.ts)
+    const heartbeat = Stream.tick("10 seconds").pipe(
+      Stream.drop(1),
+      Stream.map(() => ({ type: "heartbeat" as const })),
+    )
+
+    // Merge log stream with heartbeat
+    const output = logStream.pipe(
+      Stream.merge(heartbeat, { haltStrategy: "left" }),
+      Stream.map(sseEvent),
+    )
+
+    // Start with initial heartbeat, then output
+    const stream = Stream.make(sseEvent({ type: "heartbeat" })).pipe(
+      Stream.concat(output),
+      Stream.pipeThroughChannel(Sse.encode()),
+      Stream.encodeText,
+    )
+
+    return HttpServerResponse.stream(stream, {
+      contentType: "text/event-stream",
+      headers: {
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+        "X-Content-Type-Options": "nosniff",
+      },
+    })
+  })
+}

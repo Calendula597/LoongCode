@@ -1,6 +1,7 @@
 import { Schema } from "effect"
-import { HttpApi, HttpApiEndpoint, HttpApiError, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/unstable/httpapi"
+import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/unstable/httpapi"
 import { Authorization } from "../middleware/authorization"
+import { InvalidRequestError } from "../errors"
 import { described } from "./metadata"
 
 const root = "/ssh-deploy"
@@ -22,28 +23,28 @@ export const SshDeployApi = HttpApi.make("ssh-deploy").add(
           privateKey: Schema.optional(Schema.String),
         }),
         success: described(SSHDeploySession, "SSH session created"),
-        error: HttpApiError.BadRequest,
+        error: InvalidRequestError,
       }),
       HttpApiEndpoint.post("install", `${root}/install`, {
         payload: Schema.Struct({
           sessionId: Schema.String,
         }),
         success: described(Schema.Boolean, "Installation started"),
-        error: HttpApiError.BadRequest,
+        error: InvalidRequestError,
       }),
       HttpApiEndpoint.post("start", `${root}/start`, {
         payload: Schema.Struct({
           sessionId: Schema.String,
         }),
         success: described(Schema.Boolean, "Service started"),
-        error: HttpApiError.BadRequest,
+        error: InvalidRequestError,
       }),
       HttpApiEndpoint.post("disconnect", `${root}/disconnect`, {
         payload: Schema.Struct({
           sessionId: Schema.String,
         }),
         success: described(Schema.Boolean, "Disconnected"),
-        error: HttpApiError.BadRequest,
+        error: InvalidRequestError,
       }),
       // SSE logs endpoint - returns text/event-stream
       HttpApiEndpoint.get("logs", `${root}/logs`, {
