@@ -137,7 +137,7 @@ function getConfig() {
         appId,
         productName: "Loongcode Beta",
         protocols: { name: "Loongcode Beta", schemes: ["loongcode"] },
-        publish: { provider: "github", owner: "Clearlove7Zz", repo: "LoongCode", channel: "latest" },
+        publish: { provider: "github", owner: "Calendula597", repo: "LoongCode", channel: "latest" },
         rpm: { packageName: "loongcode-beta" },
       }
     }
@@ -147,7 +147,7 @@ function getConfig() {
         appId,
         productName: "Loongcode",
         protocols: { name: "Loongcode", schemes: ["loongcode"] },
-        publish: { provider: "github", owner: "Clearlove7Zz", repo: "LoongCode", channel: "latest" },
+        publish: { provider: "github", owner: "Calendula597", repo: "LoongCode", channel: "latest" },
         deb: { fpm: [legacyDesktopEntryFpm] },
         rpm: { packageName: "loongcode", fpm: [legacyDesktopEntryFpm] },
       }

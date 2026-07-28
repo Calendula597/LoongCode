@@ -57,6 +57,13 @@ brew install --cask loongcode-desktop
 scoop bucket add extras; scoop install extras/loongcode-desktop
 ```
 
+> [!IMPORTANT]
+> **macOS 用户**：桌面版未进行 Apple 签名和公证。首次打开时 macOS 可能提示“已损坏，无法打开”，这是 Gatekeeper 对未签名应用的拦截，应用本身没有问题。安装后在终端执行一次以下命令即可正常打开：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/Loongcode.app
+> ```
+
 #### 安装目录
 
 安装脚本按照以下优先级决定安装路径：

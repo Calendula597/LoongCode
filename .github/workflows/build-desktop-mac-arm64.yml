@@ -62,3 +62,25 @@ jobs:
         working-directory: packages/desktop/dist
         # 传 dmg 安装包 + latest*.yml（electron-updater 检查更新需要）
         run: gh release upload "v${{ steps.version.outputs.version }}" *.dmg latest*.yml --clobber --repo "$GH_REPO" || echo "(无文件或上传失败，看上面日志)"
+
+      - name: Add macOS install note to Release
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        # 应用未签名/未公证，在 Release 说明里注明 xattr 去隔离命令
+        run: |
+          cat > /tmp/release-notes.md <<'EOF'
+          ## macOS 安装说明 / Installation Notes
+
+          本应用未进行 Apple 签名和公证。首次打开时 macOS 可能提示“已损坏，无法打开”（"is damaged and can't be opened"），这是 Gatekeeper 对未签名应用的拦截，应用本身没有问题。
+
+          安装后在终端执行一次以下命令即可正常打开：
+
+          ```bash
+          sudo xattr -rd com.apple.quarantine /Applications/Loongcode.app
+          ```
+
+          This app is not signed or notarized by Apple. If macOS reports it "is damaged and can't be opened" on first launch, run the command above once to remove the quarantine attribute.
+          EOF
+          gh release edit "v${{ steps.version.outputs.version }}" --notes-file /tmp/release-notes.md --repo "$GH_REPO" || echo "(notes 更新失败，看上面日志)"

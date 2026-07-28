@@ -57,6 +57,13 @@ brew install --cask loongcode-desktop
 scoop bucket add extras; scoop install extras/loongcode-desktop
 ```
 
+> [!IMPORTANT]
+> **macOS users**: the desktop app is not signed or notarized by Apple. On first launch macOS may report the app "is damaged and can't be opened" — this is Gatekeeper blocking unsigned apps; the app itself is fine. After installing, run the following command once in a terminal:
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/Loongcode.app
+> ```
+
 #### Installation Directory
 
 The install script respects the following priority order for the installation path:
