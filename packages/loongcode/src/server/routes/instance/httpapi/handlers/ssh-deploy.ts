@@ -14,6 +14,13 @@ import { EventEmitter } from "node:events"
 
 const DEFAULT_SSH_PORT = 22
 const DEFAULT_REMOTE_PORT = 4096
+
+// Remote commands run in a non-interactive SSH shell where user-level
+// toolchains are not on PATH: nvm is only loaded from ~/.bashrc for
+// interactive shells (Ubuntu's default .bashrc returns early otherwise), and
+// ~/.local/bin comes from profile files that non-login shells skip. Bootstrap
+// PATH explicitly so node/npm installed via nvm or local prefixes are found.
+const PATH_BOOTSTRAP = `export PATH="$HOME/.local/bin:$PATH"; export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1; `
 const DEFAULT_LOCAL_PORT = 4097
 
 interface SSHSession {
@@ -449,8 +456,9 @@ export const sshDeployHandlers = HttpApiBuilder.group(RootHttpApi, "ssh-deploy",
           // Check/install Node.js
           console.log("[SSH Deploy] Sending step: installing-nodejs")
           sendLog(sessionId, { type: "step", step: "installing-nodejs", progress: 10 })
-          const nodeResult = await execSSH(client, "which node || echo NOT_FOUND")
-          if (nodeResult.stdout.includes("NOT_FOUND")) {
+          const nodeResult = await execSSH(client, `${PATH_BOOTSTRAP}which node || echo NOT_FOUND`)
+          const nodeMissing = nodeResult.stdout.includes("NOT_FOUND")
+          if (nodeMissing) {
             console.log("[SSH Deploy] Node.js not found, installing...")
             sendLog(sessionId, { type: "log", message: "Installing Node.js..." })
             if (os === "ubuntu") {
@@ -468,10 +476,33 @@ export const sshDeployHandlers = HttpApiBuilder.group(RootHttpApi, "ssh-deploy",
             } else if (os === "nixos") {
               await execSSH(client, "nix-env -iA nixpkgs.nodejs", 300000)
             }
-            sendLog(sessionId, { type: "log", message: "Node.js installed successfully" })
           } else {
             sendLog(sessionId, { type: "log", message: "Node.js already installed" })
           }
+
+          // Ubuntu's stock nodejs package splits npm out, and the nodesource
+          // script can fail silently (leaving a distro node without npm), so
+          // verify both binaries and install npm directly as a fallback.
+          const npmResult = await execSSH(client, `${PATH_BOOTSTRAP}which npm || echo NPM_NOT_FOUND`, 10000)
+          if (npmResult.stdout.includes("NPM_NOT_FOUND")) {
+            sendLog(sessionId, { type: "log", message: "npm not found, installing..." })
+            if (os === "ubuntu") {
+              await execSSH(client, "sudo -E apt-get install -y npm", 300000)
+            } else if (os === "centos") {
+              await execSSH(client, "sudo -E yum install -y npm", 300000)
+            } else if (os === "nixos") {
+              await execSSH(client, "nix-env -iA nixpkgs.nodejs", 300000)
+            }
+          }
+          const nodeVerify = await execSSH(client, `${PATH_BOOTSTRAP}which node && which npm || echo NOT_FOUND`, 10000)
+          if (nodeVerify.stdout.includes("NOT_FOUND")) {
+            sendLog(sessionId, {
+              type: "error",
+              message: "Node.js/npm is not available after installation; please install Node.js 20+ (with npm) manually and retry",
+            })
+            return
+          }
+          if (nodeMissing) sendLog(sessionId, { type: "log", message: "Node.js installed successfully" })
 
           // Install ripgrep (runtime dependency used by the server for code search)
           console.log("[SSH Deploy] Checking ripgrep")
@@ -490,7 +521,7 @@ export const sshDeployHandlers = HttpApiBuilder.group(RootHttpApi, "ssh-deploy",
           sendLog(sessionId, { type: "step", step: "installing-loongcode", progress: 50 })
           console.log("[SSH Deploy] Installing LoongCode...")
           sendLog(sessionId, { type: "log", message: "Installing LoongCode..." })
-          const installResult = await execSSH(client, "npm install -g loongcode", 120000)
+          const installResult = await execSSH(client, `${PATH_BOOTSTRAP}npm install -g loongcode`, 120000)
           if (installResult.code !== 0) {
             sendLog(sessionId, { type: "error", message: `Failed to install LoongCode: ${installResult.stderr}` })
             return

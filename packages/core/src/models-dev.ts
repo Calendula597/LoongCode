@@ -226,7 +226,16 @@ export const layer = Layer.effect(
         }),
       )
       return JSON.parse(text) as Record<string, Provider>
-    }).pipe(Effect.withSpan("ModelsDev.populate"), Effect.orDie)
+    }).pipe(
+      // Stale caches and custom LOONGCODE_MODELS_URL catalogs may contain
+      // providers without an env array; default it so consumers like
+      // ModelsDevPlugin.refresh don't crash during plugin boot.
+      Effect.map((data) =>
+        Object.fromEntries(Object.entries(data).map(([id, item]) => [id, { ...item, env: item.env ?? [] }])),
+      ),
+      Effect.withSpan("ModelsDev.populate"),
+      Effect.orDie,
+    )
 
     const [cachedGet, invalidate] = yield* Effect.cachedInvalidateWithTTL(populate, Duration.infinity)
 
