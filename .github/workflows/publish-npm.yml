@@ -66,6 +66,6 @@ jobs:
           # 拷贝 LICENSE 到打包目录
           cp "$GITHUB_WORKSPACE/LICENSE" .
           # 用 node 写自包含 package.json：bin 直接指向包内二进制
-          node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode",version:process.env.PKG_VERSION,description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"./bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
+          node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode",version:process.env.PKG_VERSION,description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
           cat package.json
           npm publish --access public
