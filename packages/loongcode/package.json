@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "0.0.62",
+  "version": "0.0.63",
   "name": "loongcode",
   "type": "module",
   "license": "MIT",
