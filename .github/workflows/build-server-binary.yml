@@ -28,7 +28,8 @@ jobs:
       - uses: ./.github/actions/setup-bun
 
       - name: Install deps
-        run: bun install
+        # hoisted linker：规避 isolated linker 在变体符号链接目录上的解析 bug（EISDIR @babel/traverse）
+        run: bun install --linker hoisted
 
       - name: Create release (if missing)
         env:
