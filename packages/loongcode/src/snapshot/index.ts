@@ -743,7 +743,11 @@ export const layer: Layer.Layer<Service, never, FSUtil.Service | AppProcess.Serv
                   const hit = text?.get(row.file) ?? { before: "", after: "" }
                   const [before, after] = row.binary ? ["", ""] : text ? [hit.before, hit.after] : yield* show(row)
                   result.push({
-                    file: row.file,
+                    // git paths are worktree-relative; re-root them to the
+                    // instance directory (rows are already constrained to it
+                    // by the `-- .` pathspec) so consumers can treat them as
+                    // project-relative.
+                    file: path.relative(state.directory, path.join(state.worktree, row.file)).replaceAll("\\", "/"),
                     patch: row.binary ? "" : patch(row.file, before, after),
                     additions: row.additions,
                     deletions: row.deletions,

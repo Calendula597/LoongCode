@@ -6,6 +6,17 @@ import { Watcher } from "@loongcode/core/filesystem/watcher"
 import { Git } from "@/git"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { EventV2 } from "@loongcode/core/event"
+import path from "path"
+
+// git reports paths relative to the worktree root, but consumers (file tree,
+// review, file tabs) treat them as relative to the instance directory. When a
+// project is opened at a subdirectory of the repo, re-root paths to the
+// instance directory and drop files outside it.
+const reRoot = (ctx: { directory: string; worktree: string }, file: string) => {
+  const rel = path.relative(ctx.directory, path.resolve(ctx.worktree, file)).replaceAll("\\", "/")
+  if (rel === "" || rel.startsWith("..") || path.isAbsolute(rel)) return
+  return rel
+}
 
 const PATCH_CONTEXT_LINES = 2_147_483_647
 const MAX_PATCH_BYTES = 10_000_000
@@ -360,7 +371,7 @@ export const layer: Layer.Layer<Service, never, Git.Service | EventV2Bridge.Serv
           { concurrency: 2 },
         )
         const map = nums(stats)
-        return yield* Effect.forEach(
+        const items = yield* Effect.forEach(
           list.toSorted((a, b) => a.file.localeCompare(b.file)),
           (item) =>
             Effect.gen(function* () {
@@ -375,20 +386,36 @@ export const layer: Layer.Layer<Service, never, Git.Service | EventV2Bridge.Serv
               } satisfies FileStatus
             }),
         )
+        return items.flatMap((item) => {
+          const file = reRoot(ctx, item.file)
+          return file === undefined ? [] : [{ ...item, file }]
+        })
       }),
       diff: Effect.fn("Vcs.diff")(function* (mode: Mode, options?: DiffOptions) {
         const value = yield* InstanceState.get(state)
         const ctx = yield* InstanceState.context
         if (ctx.project.vcs !== "git") return []
+        const reRooted = (items: FileDiff[]) =>
+          items.flatMap((item) => {
+            const file = reRoot(ctx, item.file)
+            return file === undefined ? [] : [{ ...item, file }]
+          })
         if (mode === "git") {
-          return yield* track(git, ctx.directory, (yield* git.hasHead(ctx.directory)) ? "HEAD" : undefined, options)
+          const items = yield* track(
+            git,
+            ctx.directory,
+            (yield* git.hasHead(ctx.directory)) ? "HEAD" : undefined,
+            options,
+          )
+          return reRooted(items)
         }
 
         if (!value.root) return []
         if (value.current && value.current === value.root.name) return []
         const ref = yield* git.mergeBase(ctx.directory, value.root.ref)
         if (!ref) return []
-        return yield* diffAgainstRef(git, ctx.directory, ref, options)
+        const items = yield* diffAgainstRef(git, ctx.directory, ref, options)
+        return reRooted(items)
       }),
       diffRaw: Effect.fn("Vcs.diffRaw")(function* () {
         const ctx = yield* InstanceState.context
