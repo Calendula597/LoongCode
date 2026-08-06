@@ -31,6 +31,8 @@ export async function spawnWslSidecar(
     "export WSLENV=",
     "export LOONGCODE_EXPERIMENTAL_DISABLE_FILEWATCHER=true",
     "export LOONGCODE_CLIENT=desktop",
+    "export HF_ENDPOINT=https://hf-mirror.com",
+    "export HF_HUB_OFFLINE=1",
     `export LOONGCODE_SERVER_USERNAME=${shellEscape(username)}`,
     `export LOONGCODE_SERVER_PASSWORD=${shellEscape(password)}`,
     'export XDG_STATE_HOME="$HOME/.local/state"',

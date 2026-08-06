@@ -364,6 +364,23 @@ export const SettingsGeneral: Component = () => {
             />
           </div>
         </SettingsRow>
+
+        <SettingsRow
+          title={language.t("settings.general.row.memory.title")}
+          description={
+            (serverSync().data.config as Record<string, unknown>).memory_downloading
+              ? "embedding model downloading..."
+              : language.t("settings.general.row.memory.description")
+          }
+        >
+          <div data-action="settings-memory">
+            <Switch
+              checked={serverSync().data.config.memory !== false}
+              disabled={(serverSync().data.config as Record<string, unknown>).memory_downloading === true}
+              onChange={(checked) => serverSync().updateConfig({ memory: checked })}
+            />
+          </div>
+        </SettingsRow>
       </SettingsList>
     </div>
   )

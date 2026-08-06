@@ -592,6 +592,8 @@ export const dict = {
     "إظهار أجزاء أدوات edit و write و patch موسعة بشكل افتراضي في الشريط الزمني",
   "settings.general.row.showSessionProgressBar.title": "إظهار شريط تقدم الجلسة",
   "settings.general.row.showSessionProgressBar.description": "عرض شريط التقدم المتحرك أعلى الجلسة أثناء عمل الوكيل",
+  "settings.general.row.memory.title": "الذاكرة",
+  "settings.general.row.memory.description": "تمكين المكون الإضافي المدمج للذاكرة (opencode-mem)",
   "settings.general.row.wayland.title": "استخدام Wayland الأصلي",
   "settings.general.row.wayland.description": "تعطيل التراجع إلى X11 على Wayland. يتطلب إعادة التشغيل.",
   "settings.general.row.wayland.tooltip":

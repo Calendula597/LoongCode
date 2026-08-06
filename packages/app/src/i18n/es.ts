@@ -670,6 +670,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Mostrar barra de progreso de la sesión",
   "settings.general.row.showSessionProgressBar.description":
     "Mostrar la barra de progreso animada en la parte superior de la sesión cuando el agente esté trabajando",
+  "settings.general.row.memory.title": "Memoria",
+  "settings.general.row.memory.description": "Habilitar el complemento de memoria integrado (opencode-mem)",
   "settings.general.row.wayland.title": "Usar Wayland nativo",
   "settings.general.row.wayland.description": "Deshabilitar fallback a X11 en Wayland. Requiere reinicio.",
   "settings.general.row.wayland.tooltip":

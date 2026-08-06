@@ -594,6 +594,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "세션 진행 표시줄 표시",
   "settings.general.row.showSessionProgressBar.description":
     "에이전트가 작업 중일 때 세션 상단에 애니메이션 진행 표시줄을 표시합니다",
+  "settings.general.row.memory.title": "메모리",
+  "settings.general.row.memory.description": "내장 메모리 플러그인(opencode-mem) 활성화",
   "settings.general.row.wayland.title": "네이티브 Wayland 사용",
   "settings.general.row.wayland.description": "Wayland에서 X11 폴백을 비활성화합니다. 다시 시작해야 합니다.",
   "settings.general.row.wayland.tooltip":

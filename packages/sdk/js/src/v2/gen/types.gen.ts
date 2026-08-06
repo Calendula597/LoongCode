@@ -1940,6 +1940,7 @@ export type Config = {
         },
       ]
   >
+  memory?: boolean
   share?: "manual" | "auto" | "disabled"
   autoshare?: boolean
   /**
@@ -1978,18 +1979,24 @@ export type Config = {
           enabled: boolean
         }
   }
-  /**
-   * SSH remote server connection configuration
-   */
   remote_ssh?: {
     enabled?: boolean
     host?: string
-    port?: number
+    /**
+     * SSH port (default: 22)
+     */
+    port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
     username?: string
     private_key?: string
     password?: string
-    remote_port?: number
-    local_port?: number
+    /**
+     * Port for loongcode serve on remote server (default: 4096)
+     */
+    remote_port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * Local port for SSH tunnel (default: 4097)
+     */
+    local_port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
     install_command?: string
     auto_install?: boolean
   }
@@ -5455,6 +5462,147 @@ export type GlobalUpgradeResponses = {
 }
 
 export type GlobalUpgradeResponse = GlobalUpgradeResponses[keyof GlobalUpgradeResponses]
+
+export type SshDeployConnectData = {
+  body?: {
+    host: string
+    port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    username: string
+    password?: string
+    privateKey?: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/connect"
+}
+
+export type SshDeployConnectErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployConnectError = SshDeployConnectErrors[keyof SshDeployConnectErrors]
+
+export type SshDeployConnectResponses = {
+  /**
+   * SSH session created
+   */
+  200: {
+    sessionId: string
+  }
+}
+
+export type SshDeployConnectResponse = SshDeployConnectResponses[keyof SshDeployConnectResponses]
+
+export type SshDeployInstallData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/install"
+}
+
+export type SshDeployInstallErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployInstallError = SshDeployInstallErrors[keyof SshDeployInstallErrors]
+
+export type SshDeployInstallResponses = {
+  /**
+   * Installation started
+   */
+  200: boolean
+}
+
+export type SshDeployInstallResponse = SshDeployInstallResponses[keyof SshDeployInstallResponses]
+
+export type SshDeployStartData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/start"
+}
+
+export type SshDeployStartErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployStartError = SshDeployStartErrors[keyof SshDeployStartErrors]
+
+export type SshDeployStartResponses = {
+  /**
+   * Service started
+   */
+  200: boolean
+}
+
+export type SshDeployStartResponse = SshDeployStartResponses[keyof SshDeployStartResponses]
+
+export type SshDeployDisconnectData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/disconnect"
+}
+
+export type SshDeployDisconnectErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployDisconnectError = SshDeployDisconnectErrors[keyof SshDeployDisconnectErrors]
+
+export type SshDeployDisconnectResponses = {
+  /**
+   * Disconnected
+   */
+  200: boolean
+}
+
+export type SshDeployDisconnectResponse = SshDeployDisconnectResponses[keyof SshDeployDisconnectResponses]
+
+export type SshDeployLogsData = {
+  body?: never
+  path?: never
+  query: {
+    sessionId: string
+  }
+  url: "/ssh-deploy/logs"
+}
+
+export type SshDeployLogsErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type SshDeployLogsError = SshDeployLogsErrors[keyof SshDeployLogsErrors]
+
+export type SshDeployLogsResponses = {
+  /**
+   * Success
+   */
+  200: string
+}
+
+export type SshDeployLogsResponse = SshDeployLogsResponses[keyof SshDeployLogsResponses]
 
 export type EventSubscribeData = {
   body?: never

@@ -85,6 +85,8 @@ function prepareSidecarEnv(password: string, userDataPath: string) {
     LOONGCODE_SERVER_USERNAME: "loongcode",
     LOONGCODE_SERVER_PASSWORD: password,
     XDG_STATE_HOME: process.env.XDG_STATE_HOME ?? userDataPath,
+    HF_ENDPOINT: "https://hf-mirror.com",
+    HF_HUB_OFFLINE: "1",
   })
 }
 

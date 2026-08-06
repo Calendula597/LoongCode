@@ -667,6 +667,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Показывать индикатор прогресса сессии",
   "settings.general.row.showSessionProgressBar.description":
     "Показывать анимированный индикатор прогресса вверху сессии, когда агент работает",
+  "settings.general.row.memory.title": "Память",
+  "settings.general.row.memory.description": "Включить встроенный плагин памяти (opencode-mem)",
   "settings.general.row.wayland.title": "Использовать нативный Wayland",
   "settings.general.row.wayland.description": "Отключить X11 fallback на Wayland. Требуется перезапуск.",
   "settings.general.row.wayland.tooltip":

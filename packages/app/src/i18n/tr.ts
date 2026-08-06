@@ -674,6 +674,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Oturum ilerleme çubuğunu göster",
   "settings.general.row.showSessionProgressBar.description":
     "Ajan çalışırken oturumun üst kısmında animasyonlu ilerleme çubuğunu göster",
+  "settings.general.row.memory.title": "Bellek",
+  "settings.general.row.memory.description": "Yerleşik bellek eklentisini (opencode-mem) etkinleştir",
 
   "settings.general.row.wayland.title": "Yerel Wayland kullan",
   "settings.general.row.wayland.description":

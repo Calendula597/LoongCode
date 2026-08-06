@@ -217,6 +217,16 @@ import type {
   SessionUnshareResponses,
   SessionUpdateErrors,
   SessionUpdateResponses,
+  SshDeployConnectErrors,
+  SshDeployConnectResponses,
+  SshDeployDisconnectErrors,
+  SshDeployDisconnectResponses,
+  SshDeployInstallErrors,
+  SshDeployInstallResponses,
+  SshDeployLogsErrors,
+  SshDeployLogsResponses,
+  SshDeployStartErrors,
+  SshDeployStartResponses,
   SubtaskPartInput,
   SyncHistoryListErrors,
   SyncHistoryListResponses,
@@ -1308,6 +1318,117 @@ export class Global extends HeyApiClient {
   private _config?: Config
   get config(): Config {
     return (this._config ??= new Config({ client: this.client }))
+  }
+}
+
+export class SshDeploy extends HeyApiClient {
+  public connect<ThrowOnError extends boolean = false>(
+    parameters?: {
+      host?: string
+      port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+      username?: string
+      password?: string
+      privateKey?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "body", key: "host" },
+            { in: "body", key: "port" },
+            { in: "body", key: "username" },
+            { in: "body", key: "password" },
+            { in: "body", key: "privateKey" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<SshDeployConnectResponses, SshDeployConnectErrors, ThrowOnError>({
+      url: "/ssh-deploy/connect",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  public install<ThrowOnError extends boolean = false>(
+    parameters?: {
+      sessionId?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "body", key: "sessionId" }] }])
+    return (options?.client ?? this.client).post<SshDeployInstallResponses, SshDeployInstallErrors, ThrowOnError>({
+      url: "/ssh-deploy/install",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  public start<ThrowOnError extends boolean = false>(
+    parameters?: {
+      sessionId?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "body", key: "sessionId" }] }])
+    return (options?.client ?? this.client).post<SshDeployStartResponses, SshDeployStartErrors, ThrowOnError>({
+      url: "/ssh-deploy/start",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  public disconnect<ThrowOnError extends boolean = false>(
+    parameters?: {
+      sessionId?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "body", key: "sessionId" }] }])
+    return (options?.client ?? this.client).post<SshDeployDisconnectResponses, SshDeployDisconnectErrors, ThrowOnError>(
+      {
+        url: "/ssh-deploy/disconnect",
+        ...options,
+        ...params,
+        headers: {
+          "Content-Type": "application/json",
+          ...options?.headers,
+          ...params.headers,
+        },
+      },
+    )
+  }
+
+  public logs<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionId: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "sessionId" }] }])
+    return (options?.client ?? this.client).sse.get<SshDeployLogsResponses, SshDeployLogsErrors, ThrowOnError>({
+      url: "/ssh-deploy/logs",
+      ...options,
+      ...params,
+    })
   }
 }
 
@@ -6674,6 +6795,11 @@ export class OpencodeClient extends HeyApiClient {
   private _global?: Global
   get global(): Global {
     return (this._global ??= new Global({ client: this.client }))
+  }
+
+  private _sshDeploy?: SshDeploy
+  get sshDeploy(): SshDeploy {
+    return (this._sshDeploy ??= new SshDeploy({ client: this.client }))
   }
 
   private _event?: Event

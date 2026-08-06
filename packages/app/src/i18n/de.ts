@@ -612,6 +612,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Sitzungsfortschrittsleiste anzeigen",
   "settings.general.row.showSessionProgressBar.description":
     "Die animierte Fortschrittsleiste oben in der Sitzung anzeigen, wenn der Agent arbeitet",
+  "settings.general.row.memory.title": "Speicher",
+  "settings.general.row.memory.description": "Das integrierte Speicher-Plugin (opencode-mem) aktivieren",
   "settings.general.row.wayland.title": "Natives Wayland verwenden",
   "settings.general.row.wayland.description": "X11-Fallback unter Wayland deaktivieren. Erfordert Neustart.",
   "settings.general.row.wayland.tooltip":

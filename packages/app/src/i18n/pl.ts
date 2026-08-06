@@ -599,6 +599,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Pokazuj pasek postępu sesji",
   "settings.general.row.showSessionProgressBar.description":
     "Wyświetlaj animowany pasek postępu u góry sesji, gdy agent pracuje",
+  "settings.general.row.memory.title": "Pamięć",
+  "settings.general.row.memory.description": "Włącz wbudowany wtyczek pamięci (opencode-mem)",
   "settings.general.row.wayland.title": "Użyj natywnego Wayland",
   "settings.general.row.wayland.description": "Wyłącz fallback X11 na Wayland. Wymaga restartu.",
   "settings.general.row.wayland.tooltip":

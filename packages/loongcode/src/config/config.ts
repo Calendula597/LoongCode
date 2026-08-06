@@ -251,7 +251,14 @@ export const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://modelhub.lgdg.cc/config.json" }, null, 2))
+            .writeWithDirs(
+              file,
+              JSON.stringify(
+                { $schema: "https://modelhub.lgdg.cc/config.json", plugin: [ConfigPlugin.DEFAULT_MEMORY_PLUGIN] },
+                null,
+                2,
+              ),
+            )
             .pipe(Effect.catch(() => Effect.void))
         }
       }
@@ -541,6 +548,15 @@ export const layer = Layer.effect(
             },
           })
         }
+
+        if (result.memory !== false) {
+          yield* Effect.sync(() => ConfigPlugin.ensureDefaultMemoryConfig())
+          const declared = (result.plugin ?? []).some((spec) => ConfigPlugin.isDefaultMemoryPlugin(spec))
+          if (!declared) {
+            yield* mergePluginOrigins(Global.Path.config, [ConfigPlugin.DEFAULT_MEMORY_PLUGIN], "global")
+          }
+        }
+        ;(result as Record<string, unknown>).memory_downloading = ConfigPlugin.isMemoryDownloading()
 
         if (Flag.LOONGCODE_PERMISSION) {
           try {

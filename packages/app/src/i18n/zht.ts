@@ -652,6 +652,8 @@ export const dict = {
   "settings.general.row.editToolPartsExpanded.description": "在時間軸中預設展開 edit、write 和 patch 工具區塊",
   "settings.general.row.showSessionProgressBar.title": "顯示工作階段進度列",
   "settings.general.row.showSessionProgressBar.description": "當代理程式正在運作時，在工作階段頂部顯示動畫進度列",
+  "settings.general.row.memory.title": "記憶",
+  "settings.general.row.memory.description": "啟用內建記憶外掛（opencode-mem）",
   "settings.general.row.wayland.title": "使用原生 Wayland",
   "settings.general.row.wayland.description": "在 Wayland 上停用 X11 後備模式。需要重新啟動。",
   "settings.general.row.wayland.tooltip": "在混合更新率螢幕的 Linux 系統上，原生 Wayland 可能更穩定。",

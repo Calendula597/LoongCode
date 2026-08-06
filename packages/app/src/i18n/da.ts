@@ -660,6 +660,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "Vis sessionens fremdriftslinje",
   "settings.general.row.showSessionProgressBar.description":
     "Vis den animerede fremdriftslinje øverst i sessionen, når agenten arbejder",
+  "settings.general.row.memory.title": "Hukommelse",
+  "settings.general.row.memory.description": "Aktivér det indbyggede hukommelsesplugin (opencode-mem)",
   "settings.general.row.wayland.title": "Brug native Wayland",
   "settings.general.row.wayland.description": "Deaktiver X11-fallback på Wayland. Kræver genstart.",
   "settings.general.row.wayland.tooltip":

@@ -658,6 +658,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.title": "แสดงแถบความคืบหน้าของเซสชัน",
   "settings.general.row.showSessionProgressBar.description":
     "แสดงแถบความคืบหน้าแบบเคลื่อนไหวที่ด้านบนของเซสชันเมื่อเอเจนต์กำลังทำงาน",
+  "settings.general.row.memory.title": "หน่วยความจำ",
+  "settings.general.row.memory.description": "เปิดใช้งานปลั๊กอินหน่วยความจำในตัว (opencode-mem)",
   "settings.general.row.wayland.title": "ใช้ Wayland แบบเนทีฟ",
   "settings.general.row.wayland.description": "ปิดใช้งาน X11 fallback บน Wayland ต้องรีสตาร์ท",
   "settings.general.row.wayland.tooltip": "บน Linux ที่มีจอภาพรีเฟรชเรตแบบผสม Wayland แบบเนทีฟอาจเสถียรกว่า",

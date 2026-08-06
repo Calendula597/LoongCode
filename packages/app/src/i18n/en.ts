@@ -855,6 +855,8 @@ export const dict = {
     "Display the animated progress bar at the top of the session when the agent is working",
   "settings.general.row.newLayoutDesigns.title": "New layout and designs",
   "settings.general.row.newLayoutDesigns.description": "Enable the redesigned layout, home, composer, and session UI",
+  "settings.general.row.memory.title": "Memory",
+  "settings.general.row.memory.description": "Enable the built-in memory plugin (opencode-mem)",
   "settings.general.row.pinchZoom.title": "Pinch to zoom",
   "settings.general.row.pinchZoom.description": "Allow trackpad pinch and Ctrl-scroll gestures to zoom",
 
