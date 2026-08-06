@@ -1,8 +1,8 @@
-// Redirect HuggingFace model downloads to a mirror and force offline mode
-// so opencode-mem's transformers.js uses pre-downloaded model files.
-// Must be set before any module imports @huggingface/transformers.
-process.env.HF_ENDPOINT = "https://hf-mirror.com"
-process.env.HF_HUB_OFFLINE = "1"
+import { applyBuiltInPluginEnv } from "@/config/builtin"
+
+// Apply built-in plugin env vars before any import that could trigger
+// @huggingface/transformers or similar lazy-loaded plugin dependencies.
+applyBuiltInPluginEnv()
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"

@@ -32,6 +32,7 @@ import { ConfigManaged } from "./managed"
 import { ConfigParse } from "./parse"
 import { ConfigPaths } from "./paths"
 import { ConfigPlugin } from "./plugin"
+import { BUILT_IN_PLUGINS } from "./builtin"
 import { ConfigVariable } from "./variable"
 import { Npm } from "@loongcode/core/npm"
 import { withTransientReadRetry } from "@/util/effect-http-client"
@@ -254,7 +255,7 @@ export const layer = Layer.effect(
             .writeWithDirs(
               file,
               JSON.stringify(
-                { $schema: "https://modelhub.lgdg.cc/config.json", plugin: [ConfigPlugin.DEFAULT_MEMORY_PLUGIN] },
+                { $schema: "https://modelhub.lgdg.cc/config.json", plugin: BUILT_IN_PLUGINS.map((p) => p.specifier) },
                 null,
                 2,
               ),
@@ -549,14 +550,16 @@ export const layer = Layer.effect(
           })
         }
 
-        if (result.memory !== false) {
-          yield* Effect.sync(() => ConfigPlugin.ensureDefaultMemoryConfig())
-          const declared = (result.plugin ?? []).some((spec) => ConfigPlugin.isDefaultMemoryPlugin(spec))
+        for (const plugin of BUILT_IN_PLUGINS) {
+          if ((result as Record<string, unknown>)[plugin.id] === false) continue
+          yield* Effect.sync(() => plugin.ensure())
+          const declared = (result.plugin ?? []).some((spec) => plugin.isDeclared(spec))
           if (!declared) {
-            yield* mergePluginOrigins(Global.Path.config, [ConfigPlugin.DEFAULT_MEMORY_PLUGIN], "global")
+            yield* mergePluginOrigins(Global.Path.config, [plugin.specifier], "global")
           }
         }
-        ;(result as Record<string, unknown>).memory_downloading = ConfigPlugin.isMemoryDownloading()
+        ;(result as Record<string, unknown>).builtin_plugins =
+          Object.fromEntries(BUILT_IN_PLUGINS.map((p) => [p.id, p.status()]))
 
         if (Flag.LOONGCODE_PERMISSION) {
           try {

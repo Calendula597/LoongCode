@@ -349,7 +349,7 @@ export const SettingsGeneralV2: Component = () => {
         <SettingsRowV2
           title={language.t("settings.general.row.memory.title")}
           description={
-            (serverSync().data.config as Record<string, unknown>).memory_downloading
+            ((serverSync().data.config as Record<string, unknown>).builtin_plugins as Record<string, { downloading: boolean }>)?.memory?.downloading
               ? "embedding model downloading..."
               : language.t("settings.general.row.memory.description")
           }
@@ -357,7 +357,7 @@ export const SettingsGeneralV2: Component = () => {
           <div data-action="settings-memory">
             <Switch
               checked={serverSync().data.config.memory !== false}
-              disabled={(serverSync().data.config as Record<string, unknown>).memory_downloading === true}
+              disabled={((serverSync().data.config as Record<string, unknown>).builtin_plugins as Record<string, { downloading: boolean }>)?.memory?.downloading === true}
               onChange={(checked) => serverSync().updateConfig({ memory: checked })}
             />
           </div>

@@ -14,7 +14,7 @@ const generated = await import("./generate.ts")
 
 await Bun.build({
   target: "node",
-  entrypoints: ["./src/node.ts"],
+  entrypoints: ["./src/node.ts", "./src/builtin-env.ts"],
   outdir: "./dist/node",
   format: "esm",
   sourcemap: "linked",

@@ -17,3 +17,8 @@ declare module "virtual:loongcode-server" {
   }
   export const bootstrap: typeof import("../../../loongcode/dist/types/src/node").bootstrap
 }
+
+declare module "virtual:loongcode-builtin-env" {
+  export const BUILT_IN_PLUGIN_ENV: Record<string, string>
+  export function applyBuiltInPluginEnv(): void
+}

@@ -66,6 +66,7 @@ const require = __cjs_mod__.createRequire(import.meta.url);
         enforce: "pre",
         resolveId(id) {
           if (id === "virtual:loongcode-server") return this.resolve(`${LOONGCODE_SERVER_DIST}/node.js`)
+          if (id === "virtual:loongcode-builtin-env") return this.resolve(`${LOONGCODE_SERVER_DIST}/builtin-env.js`)
         },
       },
       {

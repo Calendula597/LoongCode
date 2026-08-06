@@ -5,7 +5,7 @@ import { CrossSpawnSpawner } from "@loongcode/core/cross-spawn-spawner"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { Global } from "@loongcode/core/global"
 import { Config } from "../../src/config/config"
-import { ConfigPlugin } from "../../src/config/plugin"
+import { BUILT_IN_PLUGINS } from "../../src/config/builtin"
 import { provideInstanceEffect, testInstanceStoreLayer, tmpdirScoped } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 import { AuthTest } from "../fake/auth"
@@ -62,32 +62,39 @@ const withGlobalConfig = <A, E, R>(
     return yield* withGlobalConfigDir(dir, fn({ dir }))
   })
 
-describe("config.memory", () => {
-  it.effect("appends default memory plugin when not declared", () =>
+describe("config.builtin", () => {
+  it.effect("appends all built-in plugins when not declared", () =>
     withGlobalConfig({}, ({ dir }) =>
       Effect.gen(function* () {
         const config = yield* Config.use.get().pipe(provideInstanceEffect(dir))
-        expect(config.plugin).toContain(ConfigPlugin.DEFAULT_MEMORY_PLUGIN)
+        for (const plugin of BUILT_IN_PLUGINS) {
+          expect(config.plugin).toContain(plugin.specifier)
+        }
       }).pipe(Effect.provide(testInstanceStoreLayer), Effect.provide(CrossSpawnSpawner.defaultLayer)),
     ),
   )
 
-  it.effect("does not append default memory plugin when memory is false", () =>
+  it.effect("does not append a built-in plugin when its id is false", () =>
     withGlobalConfig({ config: { memory: false } }, ({ dir }) =>
       Effect.gen(function* () {
         const config = yield* Config.use.get().pipe(provideInstanceEffect(dir))
-        expect(config.plugin).not.toContain(ConfigPlugin.DEFAULT_MEMORY_PLUGIN)
+        const memoryPlugin = BUILT_IN_PLUGINS.find((p) => p.id === "memory")!
+        expect(config.plugin).not.toContain(memoryPlugin.specifier)
       }).pipe(Effect.provide(testInstanceStoreLayer), Effect.provide(CrossSpawnSpawner.defaultLayer)),
     ),
   )
 
-  it.effect("does not duplicate default memory plugin when already declared", () =>
-    withGlobalConfig({ config: { plugin: [ConfigPlugin.DEFAULT_MEMORY_PLUGIN] } }, ({ dir }) =>
-      Effect.gen(function* () {
-        const config = yield* Config.use.get().pipe(provideInstanceEffect(dir))
-        const matches = (config.plugin ?? []).filter((spec) => ConfigPlugin.isDefaultMemoryPlugin(spec))
-        expect(matches).toHaveLength(1)
-      }).pipe(Effect.provide(testInstanceStoreLayer), Effect.provide(CrossSpawnSpawner.defaultLayer)),
+  it.effect("does not duplicate a built-in plugin when already declared", () =>
+    withGlobalConfig(
+      { config: { plugin: BUILT_IN_PLUGINS.map((p) => p.specifier) } },
+      ({ dir }) =>
+        Effect.gen(function* () {
+          const config = yield* Config.use.get().pipe(provideInstanceEffect(dir))
+          for (const plugin of BUILT_IN_PLUGINS) {
+            const matches = (config.plugin ?? []).filter((spec) => plugin.isDeclared(spec))
+            expect(matches).toHaveLength(1)
+          }
+        }).pipe(Effect.provide(testInstanceStoreLayer), Effect.provide(CrossSpawnSpawner.defaultLayer)),
     ),
   )
 })

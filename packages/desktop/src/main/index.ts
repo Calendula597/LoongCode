@@ -1,9 +1,3 @@
-// Redirect HuggingFace model downloads to a mirror and force offline mode
-// so opencode-mem's transformers.js uses pre-downloaded model files.
-// Must be set before any module imports @huggingface/transformers.
-process.env.HF_ENDPOINT = "https://hf-mirror.com"
-process.env.HF_HUB_OFFLINE = "1"
-
 import { randomUUID } from "node:crypto"
 import { mkdirSync, rmSync } from "node:fs"
 import * as http from "node:http"

@@ -23,6 +23,10 @@ export async function spawnWslSidecar(
   const port = await allocatePort()
   const password = randomUUID()
   const username = "loongcode"
+  const { BUILT_IN_PLUGIN_ENV } = await import("virtual:loongcode-builtin-env")
+  const pluginEnvExports = Object.entries(BUILT_IN_PLUGIN_ENV)
+    .map(([k, v]) => `export ${k}=${shellEscape(v)}`)
+    .join("\n")
   const script = [
     "set -euo pipefail",
     'cd "$HOME" || cd /',
@@ -31,8 +35,7 @@ export async function spawnWslSidecar(
     "export WSLENV=",
     "export LOONGCODE_EXPERIMENTAL_DISABLE_FILEWATCHER=true",
     "export LOONGCODE_CLIENT=desktop",
-    "export HF_ENDPOINT=https://hf-mirror.com",
-    "export HF_HUB_OFFLINE=1",
+    pluginEnvExports,
     `export LOONGCODE_SERVER_USERNAME=${shellEscape(username)}`,
     `export LOONGCODE_SERVER_PASSWORD=${shellEscape(password)}`,
     'export XDG_STATE_HOME="$HOME/.local/state"',

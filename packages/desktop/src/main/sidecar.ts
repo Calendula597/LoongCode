@@ -50,6 +50,8 @@ parentPort.on("message", (event) => {
 
 async function start(command: StartCommand) {
   try {
+    const { applyBuiltInPluginEnv } = await import("virtual:loongcode-builtin-env")
+    applyBuiltInPluginEnv()
     prepareSidecarEnv(command.password, command.userDataPath)
     ensureLoopbackNoProxy()
     useSystemCertificates()
@@ -85,8 +87,6 @@ function prepareSidecarEnv(password: string, userDataPath: string) {
     LOONGCODE_SERVER_USERNAME: "loongcode",
     LOONGCODE_SERVER_PASSWORD: password,
     XDG_STATE_HOME: process.env.XDG_STATE_HOME ?? userDataPath,
-    HF_ENDPOINT: "https://hf-mirror.com",
-    HF_HUB_OFFLINE: "1",
   })
 }
 
