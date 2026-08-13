@@ -1,0 +1,42 @@
+version: '1.0'
+name: publish-npm
+displayName: Publish NPM
+triggers:
+  push:
+    branches:
+      include: []
+stages:
+  - name: publish
+    displayName: 发布
+    strategy: naturally
+    trigger: auto
+    steps:
+      - step: build@nodejs
+        name: publish_npm
+        displayName: Nodejs 构建
+        nodeVersion: 24.0.0
+        commands:
+          - node -v
+          # 安装 Bun
+          - V=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          - curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${V}/bun-linux-x64.zip" -o bun.zip
+          - unzip -o bun.zip -d /usr/local/bin
+          - export PATH="/usr/local/bin:$PATH"
+          # 安装依赖
+          - bun install --linker hoisted
+          # 读取版本号
+          - v=$(node -p "require('./packages/loongcode/package.json').version")
+          # 构建单文件二进制
+          - LOONGCODE_VERSION=$v LOONGCODE_CHANNEL=latest ./packages/loongcode/script/build.ts --single
+          # 验证二进制
+          - B=packages/loongcode/dist/loongcode-linux-x64/bin/loongcode
+          - ls -lh "$B"
+          - "$B" --version
+          # 打包 & 发布 npm
+          - cp LICENSE packages/loongcode/dist/loongcode-linux-x64/
+          - |
+            cd packages/loongcode/dist/loongcode-linux-x64
+            node -e 'const fs=require("fs");fs.writeFileSync("package.json",JSON.stringify({name:"loongcode",version:process.env.npm_package_version||"'"$v"'",description:"LoongCode — headless server CLI (Linux x64 build)",license:"MIT",os:["linux"],cpu:["x64"],bin:{loongcode:"bin/loongcode"},files:["bin/loongcode","LICENSE"]},null,2)+"\n")'
+            cat package.json
+            npm set registry https://registry.npmjs.org
+            npm publish --access public

@@ -1,0 +1,45 @@
+version: '1.0'
+name: build-desktop
+displayName: Build Desktop
+# 注意：Gitee Go 免费版仅提供 Linux 运行环境。
+# Windows 构建需要 Windows 主机 (host agent)，macOS 构建需要 macOS 主机 (host agent)，均需自行注册。
+# 本流水线仅包含 Linux x64 桌面端构建。如需 Windows/macOS，请在 Gitee 企业管理后台注册对应系统的主机并关联此仓库。
+triggers:
+  push:
+    branches:
+      include:
+        - loongcode
+stages:
+  - name: compile
+    displayName: 编译
+    strategy: naturally
+    trigger: auto
+    steps:
+      - step: build@nodejs
+        name: build_desktop_linux
+        displayName: Linux 桌面端构建
+        nodeVersion: 24.0.0
+        commands:
+          - node -v
+          # 安装系统依赖
+          - apt-get update -y && apt-get install -y rpm
+          # 安装 Bun
+          - V=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          - curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${V}/bun-linux-x64.zip" -o bun.zip
+          - unzip -o bun.zip -d /usr/local/bin
+          - export PATH="/usr/local/bin:$PATH"
+          # 安装依赖
+          - bun install
+          # 读取版本号
+          - v=$(node -p "require('./packages/loongcode/package.json').version")
+          - echo "LOONGCODE_VERSION=$v" >> $GITEE_PIPELINE_ENV
+          # 构建 desktop
+          - cd packages/desktop && bun run build
+          # 打包 (electron-builder linux)
+          - LOONGCODE_CHANNEL=prod npx electron-builder --linux --publish never --config electron-builder.config.ts
+        artifacts:
+          - name: DESKTOP_LINUX
+            path:
+              - packages/desktop/dist/*.tar.gz
+              - packages/desktop/dist/*.deb
+              - packages/desktop/dist/*.rpm
