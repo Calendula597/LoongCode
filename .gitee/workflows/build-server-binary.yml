@@ -1,0 +1,55 @@
+name: build-server-binary
+on:
+  push:
+    branches:
+      - loongcode
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Bun
+        shell: bash
+        run: |
+          V=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${V}/bun-linux-x64-baseline.zip" -o bun.zip
+          unzip -o bun.zip -d "$RUNNER_TEMP/bun"
+          echo "$RUNNER_TEMP/bun" >> "$GITHUB_PATH"
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Install deps
+        shell: bash
+        run: bun install --linker hoisted
+
+      - name: Build all Linux binaries
+        env:
+          LOONGCODE_VERSION: ${{ steps.version.outputs.version }}
+          LOONGCODE_CHANNEL: latest
+        run: ./packages/loongcode/script/build.ts --target=loongcode-linux-x64,loongcode-linux-x64-baseline,loongcode-linux-arm64,loongcode-linux-x64-musl,loongcode-linux-arm64-musl,loongcode-linux-x64-baseline-musl
+
+      - name: List Linux tarballs
+        if: always()
+        run: ls -lh packages/loongcode/dist/*.tar.gz || echo "无 tarball"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: loongcode-linux-binaries
+          path: packages/loongcode/dist/loongcode-linux-*.tar.gz
+          retention-days: 30
+          if-no-files-found: warn

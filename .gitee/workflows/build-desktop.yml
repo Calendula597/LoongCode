@@ -125,3 +125,55 @@ jobs:
             packages/desktop/dist/*.deb
             packages/desktop/dist/*.rpm
           if-no-files-found: ignore
+
+  # 注意：Gitee Go 免费版不提供 macOS 运行器，此 job 需要企业版才可运行。
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Bun
+        shell: bash
+        run: |
+          V=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${V}/bun-darwin-x64-baseline.zip" -o bun.zip
+          unzip -o bun.zip -d "$RUNNER_TEMP/bun"
+          echo "$RUNNER_TEMP/bun" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        shell: bash
+        run: bun install
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          v=$(node -p "require('./packages/loongcode/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: bun run build
+        working-directory: packages/desktop
+        env:
+          LOONGCODE_CHANNEL: ${{ inputs.channel || 'prod' }}
+
+      - name: Package (arm64)
+        run: npx electron-builder --mac --arm64 --publish never --config electron-builder.config.ts
+        working-directory: packages/desktop
+        env:
+          LOONGCODE_CHANNEL: ${{ inputs.channel || 'prod' }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: loongcode-desktop-mac-arm64
+          path: |
+            packages/desktop/dist/*.dmg
+            packages/desktop/dist/*.zip
+          if-no-files-found: ignore
