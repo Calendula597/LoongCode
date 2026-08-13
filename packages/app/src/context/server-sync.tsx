@@ -481,6 +481,17 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     todo: {
       set: setSessionTodo,
     },
+    command: {
+      // Slash commands snapshot the command list at bootstrap; refetch every
+      // active directory after a marketplace install/uninstall.
+      refresh() {
+        for (const [key, [, setStore]] of Object.entries(children.children)) {
+          void retry(() => sdkFor(key as PathKey).command.list().then((x) => setStore("command", x.data ?? []))).catch(
+            () => {},
+          )
+        }
+      },
+    },
     mcp: {
       toggle: async (directory: string, name: string) => {
         const key = directoryKey(directory)

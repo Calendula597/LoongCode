@@ -3,6 +3,7 @@ import type { BuiltinTuiPlugin } from "../builtins"
 import { createMemo, Show } from "solid-js"
 import { Tips } from "./tips-view"
 import { useBindings } from "../../keymap"
+import { DialogSkillMarketplace } from "../../component/dialog-skill-marketplace"
 
 const id = "internal:home-tips"
 
@@ -17,6 +18,15 @@ function View(props: { api: TuiPluginApi; hidden: boolean; show: boolean; connec
         run() {
           props.api.kv.set("tips_hidden", !props.api.kv.get("tips_hidden", false))
           props.api.ui.dialog.clear()
+        },
+      },
+      {
+        name: "skill.marketplace",
+        title: "Skill Marketplace",
+        category: "Skills",
+        namespace: "palette",
+        run() {
+          props.api.ui.dialog.replace(() => <DialogSkillMarketplace />)
         },
       },
     ],

@@ -10,6 +10,7 @@ import { SettingsProvidersV2 } from "./providers"
 import { SettingsModelsV2 } from "./models"
 import "./settings-v2.css"
 import { SettingsServersV2 } from "./servers"
+import { SkillMarketplace } from "../skill-marketplace"
 
 export const DialogSettings: Component = () => {
   const language = useLanguage()
@@ -32,6 +33,10 @@ export const DialogSettings: Component = () => {
                     <TabsV2.Trigger value="shortcuts">
                       <Icon name="keyboard" />
                       {language.t("settings.tab.shortcuts")}
+                    </TabsV2.Trigger>
+                    <TabsV2.Trigger value="skills">
+                      <Icon name="brain" />
+                      {language.t("settings.tab.skills")}
                     </TabsV2.Trigger>
                   </div>
                 </div>
@@ -75,6 +80,9 @@ export const DialogSettings: Component = () => {
         </TabsV2.Content>
         <TabsV2.Content value="models" class="settings-v2-panel">
           <SettingsModelsV2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="skills" class="settings-v2-panel">
+          <SkillMarketplace />
         </TabsV2.Content>
       </TabsV2>
     </Dialog>

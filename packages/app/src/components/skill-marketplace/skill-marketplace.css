@@ -1,0 +1,136 @@
+.skill-marketplace-dialog [data-slot="dialog-body"] {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.skill-marketplace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Mirrors .settings-v2-servers-header: title row + tab selector pinned at top */
+.settings-v2-tab-header.settings-v2-skills-header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 16px;
+}
+
+.settings-v2-skills-header .settings-v2-tab-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-v2-skills-tabs[data-slot="tabs-v2-list"] {
+  padding-inline: 0;
+  width: 100%;
+}
+
+/* Spread the three tab buttons across the full row width (justified). */
+.settings-v2-skills-tabs [data-slot="tabs-v2-trigger-wrapper"] {
+  flex: 1;
+}
+
+.settings-v2-skills-tabs [data-slot="tabs-v2-trigger"] {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Mirrors .settings-v2-tab-body.settings-v2-servers; top padding keeps the
+   search input's top edge clear of the sticky header's fade zone. */
+.settings-v2-tab-body.settings-v2-skills-body {
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.settings-v2-skills-body [data-component="settings-v2-list"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+/* Mirrors .settings-v2-servers-row and friends */
+.settings-v2-skills-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-v2-skills-row:not(:last-child) {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 0.5px solid var(--v2-border-border-base);
+}
+
+.settings-v2-skills-lead {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.settings-v2-skills-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-v2-skills-name {
+  font-size: 13px;
+  font-weight: 530;
+  line-height: 1;
+  color: var(--v2-text-text-base);
+}
+
+.settings-v2-skills-meta {
+  font-size: 11px;
+  font-weight: 440;
+  line-height: 1.4;
+  color: var(--v2-text-text-muted);
+}
+
+.settings-v2-skills-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Mirrors .settings-v2-servers-status */
+.settings-v2-skills-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 40px 0;
+  font-size: 13px;
+  color: var(--v2-text-text-muted);
+}
+
+.settings-v2-skills-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-on-critical-base);
+}
+
+.settings-v2-skills-repos-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-v2-skills-repos-add [data-component="text-input-v2"] {
+  flex: 1;
+}

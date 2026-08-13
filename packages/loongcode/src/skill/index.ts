@@ -16,7 +16,7 @@ import { ConfigMarkdown } from "@/config/markdown"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Glob } from "@loongcode/core/util/glob"
 import { Discovery } from "./discovery"
-import { SkillHub } from "./skillhub"
+import { Repo } from "./repo"
 import { isRecord } from "@/util/record"
 
 const CLAUDE_EXTERNAL_DIR = ".claude"
@@ -101,6 +101,7 @@ export interface Interface {
   readonly all: () => Effect.Effect<Info[]>
   readonly dirs: () => Effect.Effect<string[]>
   readonly available: (agent?: Agent.Info) => Effect.Effect<Info[]>
+  readonly refresh: () => Effect.Effect<void>
 }
 
 const add = Effect.fnUntraced(function* (state: State, match: string, events: EventV2Bridge.Service["Service"]) {
@@ -174,7 +175,6 @@ const scan = Effect.fnUntraced(function* (
 const discoverSkills = Effect.fnUntraced(function* (
   config: Config.Interface,
   discovery: Discovery.Interface,
-  skillhub: SkillHub.Interface,
   fsys: FSUtil.Interface,
   global: Global.Interface,
   disableExternalSkills: boolean,
@@ -222,17 +222,11 @@ const discoverSkills = Effect.fnUntraced(function* (
   }
 
   for (const url of cfg.skills?.urls ?? []) {
+    // GitHub/Gitee repo URLs are installed on demand via the marketplace, not
+    // pulled through the legacy index.json discovery protocol.
+    if (Repo.parseRepoUrl(url)) continue
     const pulledDirs = yield* discovery.pull(url)
     for (const dir of pulledDirs) {
-      yield* scan(state, dir, SKILL_PATTERN)
-    }
-  }
-
-  // 默认 SkillHub 源（所有用户开箱即用，含二进制用户）。尊重 disableExternalSkills
-  // 让想纯净模式的用户能用 LOONGCODE_DISABLE_EXTERNAL_SKILLS 关掉。
-  if (!disableExternalSkills) {
-    const skillhubDirs = yield* skillhub.pullAll()
-    for (const dir of skillhubDirs) {
       yield* scan(state, dir, SKILL_PATTERN)
     }
   }
@@ -262,7 +256,6 @@ export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const discovery = yield* Discovery.Service
-    const skillhub = yield* SkillHub.Service
     const config = yield* Config.Service
     const events = yield* EventV2Bridge.Service
     const fsys = yield* FSUtil.Service
@@ -273,7 +266,6 @@ export const layer = Layer.effect(
         return yield* discoverSkills(
           config,
           discovery,
-          skillhub,
           fsys,
           global,
           flags.disableExternalSkills,
@@ -327,13 +319,21 @@ export const layer = Layer.effect(
       return list.filter((skill) => Permission.evaluate("skill", skill.name, agent.permission).action !== "deny")
     })
 
-    return Service.of({ get, require, all, dirs, available })
+    // Invalidate all instance caches so the next read rescans disk, regardless of
+    // which instance context the mutation request ran in. Call this after a
+    // marketplace install/uninstall so newly written skills are usable everywhere
+    // without a restart.
+    const refresh = Effect.fn("Skill.refresh")(function* () {
+      yield* InstanceState.invalidateAll(discovered)
+      yield* InstanceState.invalidateAll(state)
+    })
+
+    return Service.of({ get, require, all, dirs, available, refresh })
   }),
 )
 
 export const defaultLayer = layer.pipe(
   Layer.provide(Discovery.defaultLayer),
-  Layer.provide(SkillHub.defaultLayer),
   Layer.provide(Config.defaultLayer),
   Layer.provide(EventV2Bridge.defaultLayer),
   Layer.provide(FSUtil.defaultLayer),
@@ -370,7 +370,6 @@ export function fmt(list: Info[], opts: { verbose: boolean }) {
 
 export const node = LayerNode.make(layer, [
   Discovery.node,
-  SkillHub.node,
   Config.node,
   EventV2Bridge.node,
   FSUtil.node,

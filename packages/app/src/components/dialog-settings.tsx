@@ -9,6 +9,7 @@ import { SettingsKeybinds } from "./settings-keybinds"
 import { SettingsProviders } from "./settings-providers"
 import { SettingsModels } from "./settings-models"
 import { SettingsServers } from "./settings-servers"
+import { SkillMarketplace } from "./skill-marketplace"
 
 export const DialogSettings: Component = () => {
   const language = useLanguage()
@@ -35,6 +36,10 @@ export const DialogSettings: Component = () => {
                     <Tabs.Trigger value="servers">
                       <Icon name="server" />
                       {language.t("status.popover.tab.servers")}
+                    </Tabs.Trigger>
+                    <Tabs.Trigger value="skills">
+                      <Icon name="brain" />
+                      {language.t("settings.tab.skills")}
                     </Tabs.Trigger>
                   </div>
                 </div>
@@ -74,6 +79,9 @@ export const DialogSettings: Component = () => {
         </Tabs.Content>
         <Tabs.Content value="models" class="no-scrollbar">
           <SettingsModels />
+        </Tabs.Content>
+        <Tabs.Content value="skills" class="no-scrollbar">
+          <SkillMarketplace />
         </Tabs.Content>
       </Tabs>
     </Dialog>

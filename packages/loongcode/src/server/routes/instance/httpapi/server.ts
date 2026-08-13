@@ -84,6 +84,8 @@ import { experimentalHandlers } from "./handlers/experimental"
 import { fileHandlers } from "./handlers/file"
 import { globalHandlers } from "./handlers/global"
 import { instanceHandlers } from "./handlers/instance"
+import { skillMarketplaceHandlers } from "./handlers/skill-marketplace"
+import { SkillMarketplace } from "@/skill/marketplace"
 import { mcpHandlers } from "./handlers/mcp"
 import { permissionHandlers } from "./handlers/permission"
 import { projectHandlers } from "./handlers/project"
@@ -149,6 +151,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     experimentalHandlers,
     fileHandlers,
     instanceHandlers,
+    skillMarketplaceHandlers,
     mcpHandlers,
     projectHandlers,
     projectCopyHandlers,
@@ -161,6 +164,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     tuiHandlers,
     workspaceHandlers,
   ]),
+  Layer.provide(SkillMarketplace.defaultLayer),
 )
 
 const instanceRoutes = instanceApiRoutes.pipe(

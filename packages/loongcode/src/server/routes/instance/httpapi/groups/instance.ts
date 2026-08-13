@@ -14,6 +14,7 @@ import {
   WorkspaceRoutingQueryFields,
 } from "../middleware/workspace-routing"
 import { described } from "./metadata"
+import { SkillMarketplaceGroup } from "./skill-marketplace"
 
 const PathInfo = Schema.Struct({
   home: Schema.String,
@@ -197,6 +198,7 @@ export const InstanceApi = HttpApi.make("instance")
       .middleware(WorkspaceRoutingMiddleware)
       .middleware(Authorization),
   )
+  .add(SkillMarketplaceGroup)
   .annotateMerge(
     OpenApi.annotations({
       title: "loongcode experimental HttpApi",

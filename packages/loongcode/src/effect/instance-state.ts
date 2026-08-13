@@ -66,4 +66,8 @@ export const invalidate = <A, E, R>(self: InstanceState<A, E, R>) =>
     return yield* ScopedCache.invalidate(self.cache, yield* directory)
   })
 
+// For global mutations (e.g. marketplace install writes global config): the
+// requesting instance is not necessarily the one whose state went stale.
+export const invalidateAll = <A, E, R>(self: InstanceState<A, E, R>) => ScopedCache.invalidateAll(self.cache)
+
 export * as InstanceState from "./instance-state"

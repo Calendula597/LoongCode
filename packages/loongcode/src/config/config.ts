@@ -631,7 +631,12 @@ export const layer = Layer.effect(
     })
 
     const invalidate = Effect.fn("Config.invalidate")(function* () {
+      // Global TTL cache first: the instance state reload (triggered below) reads it via getGlobal().
       yield* invalidateGlobal
+      // Drop the per-directory instance states too, otherwise config.get() keeps
+      // serving the stale merged snapshot after updateGlobal writes. The mutation
+      // is global, so every instance's snapshot is stale, not just the caller's.
+      yield* InstanceState.invalidateAll(state)
     })
 
     const updateGlobal = Effect.fn("Config.updateGlobal")(function* (config: Info) {

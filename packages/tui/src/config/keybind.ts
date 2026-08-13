@@ -216,6 +216,10 @@ export const Definitions = {
   "permission.prompt.fullscreen": keybind("ctrl+f", "Toggle permission prompt fullscreen"),
   "plugins.toggle": keybind("space", "Toggle plugin"),
   "dialog.plugins.install": keybind("shift+i", "Install plugin from plugin dialog"),
+  "dialog.skills.install": keybind("shift+o", "Install skill from skill marketplace dialog"),
+  "dialog.skills.uninstall": keybind("shift+u", "Uninstall skill from skill marketplace dialog"),
+  "dialog.skills.repo.add": keybind("shift+a", "Add skill repo from skill marketplace dialog"),
+  "dialog.skills.repo.remove": keybind("shift+r", "Remove skill repo from skill marketplace dialog"),
 
   terminal_suspend: keybind("ctrl+z", "Suspend terminal"),
   terminal_title_toggle: keybind("none", "Toggle terminal title"),

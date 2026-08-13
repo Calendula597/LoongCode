@@ -34,6 +34,7 @@ export const dict = {
   "command.server.switch": "切换服务器",
 
   "command.settings.open": "打开设置",
+  "command.skill.marketplace": "技能市场",
 
   "command.session.previous": "上一个会话",
   "command.session.next": "下一个会话",
@@ -629,6 +630,53 @@ export const dict = {
   "settings.section.server": "服务器",
 
   "settings.tab.general": "通用",
+
+
+  "settings.tab.skills": "技能",
+
+
+  "settings.skills.tab.marketplace": "技能市场",
+
+
+  "settings.skills.tab.installed": "已安装",
+
+
+  "settings.skills.tab.repos": "技能仓库",
+  "settings.skills.install": "安装",
+  "settings.skills.uninstall": "卸载",
+  "settings.skills.installed": "已安装",
+  "settings.skills.installing": "安装中…",
+  "settings.skills.uninstalling": "卸载中…",
+  "settings.skills.mine": "我的",
+  "settings.skills.searchPlaceholder": "搜索技能…",
+  "settings.skills.searchAria": "搜索技能",
+  "settings.skills.loading": "正在加载技能…",
+  "settings.skills.empty": "未找到技能。",
+  "settings.skills.noInstalled": "还没有安装的技能。",
+  "settings.skills.addRepo": "添加",
+  "settings.skills.addingRepo": "正在添加…",
+  "settings.skills.repoPlaceholder": "https://gitee.com/owner/repo",
+  "settings.skills.repoAria": "添加 GitHub 仓库",
+  "settings.skills.noRepos": "还没有配置 GitHub 仓库。",
+  "settings.skills.error.install": "安装 \"{name}\" 失败",
+  "settings.skills.error.uninstall": "卸载 \"{name}\" 失败",
+  "settings.skills.error.addRepo": "添加仓库失败",
+  "settings.skills.removeRepo": "移除 {name}",
+  "settings.skills.skillhub.pinnedName": "龙岗数据 Skill Hub",
+  "settings.skills.skillhub.configured": "已连接",
+  "settings.skills.skillhub.notConfigured": "未配置 API Key",
+  "settings.skills.skillhub.enabled": "已启用",
+  "settings.skills.skillhub.configure": "配置 API 密钥",
+  "settings.skills.skillhub.disconnect": "断开连接",
+  "settings.skills.skillhub.dialog.title": "Skill Hub API 密钥",
+  "settings.skills.skillhub.dialog.description": "输入 Skill Hub API 密钥以访问私有技能。公开技能无需密钥。",
+  "settings.skills.skillhub.dialog.label": "API 密钥",
+  "settings.skills.skillhub.dialog.placeholder": "sk_...",
+  "settings.skills.skillhub.dialog.save": "保存",
+  "settings.skills.skillhub.dialog.cancel": "取消",
+  "settings.skills.skillhub.dialog.required": "请输入 API 密钥",
+  "settings.skills.skillhub.dialog.invalid": "Skill Hub 拒绝了该 API 密钥",
+  "settings.skills.skillhub.dialog.error": "保存 API 密钥失败",
   "settings.tab.shortcuts": "快捷键",
 
   "settings.desktop.section.wsl": "WSL",

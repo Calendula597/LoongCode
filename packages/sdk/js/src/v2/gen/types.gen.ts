@@ -1978,18 +1978,24 @@ export type Config = {
           enabled: boolean
         }
   }
-  /**
-   * SSH remote server connection configuration
-   */
   remote_ssh?: {
     enabled?: boolean
     host?: string
-    port?: number
+    /**
+     * SSH port (default: 22)
+     */
+    port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
     username?: string
     private_key?: string
     password?: string
-    remote_port?: number
-    local_port?: number
+    /**
+     * Port for loongcode serve on remote server (default: 4096)
+     */
+    remote_port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * Local port for SSH tunnel (default: 4097)
+     */
+    local_port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
     install_command?: string
     auto_install?: boolean
   }
@@ -5456,6 +5462,147 @@ export type GlobalUpgradeResponses = {
 
 export type GlobalUpgradeResponse = GlobalUpgradeResponses[keyof GlobalUpgradeResponses]
 
+export type SshDeployConnectData = {
+  body?: {
+    host: string
+    port?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    username: string
+    password?: string
+    privateKey?: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/connect"
+}
+
+export type SshDeployConnectErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployConnectError = SshDeployConnectErrors[keyof SshDeployConnectErrors]
+
+export type SshDeployConnectResponses = {
+  /**
+   * SSH session created
+   */
+  200: {
+    sessionId: string
+  }
+}
+
+export type SshDeployConnectResponse = SshDeployConnectResponses[keyof SshDeployConnectResponses]
+
+export type SshDeployInstallData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/install"
+}
+
+export type SshDeployInstallErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployInstallError = SshDeployInstallErrors[keyof SshDeployInstallErrors]
+
+export type SshDeployInstallResponses = {
+  /**
+   * Installation started
+   */
+  200: boolean
+}
+
+export type SshDeployInstallResponse = SshDeployInstallResponses[keyof SshDeployInstallResponses]
+
+export type SshDeployStartData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/start"
+}
+
+export type SshDeployStartErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployStartError = SshDeployStartErrors[keyof SshDeployStartErrors]
+
+export type SshDeployStartResponses = {
+  /**
+   * Service started
+   */
+  200: boolean
+}
+
+export type SshDeployStartResponse = SshDeployStartResponses[keyof SshDeployStartResponses]
+
+export type SshDeployDisconnectData = {
+  body?: {
+    sessionId: string
+  }
+  path?: never
+  query?: never
+  url: "/ssh-deploy/disconnect"
+}
+
+export type SshDeployDisconnectErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+}
+
+export type SshDeployDisconnectError = SshDeployDisconnectErrors[keyof SshDeployDisconnectErrors]
+
+export type SshDeployDisconnectResponses = {
+  /**
+   * Disconnected
+   */
+  200: boolean
+}
+
+export type SshDeployDisconnectResponse = SshDeployDisconnectResponses[keyof SshDeployDisconnectResponses]
+
+export type SshDeployLogsData = {
+  body?: never
+  path?: never
+  query: {
+    sessionId: string
+  }
+  url: "/ssh-deploy/logs"
+}
+
+export type SshDeployLogsErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type SshDeployLogsError = SshDeployLogsErrors[keyof SshDeployLogsErrors]
+
+export type SshDeployLogsResponses = {
+  /**
+   * Success
+   */
+  200: string
+}
+
+export type SshDeployLogsResponse = SshDeployLogsResponses[keyof SshDeployLogsResponses]
+
 export type EventSubscribeData = {
   body?: never
   path?: never
@@ -6467,6 +6614,338 @@ export type FormatterStatusResponses = {
 }
 
 export type FormatterStatusResponse = FormatterStatusResponses[keyof FormatterStatusResponses]
+
+export type V2SkillMarketplaceData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/marketplace"
+}
+
+export type V2SkillMarketplaceErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillMarketplaceError = V2SkillMarketplaceErrors[keyof V2SkillMarketplaceErrors]
+
+export type V2SkillMarketplaceResponses = {
+  /**
+   * Discoverable skills
+   */
+  200: Array<{
+    name: string
+    description?: string
+    source: "skillhub" | "github" | "gitee"
+    namespace?: string
+    slug?: string
+    repo?: string
+    installed: boolean
+  }>
+}
+
+export type V2SkillMarketplaceResponse = V2SkillMarketplaceResponses[keyof V2SkillMarketplaceResponses]
+
+export type V2SkillInstallData = {
+  body: {
+    source: "skillhub" | "github" | "gitee"
+    name: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/marketplace/install"
+}
+
+export type V2SkillInstallErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillInstallError = V2SkillInstallErrors[keyof V2SkillInstallErrors]
+
+export type V2SkillInstallResponses = {
+  /**
+   * Installation result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillInstallResponse = V2SkillInstallResponses[keyof V2SkillInstallResponses]
+
+export type V2SkillUninstallData = {
+  body: {
+    name: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/marketplace/uninstall"
+}
+
+export type V2SkillUninstallErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillUninstallError = V2SkillUninstallErrors[keyof V2SkillUninstallErrors]
+
+export type V2SkillUninstallResponses = {
+  /**
+   * Uninstall result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillUninstallResponse = V2SkillUninstallResponses[keyof V2SkillUninstallResponses]
+
+export type V2SkillReposData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/repos"
+}
+
+export type V2SkillReposErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillReposError = V2SkillReposErrors[keyof V2SkillReposErrors]
+
+export type V2SkillReposResponses = {
+  /**
+   * Repo skill sources
+   */
+  200: Array<{
+    host: "github" | "gitee"
+    url: string
+    owner: string
+    name: string
+    branch: string
+  }>
+}
+
+export type V2SkillReposResponse = V2SkillReposResponses[keyof V2SkillReposResponses]
+
+export type V2SkillAddRepoData = {
+  body: {
+    url: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/repos/add"
+}
+
+export type V2SkillAddRepoErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillAddRepoError = V2SkillAddRepoErrors[keyof V2SkillAddRepoErrors]
+
+export type V2SkillAddRepoResponses = {
+  /**
+   * Parsed repo info
+   */
+  200: {
+    host: "github" | "gitee"
+    url: string
+    owner: string
+    name: string
+    branch: string
+  }
+}
+
+export type V2SkillAddRepoResponse = V2SkillAddRepoResponses[keyof V2SkillAddRepoResponses]
+
+export type V2SkillRemoveRepoData = {
+  body: {
+    url: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/repos/remove"
+}
+
+export type V2SkillRemoveRepoErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillRemoveRepoError = V2SkillRemoveRepoErrors[keyof V2SkillRemoveRepoErrors]
+
+export type V2SkillRemoveRepoResponses = {
+  /**
+   * Removal result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillRemoveRepoResponse = V2SkillRemoveRepoResponses[keyof V2SkillRemoveRepoResponses]
+
+export type V2SkillRemoveSkillHubKeyData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/skillhub"
+}
+
+export type V2SkillRemoveSkillHubKeyErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillRemoveSkillHubKeyError = V2SkillRemoveSkillHubKeyErrors[keyof V2SkillRemoveSkillHubKeyErrors]
+
+export type V2SkillRemoveSkillHubKeyResponses = {
+  /**
+   * Removal result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillRemoveSkillHubKeyResponse =
+  V2SkillRemoveSkillHubKeyResponses[keyof V2SkillRemoveSkillHubKeyResponses]
+
+export type V2SkillSkillhubStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/skillhub"
+}
+
+export type V2SkillSkillhubStatusErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillSkillhubStatusError = V2SkillSkillhubStatusErrors[keyof V2SkillSkillhubStatusErrors]
+
+export type V2SkillSkillhubStatusResponses = {
+  /**
+   * Skill Hub credential status
+   */
+  200: {
+    configured: boolean
+  }
+}
+
+export type V2SkillSkillhubStatusResponse = V2SkillSkillhubStatusResponses[keyof V2SkillSkillhubStatusResponses]
+
+export type V2SkillSetSkillHubKeyData = {
+  body: {
+    key: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/skillhub"
+}
+
+export type V2SkillSetSkillHubKeyErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillSetSkillHubKeyError = V2SkillSetSkillHubKeyErrors[keyof V2SkillSetSkillHubKeyErrors]
+
+export type V2SkillSetSkillHubKeyResponses = {
+  /**
+   * Save result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillSetSkillHubKeyResponse = V2SkillSetSkillHubKeyResponses[keyof V2SkillSetSkillHubKeyResponses]
 
 export type McpStatusData = {
   body?: never

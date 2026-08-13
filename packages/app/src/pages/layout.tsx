@@ -1033,6 +1033,12 @@ export default function Layout(props: ParentProps) {
         onSelect: () => openServer(),
       },
       {
+        id: "skill.marketplace",
+        title: language.t("command.skill.marketplace"),
+        category: language.t("command.category.settings"),
+        onSelect: () => openSkillMarketplace(),
+      },
+      {
         id: "settings.open",
         title: language.t("command.settings.open"),
         category: language.t("command.category.settings"),
@@ -1226,6 +1232,14 @@ export default function Layout(props: ParentProps) {
     void module.then((x) => {
       if (dialogDead || dialogRun !== run) return
       dialog.show(() => <x.DialogSettings />)
+    })
+  }
+
+  function openSkillMarketplace() {
+    const run = ++dialogRun
+    void import("@/components/skill-marketplace").then((x) => {
+      if (dialogDead || dialogRun !== run) return
+      dialog.show(() => <x.DialogSkillMarketplace />)
     })
   }
 
