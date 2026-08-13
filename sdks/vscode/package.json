@@ -2,7 +2,7 @@
   "name": "loongcode-vscode",
   "displayName": "Loongcode",
   "description": "Loongcode AI coding agent for VS Code",
-  "version": "0.0.2",
+  "version": "0.0.66",
   "publisher": "sst-dev",
   "license": "MIT",
   "icon": "images/icon.png",
