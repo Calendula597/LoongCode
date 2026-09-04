@@ -43,6 +43,8 @@ import { SessionV2 } from "@loongcode/core/session"
 import { SessionExecution } from "@loongcode/core/session/execution"
 import { Skill } from "../../src/skill"
 import { SystemPrompt } from "../../src/session/system"
+import { Memory } from "../../src/memory"
+import { MemoryStore } from "@loongcode/core/memory/store"
 import { Shell } from "@loongcode/core/shell"
 import { Snapshot } from "../../src/snapshot"
 import { ToolRegistry } from "@/tool/registry"
@@ -186,6 +188,8 @@ function makePrompt(input?: { processor?: "blocking" }) {
   const question = Question.layer.pipe(Layer.provideMerge(deps))
   const todo = Todo.layer.pipe(Layer.provideMerge(deps))
   const registry = ToolRegistry.layer.pipe(
+    Layer.provide(Memory.defaultLayer),
+    Layer.provide(MemoryStore.defaultLayer),
     Layer.provide(Skill.defaultLayer),
     Layer.provide(FetchHttpClient.layer),
     Layer.provide(CrossSpawnSpawner.defaultLayer),

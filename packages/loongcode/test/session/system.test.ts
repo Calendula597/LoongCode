@@ -5,6 +5,7 @@ import { NamedError } from "@loongcode/core/util/error"
 import { Skill } from "../../src/skill"
 import { Permission } from "../../src/permission"
 import { SystemPrompt } from "../../src/session/system"
+import { MemoryPrompt } from "../../src/memory/prompt"
 import { LocationServiceMap } from "@loongcode/core/location-layer"
 import { testEffect } from "../lib/effect"
 
@@ -44,6 +45,7 @@ const build: Agent.Info = {
 const it = testEffect(
   SystemPrompt.layer.pipe(
     Layer.provide(LocationServiceMap.layer),
+    Layer.provide(Layer.mock(MemoryPrompt.Service, { summary: () => Effect.succeed(undefined) })),
     Layer.provide(
       Layer.succeed(
         Skill.Service,

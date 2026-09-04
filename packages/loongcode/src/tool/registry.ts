@@ -16,6 +16,14 @@ import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
 import { SkillTool } from "./skill"
+import { MemoryInspectTool } from "./memory-inspect"
+import { MemoryReadTool } from "./memory-read"
+import { MemorySearchTool } from "./memory-search"
+import { MemoryListTool } from "./memory-list"
+import { MemoryAddNoteTool } from "./memory-add-note"
+import { MemoryResetTool } from "./memory-reset"
+import { Memory } from "@/memory"
+import { MemoryStore } from "@loongcode/core/memory/store"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@loongcode/plugin"
@@ -105,6 +113,12 @@ export const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const memoryInspect = yield* MemoryInspectTool
+    const memoryRead = yield* MemoryReadTool
+    const memorySearch = yield* MemorySearchTool
+    const memoryList = yield* MemoryListTool
+    const memoryAddNote = yield* MemoryAddNoteTool
+    const memoryReset = yield* MemoryResetTool
     const agent = yield* Agent.Service
 
     const state = yield* InstanceState.make<State>(
@@ -192,8 +206,10 @@ export const layer = Layer.effect(
           }
         }
 
-        yield* config.get()
+        const configInfo = yield* config.get()
         const questionEnabled = ["app", "cli", "desktop"].includes(flags.client) || flags.enableQuestionTool
+        const memoryEnabled = configInfo.memory !== undefined
+        const memoryToolsEnabled = memoryEnabled && (configInfo.memory?.use_memories ?? true)
 
         const tool = yield* Effect.all({
           invalid: Tool.init(invalid),
@@ -212,6 +228,12 @@ export const layer = Layer.effect(
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
+          memoryInspect: Tool.init(memoryInspect),
+          memoryRead: Tool.init(memoryRead),
+          memorySearch: Tool.init(memorySearch),
+          memoryList: Tool.init(memoryList),
+          memoryAddNote: Tool.init(memoryAddNote),
+          memoryReset: Tool.init(memoryReset),
         })
 
         return {
@@ -231,6 +253,8 @@ export const layer = Layer.effect(
             tool.search,
             tool.skill,
             tool.patch,
+            ...(memoryEnabled ? [tool.memoryInspect, tool.memoryReset] : []),
+            ...(memoryToolsEnabled ? [tool.memoryRead, tool.memorySearch, tool.memoryList, tool.memoryAddNote] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
           ],
@@ -335,8 +359,9 @@ export const defaultLayer = Layer.suspend(() =>
       Layer.provide(Format.defaultLayer),
       Layer.provide(CrossSpawnSpawner.defaultLayer),
       Layer.provide(Truncate.defaultLayer),
+      Layer.provide(MemoryStore.defaultLayer),
     )
-    .pipe(Layer.provide(Database.defaultLayer), Layer.provide(RuntimeFlags.defaultLayer)),
+    .pipe(Layer.provide(Database.defaultLayer), Layer.provide(RuntimeFlags.defaultLayer), Layer.provide(Memory.defaultLayer)),
 )
 
 function isZodType(value: unknown): value is z.ZodType {
@@ -435,6 +460,8 @@ export const node = LayerNode.make(layer.pipe(Layer.provide(Ripgrep.defaultLayer
   Truncate.node,
   RuntimeFlags.node,
   Database.node,
+  Memory.node,
+  MemoryStore.node,
 ])
 
 export * as ToolRegistry from "./registry"

@@ -31,9 +31,17 @@ import { ProviderV2 } from "@loongcode/core/provider"
 import * as DateTime from "effect/DateTime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ToolOutput, Usage, type LLMEvent } from "@loongcode/llm"
+import { Option } from "effect"
+import { MemoryCitation } from "@loongcode/core/memory/citation"
+import { MemoryJobs } from "@loongcode/core/memory/jobs"
 
 const DOOM_LOOP_THRESHOLD = 3
 export type Result = "compact" | "stop" | "continue"
+
+/** Memory sub-agent sessions never contribute citation usage (self-amplification guard). */
+const MEMORY_SUBAGENTS = new Set(["memorize", "memorize-extract"])
+/** Cap on cited session ids per reply — bounds accounting writes per text part. */
+const MEMORY_CITATION_CAP = 16
 
 export interface Handle {
   readonly message: SessionV1.Assistant
@@ -816,6 +824,22 @@ export const layer = Layer.effect(
               },
               { text: ctx.currentText.text },
             )).text
+            // Citation feedback loop: parse <memory-citation> blocks emitted by
+            // the model, record usage against the cited sessions, then strip the
+            // markup before persistence so history stays clean. Memory sub-agent
+            // sessions (memorize / memorize-extract) are exempt from usage
+            // accounting — otherwise the consolidator would self-amplify its own
+            // citations — but their citation markup is still stripped. The id
+            // list is capped so a runaway citation payload cannot issue an
+            // unbounded number of accounting writes on the persistence path.
+            if (ctx.currentText.text.includes("<memory-citation")) {
+              const jobs = yield* Effect.serviceOption(MemoryJobs.Service)
+              const cited = MemoryCitation.extractCitedSessionIds(ctx.currentText.text).slice(0, MEMORY_CITATION_CAP)
+              if (Option.isSome(jobs) && !MEMORY_SUBAGENTS.has(ctx.assistantMessage.agent) && cited.length > 0) {
+                yield* jobs.value.recordUsage(cited).pipe(Effect.ignore)
+              }
+              ctx.currentText.text = MemoryCitation.stripCitations(ctx.currentText.text)
+            }
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
               if (mirrorAssistant) {

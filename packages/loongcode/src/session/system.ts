@@ -21,6 +21,7 @@ import { Location } from "@loongcode/core/location"
 import { LocationServiceMap } from "@loongcode/core/location-layer"
 import { PluginBoot } from "@loongcode/core/plugin/boot"
 import { Reference } from "@loongcode/core/reference"
+import { MemoryPrompt } from "@/memory/prompt"
 
 export function provider(model: Provider.Model) {
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
@@ -41,6 +42,7 @@ export function provider(model: Provider.Model) {
 export interface Interface {
   readonly environment: (model: Provider.Model) => Effect.Effect<string[]>
   readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
+  readonly memory: () => Effect.Effect<string | undefined>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@loongcode/SystemPrompt") {}
@@ -50,6 +52,7 @@ export const layer = Layer.effect(
   Effect.gen(function* () {
     const skill = yield* Skill.Service
     const locations = yield* LocationServiceMap
+    const memory = yield* MemoryPrompt.Service
 
     return Service.of({
       environment: Effect.fn("SystemPrompt.environment")(function* (model: Provider.Model) {
@@ -104,14 +107,24 @@ export const layer = Layer.effect(
           Skill.fmt(list, { verbose: true }),
         ].join("\n")
       }),
+
+      memory: Effect.fn("SystemPrompt.memory")(function* () {
+        // Memory sub-agents must never see the summary: the consolidator citing
+        // its own memories would self-amplify usage accounting.
+        return yield* memory.summary()
+      }),
     })
   }),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(Skill.defaultLayer), Layer.provide(LocationServiceMap.layer))
+export const defaultLayer = layer.pipe(
+  Layer.provide(Skill.defaultLayer),
+  Layer.provide(LocationServiceMap.layer),
+  Layer.provide(MemoryPrompt.defaultLayer),
+)
 
 const locationServiceMapNode = LayerNode.make(LocationServiceMap.layer, [])
 
-export const node = LayerNode.make(layer, [Skill.node, locationServiceMapNode])
+export const node = LayerNode.make(layer, [Skill.node, locationServiceMapNode, MemoryPrompt.node])
 
 export * as SystemPrompt from "./system"
