@@ -10,6 +10,7 @@ import { ConfigCommandV1 } from "./command"
 import { ConfigFormatterV1 } from "./formatter"
 import { ConfigLayoutV1 } from "./layout"
 import { ConfigLSPV1 } from "./lsp"
+import { ConfigMemoryV1 } from "./memory"
 import { ConfigMCPV1 } from "./mcp"
 import { ConfigPermissionV1 } from "./permission"
 import { ConfigPluginV1 } from "./plugin"
@@ -197,6 +198,10 @@ export const Info = Schema.Struct({
       }),
     }),
   ),
+  memory: Schema.optional(ConfigMemoryV1.Info).annotate({
+    description:
+      "Persistent memory configuration. Absence disables memory entirely; generate_memories/use_memories toggle the write and read paths independently without deleting data.",
+  }),
   experimental: Schema.optional(
     Schema.Struct({
       disable_paste_summary: Schema.optional(Schema.Boolean),
