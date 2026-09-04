@@ -858,6 +858,9 @@ export const dict = {
     "Choose the shell used for your terminal. Compatible shells are also used for agent tool calls.",
   "settings.general.row.shell.autoDefault": "Auto (Default)",
   "settings.general.row.shell.terminalOnly": "terminal only",
+  "settings.general.row.memory.title": "Memory",
+  "settings.general.row.memory.description":
+    "Remember your preferences and project lessons across sessions. Turning it off pauses learning and recall without deleting saved memories.",
   "settings.general.row.appearance.title": "Appearance",
   "settings.general.row.appearance.description": "Customise how Loongcode looks on your device",
   "settings.general.row.colorScheme.title": "Color scheme",

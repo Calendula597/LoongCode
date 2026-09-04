@@ -146,6 +146,15 @@ export const SettingsGeneralV2: Component = () => {
   const autoOption = { id: "auto", value: "", label: language.t("settings.general.row.shell.autoDefault") }
   const currentShell = createMemo(() => serverSync().data.config.shell ?? "")
 
+  // Master switch: memory is on when the config section exists and at least one of the
+  // write/read paths is active. Toggling sets both flags together; other memory fields
+  // (models, pruning limits) survive the deep-merge on the server.
+  const memoryEnabled = createMemo(() => {
+    const memory = serverSync().data.config.memory
+    if (!memory) return false
+    return (memory.generate_memories ?? true) || (memory.use_memories ?? true)
+  })
+
   const shellOptions = createMemo<ShellSelectOption[]>(() => {
     const list = shells.latest
     const current = serverSync().data.config.shell
@@ -278,6 +287,20 @@ export const SettingsGeneralV2: Component = () => {
               serverSync().updateConfig({ shell: option.value })
             }}
           />
+        </SettingsRowV2>
+
+        <SettingsRowV2
+          title={language.t("settings.general.row.memory.title")}
+          description={language.t("settings.general.row.memory.description")}
+        >
+          <div data-action="settings-memory-enabled">
+            <Switch
+              checked={memoryEnabled()}
+              onChange={(checked) =>
+                serverSync().updateConfig({ memory: { generate_memories: checked, use_memories: checked } })
+              }
+            />
+          </div>
         </SettingsRowV2>
 
         <SettingsRowV2

@@ -689,6 +689,8 @@ export const dict = {
   "settings.general.row.followup.option.steer": "引導",
   "settings.general.row.reasoningSummaries.title": "顯示推理摘要",
   "settings.general.row.reasoningSummaries.description": "在時間軸中顯示模型推理摘要",
+  "settings.general.row.memory.title": "記憶",
+  "settings.general.row.memory.description": "跨工作階段記住你的偏好與專案經驗。關閉只會暫停學習與召回，不會刪除已儲存的記憶。",
 
   "settings.general.row.shellToolPartsExpanded.title": "展開 shell 工具區塊",
   "settings.general.row.shellToolPartsExpanded.description": "在時間軸中預設展開 shell 工具區塊",

@@ -709,6 +709,8 @@ export const dict = {
   "settings.general.row.followup.option.steer": "引导",
   "settings.general.row.reasoningSummaries.title": "显示推理摘要",
   "settings.general.row.reasoningSummaries.description": "在时间线中显示模型推理摘要",
+  "settings.general.row.memory.title": "记忆",
+  "settings.general.row.memory.description": "跨会话记住你的偏好与项目经验。关闭只会暂停学习与召回，不会删除已保存的记忆。",
   "settings.general.row.shellToolPartsExpanded.title": "展开 shell 工具部分",
   "settings.general.row.shellToolPartsExpanded.description": "默认在时间线中展开 shell 工具部分",
   "settings.general.row.editToolPartsExpanded.title": "展开编辑工具部分",
