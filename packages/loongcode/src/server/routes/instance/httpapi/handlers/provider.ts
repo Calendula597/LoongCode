@@ -47,9 +47,6 @@ export const providerHandlers = HttpApiBuilder.group(InstanceHttpApi, "provider"
         if ((enabled ? enabled.has(key) : true) && !disabled.has(key)) filtered[key] = value
       }
       const connected = yield* provider.list()
-      const { appendFileSync } = require("fs")
-      try { appendFileSync("D:/Desktop/Loongcode/opencode/debug-provider.log", `[HANDLER] connected: ${JSON.stringify(Object.keys(connected))}\n`) } catch(e) {}
-      try { appendFileSync("D:/Desktop/Loongcode/opencode/debug-provider.log", `[HANDLER] filtered: ${JSON.stringify(Object.keys(filtered))}\n`) } catch(e) {}
       const providers = Object.assign(
         mapValues(filtered, (item) => Provider.fromModelsDevProvider(item)),
         connected,
