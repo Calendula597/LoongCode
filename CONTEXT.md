@@ -55,6 +55,35 @@ Provider-neutral sampling and output controls, partitioned from provider semanti
 **PTY Environment**:
 The host-supplied environment overlay applied by the server when creating a PTY, observed for the request Location and resolved PTY working directory.
 
+### Memory
+
+**Memory**:
+The durable, user-scoped knowledge distilled from past Sessions and carried into future ones.
+_Avoid_: Knowledge base, long-term store
+
+**Memory Workspace**:
+The single user-level directory of plain Markdown files, with a Git baseline, that holds the human-readable Memory.
+_Avoid_: Memory store, memory folder
+
+**Memory Summary**:
+The bounded compact rendering of Memory contributed to the System Context.
+_Avoid_: Memory prompt, summary injection
+
+**Extraction**:
+The per-Session background job that distills one sufficiently idle, finished Session into a raw memory note and a rollout summary.
+_Avoid_: Session learning, phase 1
+
+**Consolidation**:
+The globally serialized background job that rewrites the Memory Workspace from ranked Extraction notes.
+_Avoid_: Memory merge, phase 2
+
+**Memory Citation**:
+A model-emitted marker reporting which Session-sourced memories a reply used; recorded as usage and stripped before persistence.
+_Avoid_: Citation tag, feedback marker
+
+**Memory Sub-Agent**:
+A sandboxed restricted agent (`memorize`, `memorize-extract`) that performs Extraction or Consolidation model work outside user Sessions.
+
 ## Relationships
 
 - A **System Context** is an opaque carrier composed from zero or more **Context Sources**.
@@ -118,6 +147,22 @@ The host-supplied environment overlay applied by the server when creating a PTY,
 - Existing tool-managed output paths survive generic bounding. A fallback file retains exactly the complete projected text received by the Tool Registry and never claims to reconstruct output already discarded by tool-specific shaping.
 - **Managed Tool Output Files** use globally unique names in one shared flat directory. Their absolute paths are readable and searchable by ordinary tools; other absolute paths remain outside Location-scoped filesystem authority.
 - Provider-executed tool results remain provider-native transcript facts outside generic Tool Registry bounding. Their context control requires provider-aware pruning or compaction because some providers require exact structured round-trip payloads.
+
+### Memory
+
+- Memory is **global**: one user-scoped store with no per-project, per-Location, or per-workspace partitioning in storage, read path, or job scheduling. Projects appear only as soft labels within memory content.
+- Location scoping constrains execution authority only (which process may load memory files), never memory content or visibility.
+- The **Memory Summary** is a **Context Source** under a stable key (e.g. `memory/summary`); it enters the **Baseline System Context** at epoch start and changes surface as one **Mid-Conversation System Message** at the next **Safe Provider-Turn Boundary**.
+- Memory changes never wake idle sessions and never replace an epoch by themselves.
+- The read path lives in the V2 core (Context Source + Tool Registry tools); the write path lives in the host (background jobs over `llm.stream`), because memory learning is not part of Session execution authority.
+- A Session becomes eligible for **Extraction** only after its last activity is older than the idle threshold (default 6h) and newer than the max age window (default 10 days); eligibility is computed from durable timestamps, never from live process state.
+- Discovery runs at host startup (oldest eligible first), on Session idle events, and on a periodic rescan; event loss never loses memory — durable job state in the global memory database is the source of truth.
+- **Consolidation** is serialized across processes by a heartbeat lease (Flock); a crashed holder is reclaimed after its lease goes stale.
+- Extraction and Consolidation claims are lease-guarded so hard process kills leave no permanently stuck jobs.
+- The memory database is one global SQLite file under the user-level data directory, separate from any per-Location session database; Session discovery and transcript reads query the host Session tables directly.
+- `generate_memories` and `use_memories` are independent behavior switches; neither deletes data. Absence of the `memory` config section is the master off switch. Explicit reset is the only destructive operation.
+- A **Memory Citation** is parsed and stripped before the text part is persisted; usage is recorded per cited Session, deduplicated per part, and **Memory Sub-Agent** sessions are exempt so consolidation cannot cite itself.
+- Unused memories age out of the Memory Workspace after the configured window (default 30 days); usage-driven pruning is the only forgetting mechanism.
 
 ## Example dialogue
 
