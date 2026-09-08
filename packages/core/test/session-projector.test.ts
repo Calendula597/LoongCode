@@ -18,7 +18,9 @@ import { SessionProjector } from "@loongcode/core/session/projector"
 import { SessionExecution } from "@loongcode/core/session/execution"
 import { SessionInput } from "@loongcode/core/session/input"
 import { SessionStore } from "@loongcode/core/session/store"
-import { SessionInputTable, SessionMessageTable, SessionTable } from "@loongcode/core/session/sql"
+import { SessionInputTable, SessionMessageTable, SessionTable, SessionContextEpochTable } from "@loongcode/core/session/sql"
+import { ConfigTDAIV1 } from "@loongcode/core/v1/config/tdai"
+import { AgentV2 } from "@loongcode/core/agent"
 import { testEffect } from "./lib/effect"
 
 const database = Database.layerFromPath(":memory:")
@@ -613,6 +615,151 @@ describe("SessionProjector", () => {
           time: { created },
         }),
       ])
+    }),
+  )
+
+  it.effect("requests context epoch replacement when the effective api or model changes", () =>
+    Effect.gen(function* () {
+      const { db } = yield* Database.Service
+      const events = yield* EventV2.Service
+      const sharedModelID = ModelV2.ID.make("shared-model")
+
+      yield* db
+        .insert(ProjectTable)
+        .values({ id: Project.ID.global, worktree: AbsolutePath.make("/project"), sandboxes: [] })
+        .run()
+        .pipe(Effect.orDie)
+      yield* db
+        .insert(SessionTable)
+        .values({
+          id: sessionID,
+          project_id: Project.ID.global,
+          slug: "test",
+          directory: "/project",
+          title: "test",
+          version: "test",
+          model: {
+            id: sharedModelID,
+            providerID: ProviderV2.ID.make(`${ConfigTDAIV1.PROVIDER_PREFIX}agent-a`),
+          },
+        })
+        .run()
+        .pipe(Effect.orDie)
+      yield* db
+        .insert(SessionContextEpochTable)
+        .values({
+          session_id: sessionID,
+          baseline: "baseline",
+          agent: AgentV2.defaultID,
+          snapshot: { key: { value: null } },
+          baseline_seq: -1,
+          revision: 0,
+        })
+        .run()
+        .pipe(Effect.orDie)
+
+      yield* events.publish(SessionEvent.ModelSwitched, {
+        sessionID,
+        messageID: SessionMessage.ID.create(),
+        timestamp: created,
+        model: {
+          id: sharedModelID,
+          providerID: ProviderV2.ID.make(`${ConfigTDAIV1.PROVIDER_PREFIX}agent-b`),
+        },
+      })
+
+      expect(
+        yield* db
+          .select({ replacementSeq: SessionContextEpochTable.replacement_seq })
+          .from(SessionContextEpochTable)
+          .where(eq(SessionContextEpochTable.session_id, sessionID))
+          .get()
+          .pipe(Effect.orDie),
+      ).toEqual({ replacementSeq: null })
+
+      const modelSwitch = yield* events.publish(SessionEvent.ModelSwitched, {
+        sessionID,
+        messageID: SessionMessage.ID.create(),
+        timestamp: created,
+        model: {
+          id: ModelV2.ID.make("other-model"),
+          providerID: ProviderV2.ID.make(`${ConfigTDAIV1.PROVIDER_PREFIX}agent-b`),
+        },
+      })
+      if (modelSwitch.seq === undefined)
+        return yield* Effect.die("Synchronized Session event is missing aggregate sequence")
+
+      expect(
+        yield* db
+          .select({ replacementSeq: SessionContextEpochTable.replacement_seq })
+          .from(SessionContextEpochTable)
+          .where(eq(SessionContextEpochTable.session_id, sessionID))
+          .get()
+          .pipe(Effect.orDie),
+      ).toEqual({ replacementSeq: modelSwitch.seq })
+    }),
+  )
+
+  it.effect("keeps unconditional epoch replacement for non-TDAI users", () =>
+    Effect.gen(function* () {
+      const { db } = yield* Database.Service
+      const events = yield* EventV2.Service
+      const id = SessionV2.ID.make("ses_projector_nontdai_test")
+
+      yield* db
+        .insert(ProjectTable)
+        .values({ id: Project.ID.global, worktree: AbsolutePath.make("/project"), sandboxes: [] })
+        .run()
+        .pipe(Effect.orDie)
+      yield* db
+        .insert(SessionTable)
+        .values({
+          id,
+          project_id: Project.ID.global,
+          slug: "test",
+          directory: "/project",
+          title: "test",
+          version: "test",
+          model: {
+            id: ModelV2.ID.make("shared-model"),
+            providerID: ProviderV2.ID.make("provider-a"),
+          },
+        })
+        .run()
+        .pipe(Effect.orDie)
+      yield* db
+        .insert(SessionContextEpochTable)
+        .values({
+          session_id: id,
+          baseline: "baseline",
+          agent: AgentV2.defaultID,
+          snapshot: { key: { value: null } },
+          baseline_seq: -1,
+          revision: 0,
+        })
+        .run()
+        .pipe(Effect.orDie)
+
+      const sameModelSwitch = yield* events.publish(SessionEvent.ModelSwitched, {
+        sessionID: id,
+        messageID: SessionMessage.ID.create(),
+        timestamp: created,
+        model: {
+          id: ModelV2.ID.make("shared-model"),
+          providerID: ProviderV2.ID.make("provider-a"),
+        },
+      })
+      if (sameModelSwitch.seq === undefined)
+        return yield* Effect.die("Synchronized Session event is missing aggregate sequence")
+
+      expect(
+        yield* db
+          .select({ replacementSeq: SessionContextEpochTable.replacement_seq })
+          .from(SessionContextEpochTable)
+          .where(eq(SessionContextEpochTable.session_id, id))
+          .get()
+          .pipe(Effect.orDie),
+      ).toEqual({ replacementSeq: sameModelSwitch.seq })
     }),
   )
 })

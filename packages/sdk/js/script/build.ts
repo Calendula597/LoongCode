@@ -54,7 +54,7 @@ const sseTypesPatched = sseTypesSource.replace(
   "=> Promise<ServerSentEventsResult<TData>>",
 )
 if (sseTypesPatched === sseTypesSource) {
-  throw new Error(`SseFn patch did not apply; @hey-api/openapi-ts output may have changed (${sseTypesPath})`)
+  throw new Error(`SseFn patch did not apply to ${sseTypesPath}`)
 }
 await Bun.write(sseTypesPath, sseTypesPatched)
 

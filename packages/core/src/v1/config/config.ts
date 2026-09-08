@@ -17,6 +17,7 @@ import { ConfigPluginV1 } from "./plugin"
 import { ConfigProviderV1 } from "./provider"
 import { ConfigServerV1 } from "./server"
 import { ConfigSkillsV1 } from "./skills"
+import { ConfigTDAIV1 } from "./tdai"
 
 export type Layout = ConfigLayoutV1.Layout
 
@@ -220,6 +221,10 @@ export const Info = Schema.Struct({
       }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
+      }),
+      tdai: Schema.optional(ConfigTDAIV1.Info).annotate({
+        description:
+          "Experimental TDAI MemoryProxy connection with header-overlay identities. Absence disables the feature entirely.",
       }),
     }),
   ),

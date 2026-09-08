@@ -31,6 +31,7 @@ import { ModelV2 } from "@loongcode/core/model"
 import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderError } from "./error"
+import { TDAI } from "./tdai"
 
 const OPENAI_HEADER_TIMEOUT_DEFAULT = 10_000
 
@@ -1676,7 +1677,13 @@ export const layer = Layer.effect(
         const plugins = yield* plugin.list()
 
         // now read config providers - includes any modifications from plugin config() hook
-        const configProviders = Object.entries(cfg.provider ?? {})
+        const tdai = TDAI.expand(cfg.experimental?.tdai)
+        for (const warning of tdai.warnings) yield* Effect.logWarning(warning)
+        const tdaiProviders = tdai.providers
+        const configProviders = [
+          ...Object.entries(cfg.provider ?? {}),
+          ...Object.entries(tdaiProviders),
+        ]
         const disabled = new Set(cfg.disabled_providers ?? [])
         const enabled = cfg.enabled_providers ? new Set(cfg.enabled_providers) : null
 
@@ -2274,7 +2281,10 @@ export const layer = Layer.effect(
       // Fall back to the first configured provider, then the best available model.
       // This mirrors opencode's original behavior, with no provider taking a
       // "preferred" slot (lgdg/ModelHub is deprecated).
-      const configured = Object.keys(cfg.provider ?? {})
+      const configured = [
+        ...Object.keys(cfg.provider ?? {}),
+        ...Object.keys(TDAI.expand(cfg.experimental?.tdai).providers),
+      ]
       const provider = Object.values(s.providers).find(
         (p) => configured.length === 0 || configured.includes(p.id),
       )

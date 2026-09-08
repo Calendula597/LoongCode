@@ -84,6 +84,22 @@ _Avoid_: Citation tag, feedback marker
 **Memory Sub-Agent**:
 A sandboxed restricted agent (`memorize`, `memorize-extract`) that performs Extraction or Consolidation model work outside user Sessions.
 
+### TDAI Integration (experimental)
+
+**TDAI Identity**:
+A named header-set overlay on the shared TDAI connection (e.g. `x-team-id`/`x-agent-id`/`x-task-id`/`x-conversation-id`), carrying no LoongCode-level prompt, permission, model binding, or credentials of its own. It namespaces memory attribution on the TDAI side and is not a LoongCode agent.
+_Avoid_: Persona, role, sub-agent
+
+**TDAI Task Binding**:
+The task scoping headers (`x-team-id` + `x-task-id`) carried by a **TDAI Identity**, consumed read-only by LoongCode; task lifecycle is managed on TDAI.
+
+**Identity Switch**:
+The mid-Session change of the active **TDAI Identity**, surfaced as sub-entries of the base provider in the model picker, taking effect at the next provider turn.
+_Avoid_: Agent switch (reserved for LoongCode agents)
+
+**Proxy Session Key**:
+The session id header (e.g. `x-conversation-id`) a **TDAI Identity** presents to the TDAI MemoryProxy, so each identity appears as a distinct proxy-side session under the same **TDAI Task Binding**.
+
 ## Relationships
 
 - A **System Context** is an opaque carrier composed from zero or more **Context Sources**.
@@ -163,6 +179,16 @@ A sandboxed restricted agent (`memorize`, `memorize-extract`) that performs Extr
 - `generate_memories` and `use_memories` are independent behavior switches; neither deletes data. Absence of the `memory` config section is the master off switch. Explicit reset is the only destructive operation.
 - A **Memory Citation** is parsed and stripped before the text part is persisted; usage is recorded per cited Session, deduplicated per part, and **Memory Sub-Agent** sessions are exempt so consolidation cannot cite itself.
 - Unused memories age out of the Memory Workspace after the configured window (default 30 days); usage-driven pruning is the only forgetting mechanism.
+
+### TDAI Integration (experimental)
+
+- The TDAI MemoryProxy connection (URL, API key, hand-configured model list) is declared once in a dedicated **TDAI (beta)** settings surface under `experimental.tdai`; **TDAI Identities** inherit it wholesale and add only their header set — a new identity never requires a provider entry.
+- A **TDAI Identity** is a pure header overlay: it never pins a model. Model selection stays free across the configured model list, and an **Identity Switch** alone does not replace the **Context Epoch**; an accompanying model change follows the ordinary model-switch rule.
+- Only **TDAI Identities** surface in the model picker (one entry each, switched like an LLM); no bare header-less TDAI entry exists, so the proxy never falls back to its interactive form flow. The settings UI may label identities "agents" within the TDAI (beta) surface, but they remain distinct from LoongCode agents.
+- LoongCode injects the active identity's headers (task scoping plus **Proxy Session Key**) verbatim on requests to the base provider; all memory capture, recall injection, and LLM routing behind the proxy are TDAI's concern.
+- Memory recall visibility follows the active **TDAI Identity** only; reads never span identities within the same task.
+- LoongCode's own Memory pipeline (Extraction/Consolidation) is unaffected and coexists independently.
+- Experimental v1 performs no identity validation: any header values are accepted, and task-agent linking is never written by LoongCode.
 
 ## Example dialogue
 

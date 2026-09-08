@@ -12,6 +12,8 @@ import { SessionMessage } from "./message"
 import { SessionMessageUpdater } from "./message-updater"
 import { SessionInput } from "./input"
 import { WorkspaceV2 } from "../workspace"
+import { ProviderV2 } from "../provider"
+import { ConfigTDAIV1 } from "../v1/config/tdai"
 import { SessionContextEpoch } from "./context-epoch"
 import { MessageTable, PartTable, SessionMessageTable, SessionTable } from "./sql"
 import type { DeepMutable } from "../schema"
@@ -23,6 +25,17 @@ const encodeMessage = Schema.encodeSync(SessionMessage.Message)
 
 class PromptAlreadyProjected extends Error {}
 export class SessionAlreadyProjected extends Error {}
+
+function isTDAIIdentitySwitch(
+  previousProviderID: ProviderV2.ID | undefined,
+  currentProviderID: ProviderV2.ID,
+): boolean {
+  if (previousProviderID === undefined) return false
+  return (
+    previousProviderID.startsWith(ConfigTDAIV1.PROVIDER_PREFIX) &&
+    currentProviderID.startsWith(ConfigTDAIV1.PROVIDER_PREFIX)
+  )
+}
 
 type Usage = {
   cost: number
@@ -345,6 +358,12 @@ export const layer = Layer.effectDiscard(
     })
     yield* events.project(SessionEvent.ModelSwitched, (event) =>
       Effect.gen(function* () {
+        const previous = yield* db
+          .select({ model: SessionTable.model })
+          .from(SessionTable)
+          .where(eq(SessionTable.id, event.data.sessionID))
+          .get()
+          .pipe(Effect.orDie)
         yield* db
           .update(SessionTable)
           .set({ model: event.data.model, time_updated: DateTime.toEpochMillis(event.data.timestamp) })
@@ -354,6 +373,19 @@ export const layer = Layer.effectDiscard(
         yield* run(db, event)
         if (event.seq === undefined)
           return yield* Effect.die("Synchronized Session event is missing aggregate sequence")
+        const previousModel = previous?.model
+        const currentModel = event.data.model
+        const sameModel = previousModel?.id === currentModel.id && previousModel?.variant === currentModel.variant
+        if (!sameModel) {
+          yield* SessionContextEpoch.requestReplacement(db, event.data.sessionID, event.seq)
+          return
+        }
+
+        const previousProviderID = previousModel?.providerID
+          ? ProviderV2.ID.make(previousModel.providerID)
+          : undefined
+        if (isTDAIIdentitySwitch(previousProviderID, currentModel.providerID)) return
+
         yield* SessionContextEpoch.requestReplacement(db, event.data.sessionID, event.seq)
       }),
     )

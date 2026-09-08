@@ -591,6 +591,115 @@
   color: var(--v2-text-text-muted);
 }
 
+.settings-v2-tab-header.settings-v2-tab-header--stacked:has(.settings-v2-tab-description) {
+  gap: 24px;
+}
+
+.settings-v2-tab-description {
+  font-size: 13px;
+  font-weight: 440;
+  line-height: 1.4;
+  color: var(--v2-text-text-muted);
+}
+
+.settings-v2-tab-header--stacked > div:has(> .settings-v2-tab-description) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-v2-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-v2-section-header .settings-v2-section-title {
+  padding-bottom: 0;
+}
+
+.settings-v2-tdai-input {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .settings-v2-tdai-input {
+    width: 320px;
+  }
+}
+
+.settings-v2-tdai-empty {
+  padding-block: 20px;
+  font-size: 13px;
+  font-weight: 440;
+  line-height: 1;
+  color: var(--v2-text-text-muted);
+}
+
+.settings-v2-tdai-models,
+.settings-v2-tdai-headers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .settings-v2-tdai-models,
+  .settings-v2-tdai-headers {
+    width: 320px;
+  }
+}
+
+.settings-v2-tdai-model-row,
+.settings-v2-tdai-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-v2-tdai-model-input {
+  flex: 1;
+}
+
+.settings-v2-tdai-header-key {
+  flex: 2;
+}
+
+.settings-v2-tdai-header-value {
+  flex: 3;
+}
+
+[data-component="settings-v2-tdai-identity"] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 20px;
+  border-bottom: 0.5px solid var(--v2-border-border-base);
+}
+
+[data-component="settings-v2-tdai-identity"]:last-child {
+  border-bottom: none;
+}
+
+[data-slot="settings-v2-tdai-identity-header"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-v2-tdai-identity-key {
+  flex: 1;
+  min-width: 120px;
+}
+
+.settings-v2-tdai-identity-name {
+  flex: 2;
+  min-width: 160px;
+}
+
 .settings-v2-servers-status {
   display: flex;
   flex-direction: column;

@@ -407,6 +407,91 @@ it.effect("updates global config and omits empty shell key in jsonc", () =>
   ),
 )
 
+it.effect("updates global json config and removes deleted TDAI agents", () =>
+  withGlobalConfig(
+    {
+      config: {
+        experimental: {
+          tdai: {
+            url: "http://tdai.example.com",
+            apiKey: "sk-secret",
+            models: ["glm-5.3"],
+            agents: {
+              keep: { headers: { "x-agent-id": "keep" } },
+              drop: { headers: { "x-agent-id": "drop" } },
+            },
+          },
+        },
+      },
+    },
+    ({ dir }) =>
+      Effect.gen(function* () {
+        yield* Config.use.updateGlobal({
+          experimental: {
+            tdai: {
+              url: "http://tdai.example.com",
+              apiKey: "sk-secret",
+              models: ["glm-5.3"],
+              agents: {
+                keep: { headers: { "x-agent-id": "keep" } },
+              },
+            },
+          },
+        })
+
+        const writtenConfig = (yield* FSUtil.use.readJson(path.join(dir, "loongcode.json"))) as Record<string, unknown>
+        const tdai = ((writtenConfig.experimental as Record<string, unknown>)?.tdai ?? {}) as Record<string, unknown>
+        expect(tdai.agents).toEqual({
+          keep: { headers: { "x-agent-id": "keep" } },
+        })
+        expect("drop" in (tdai.agents as object)).toBe(false)
+      }),
+  ),
+)
+
+it.effect("updates global jsonc config and removes deleted TDAI agents", () =>
+  withGlobalConfig(
+    {
+      name: "loongcode.jsonc",
+      config: {
+        experimental: {
+          tdai: {
+            url: "http://tdai.example.com",
+            apiKey: "sk-secret",
+            models: ["glm-5.3"],
+            agents: {
+              keep: { headers: { "x-agent-id": "keep" } },
+              drop: { headers: { "x-agent-id": "drop" } },
+            },
+          },
+        },
+      },
+    },
+    ({ dir }) =>
+      Effect.gen(function* () {
+        yield* Config.use.updateGlobal({
+          experimental: {
+            tdai: {
+              url: "http://tdai.example.com",
+              apiKey: "sk-secret",
+              models: ["glm-5.3"],
+              agents: {
+                keep: { headers: { "x-agent-id": "keep" } },
+              },
+            },
+          },
+        })
+
+        const file = path.join(dir, "loongcode.jsonc")
+        const writtenConfig = yield* FSUtil.use.readFileString(file)
+        const parsed = ConfigParse.schema(ConfigV1.Info, ConfigParse.jsonc(writtenConfig, file), file)
+        expect(parsed.experimental?.tdai?.agents).toEqual({
+          keep: { headers: { "x-agent-id": "keep" } },
+        })
+      }),
+  ),
+)
+
 it.instance(
   "loads formatter boolean config",
   Effect.gen(function* () {

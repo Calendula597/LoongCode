@@ -49,3 +49,6 @@ scratch/
 docs/
 graphify-out/
 memory-test/
+
+# Local models.dev snapshot used by script/generate.ts
+/api.json

@@ -2091,6 +2091,19 @@ export type Config = {
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
     policies?: Array<ConfigV2ExperimentalPolicy>
+    tdai?: {
+      url?: string
+      apiKey?: string
+      models?: Array<string>
+      agents?: {
+        [key: string]: {
+          name?: string
+          headers?: {
+            [key: string]: string
+          }
+        }
+      }
+    }
   }
 }
 

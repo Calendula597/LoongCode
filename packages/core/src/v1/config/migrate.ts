@@ -67,9 +67,15 @@ export function migrate(info: typeof ConfigV1.Info.Type) {
     plugins: info.plugin?.map((plugin) =>
       typeof plugin === "string" ? plugin : { package: plugin[0], options: plugin[1] },
     ),
-    experimental: info.experimental?.policies && { policies: info.experimental.policies },
+    experimental: experimental(info.experimental),
     providers: providers(info.provider),
   }
+}
+
+function experimental(info?: typeof ConfigV1.Info.Type["experimental"]) {
+  if (!info) return undefined
+  if (!info.policies && !info.tdai) return undefined
+  return { policies: info.policies, tdai: info.tdai }
 }
 
 function permissions(info?: ConfigPermissionV1.Info, tools?: Readonly<Record<string, boolean>>) {
