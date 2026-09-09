@@ -336,6 +336,18 @@ test("parseModel handles model IDs with slashes", () => {
   expect(String(result.modelID)).toBe("anthropic/claude-3-opus")
 })
 
+test("parseModel keeps the TDAI identity in the provider id", () => {
+  const result = Provider.parseModel("tdai/Agent Developer/deepseek-v4-flash")
+  expect(String(result.providerID)).toBe("tdai/Agent Developer")
+  expect(String(result.modelID)).toBe("deepseek-v4-flash")
+})
+
+test("parseModel handles TDAI model IDs with slashes", () => {
+  const result = Provider.parseModel("tdai/Agent Developer/nested/model-id")
+  expect(String(result.providerID)).toBe("tdai/Agent Developer")
+  expect(String(result.modelID)).toBe("nested/model-id")
+})
+
 it.instance("defaultModel returns first available model when no config set", () =>
   Effect.gen(function* () {
     yield* setProcessEnv("ANTHROPIC_API_KEY", "test-api-key")

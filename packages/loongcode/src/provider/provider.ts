@@ -32,6 +32,7 @@ import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderError } from "./error"
 import { TDAI } from "./tdai"
+import { ConfigTDAIV1 } from "@loongcode/core/v1/config/tdai"
 
 const OPENAI_HEADER_TIMEOUT_DEFAULT = 10_000
 
@@ -2324,6 +2325,15 @@ export function sort<T extends { id: string }>(models: T[]) {
 }
 
 export function parseModel(model: string) {
+  // TDAI synthetic provider ids are the only provider ids containing "/" ("tdai/<agentKey>"),
+  // so the provider id is the first two segments there and the model id is the rest.
+  if (model.startsWith(ConfigTDAIV1.PROVIDER_PREFIX)) {
+    const [, agentKey = "", ...rest] = model.split("/")
+    return {
+      providerID: ProviderV2.ID.make(`${ConfigTDAIV1.PROVIDER_PREFIX}${agentKey}`),
+      modelID: ModelV2.ID.make(rest.join("/")),
+    }
+  }
   const [providerID, ...rest] = model.split("/")
   return {
     providerID: ProviderV2.ID.make(providerID),

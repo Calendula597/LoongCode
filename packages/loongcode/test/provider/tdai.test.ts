@@ -220,6 +220,20 @@ describe("TDAI.expand", () => {
     expect(result.warnings).toEqual(['TDAI agent "bare" has no identity headers and was skipped'])
   })
 
+  test("skips agent keys containing a slash so model strings stay unambiguous", () => {
+    const result = TDAI.expand({
+      url: "http://tdai.example.com",
+      apiKey: "sk-mem-secret",
+      models: ["glm-5.3"],
+      agents: {
+        main: { headers: identityHeaders },
+        "bad/key": { headers: identityHeaders },
+      },
+    })
+    expect(Object.keys(result.providers)).toEqual(["tdai/main"])
+    expect(result.warnings).toEqual(['TDAI agent "bad/key" has a "/" in its key and was skipped'])
+  })
+
   test("warns about an incomplete connection", () => {
     const result = TDAI.expand({
       url: "http://tdai.example.com",

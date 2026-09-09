@@ -8,6 +8,7 @@ import { useTuiPaths } from "./runtime"
 import { useArgs } from "./args"
 import { useSDK } from "./sdk"
 import { RGBA } from "@opentui/core"
+import { ConfigTDAIV1 } from "@loongcode/core/v1/config/tdai"
 import { readJson, writeJsonAtomic } from "../util/persistence"
 import { useTheme } from "./theme"
 import { useToast } from "../ui/toast"
@@ -24,6 +25,15 @@ export type LocalTheme = {
 }
 
 export function parseModel(model: string) {
+  // TDAI synthetic provider ids are the only provider ids containing "/" ("tdai/<agentKey>"),
+  // so the provider id is the first two segments there and the model id is the rest.
+  if (model.startsWith(ConfigTDAIV1.PROVIDER_PREFIX)) {
+    const [, agentKey = "", ...rest] = model.split("/")
+    return {
+      providerID: `${ConfigTDAIV1.PROVIDER_PREFIX}${agentKey}`,
+      modelID: rest.join("/"),
+    }
+  }
   const [providerID, ...rest] = model.split("/")
   return {
     providerID: providerID,

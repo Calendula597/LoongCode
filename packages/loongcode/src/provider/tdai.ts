@@ -40,6 +40,10 @@ export function expand(info: ConfigTDAIV1.Info | undefined): Expanded {
   const warnings: string[] = []
   const providers = Object.fromEntries(
     agents.flatMap(([key, agent]) => {
+      if (key.includes("/")) {
+        warnings.push(`TDAI agent "${key}" has a "/" in its key and was skipped`)
+        return []
+      }
       const headers = agent.headers ?? {}
       if (Object.keys(headers).length === 0) {
         warnings.push(`TDAI agent "${key}" has no identity headers and was skipped`)
