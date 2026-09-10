@@ -312,7 +312,7 @@ export const SettingsTDAIV2: Component = () => {
                         type="button"
                         variant="ghost-muted"
                         size="small"
-                        icon={<Icon name="trash" size="large" class="text-v2-icon-icon-muted" />}
+                        icon={<Icon name="minus" size="large" class="text-v2-icon-icon-muted" />}
                         onClick={() => removeAgent(agent().id)}
                       />
                     </div>
@@ -348,7 +348,7 @@ export const SettingsTDAIV2: Component = () => {
                                   type="button"
                                   variant="ghost-muted"
                                   size="small"
-                                  icon={<Icon name="trash" size="large" class="text-v2-icon-icon-muted" />}
+                                  icon={<Icon name="minus" size="large" class="text-v2-icon-icon-muted" />}
                                   onClick={() => removeAgentHeader(agent().id, row().id)}
                                 />
                               </Show>
