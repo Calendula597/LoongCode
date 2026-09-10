@@ -1039,6 +1039,7 @@ export const dict = {
   "settings.tdai.header.keyPlaceholder": "header-key",
   "settings.tdai.header.valuePlaceholder": "header-value",
   "settings.tdai.header.add": "Add header",
+  "settings.tdai.identity.duplicateKey": "Duplicate identity keys are not allowed; later identities would silently overwrite earlier ones.",
   "settings.agents.title": "Agents",
   "settings.agents.description": "Agent settings will be configurable here.",
   "settings.commands.title": "Commands",

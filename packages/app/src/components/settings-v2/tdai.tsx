@@ -8,6 +8,7 @@ import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
+import { validateTDAIAgents, type AgentDraft, type HeaderRow } from "./tdai-agents-form"
 import "./settings-v2.css"
 
 const DEFAULT_HEADER_KEYS = [
@@ -23,22 +24,9 @@ const isDefaultHeaderKey = (key: string) => DEFAULT_HEADER_KEY_SET.has(key.trim(
 let rowID = 0
 const nextRowID = () => `row-${rowID++}`
 
-type HeaderRow = {
-  id: string
-  key: string
-  value: string
-}
-
 type ModelRow = {
   id: string
   value: string
-}
-
-type AgentDraft = {
-  id: string
-  key: string
-  name: string
-  headers: HeaderRow[]
 }
 
 type FormState = {
@@ -73,31 +61,8 @@ const agentHeadersToRows = (headers: Record<string, string> | undefined): Header
   ]
 }
 
-const rowsToHeaders = (rows: HeaderRow[]): Record<string, string> =>
-  Object.fromEntries(
-    rows
-      .map((row) => [row.key.trim(), row.value.trim()] as const)
-      .filter(([key, value]) => key && value),
-  )
-
 const rowsToModels = (rows: ModelRow[]): string[] =>
   rows.map((row) => row.value.trim()).filter(Boolean)
-
-const buildAgentConfig = (agent: AgentDraft) => {
-  const name = agent.name.trim() || undefined
-  const headers = rowsToHeaders(agent.headers)
-  return {
-    ...(name ? { name } : {}),
-    ...(Object.keys(headers).length ? { headers } : {}),
-  }
-}
-
-const buildAgentsRecord = (agents: AgentDraft[]): Record<string, ReturnType<typeof buildAgentConfig>> =>
-  Object.fromEntries(
-    agents
-      .filter((agent) => agent.key.trim())
-      .map((agent) => [agent.key.trim(), buildAgentConfig(agent)]),
-  )
 
 export const SettingsTDAIV2: Component = () => {
   const language = useLanguage()
@@ -176,14 +141,17 @@ export const SettingsTDAIV2: Component = () => {
       ),
     )
 
+  const agentsValidation = createMemo(() => validateTDAIAgents(store.agents))
+
   const buildTDAIConfig = () => ({
     url: store.url.trim(),
     apiKey: store.apiKey.trim(),
     models: rowsToModels(store.models),
-    agents: buildAgentsRecord(store.agents),
+    agents: agentsValidation().agents ?? {},
   })
 
   const save = () => {
+    if (!agentsValidation().ok) return
     setStore("saving", true)
     return serverSync()
       .updateConfig({ experimental: { tdai: buildTDAIConfig() } })
@@ -191,6 +159,7 @@ export const SettingsTDAIV2: Component = () => {
   }
 
   const canSave = createMemo(() => {
+    if (!agentsValidation().ok) return false
     const config = tdai()
     const current = buildTDAIConfig()
     return (
@@ -212,6 +181,9 @@ export const SettingsTDAIV2: Component = () => {
           {store.saving ? language.t("common.saving") : language.t("common.save")}
         </ButtonV2>
       </div>
+      <Show when={!agentsValidation().ok}>
+        <div class="settings-v2-tdai-error">{language.t("settings.tdai.identity.duplicateKey")}</div>
+      </Show>
 
       <div class="settings-v2-tab-body settings-v2-tdai">
         <div class="settings-v2-section">
@@ -298,6 +270,12 @@ export const SettingsTDAIV2: Component = () => {
                         type="text"
                         class="settings-v2-tdai-identity-key"
                         value={agent().key}
+                        invalid={agentsValidation().err[agent().id] !== undefined}
+                        title={
+                          agentsValidation().err[agent().id]
+                            ? language.t("settings.tdai.identity.duplicateKey")
+                            : undefined
+                        }
                         placeholder={language.t("settings.tdai.identity.keyPlaceholder")}
                         onInput={(event) => updateAgent(agent().id, { key: event.currentTarget.value })}
                       />
