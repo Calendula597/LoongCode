@@ -28,7 +28,10 @@ export const MemoryInspectTool = Tool.define<typeof Parameters, Metadata, Memory
           const report = yield* memory.inspect()
           const o = report.options
           const lines = [
-            "memory: enabled" + (o.generateMemories ? " (generate)" : "") + (o.useMemories ? " (use)" : ""),
+            "memory: " +
+              (o.generateMemories || o.useMemories ? "enabled" : "disabled") +
+              (o.generateMemories ? " (generate)" : "") +
+              (o.useMemories ? " (use)" : ""),
             `extract_model: ${o.extractModel ?? "default"}`,
             `consolidation_model: ${o.consolidationModel ?? "default"}`,
             `min_rollout_idle_hours: ${o.minRolloutIdleHours}`,

@@ -6,6 +6,7 @@ import { Effect, Layer, Result, Schema } from "effect"
 import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { ToolRegistry } from "@/tool/registry"
 import { Tool } from "@/tool/tool"
+import { ConfigMemoryV1 } from "@loongcode/core/v1/config/memory"
 import { disposeAllInstances, TestInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 import { TestConfig } from "../fixture/config"
@@ -61,6 +62,33 @@ const withBrokenPlugin = testEffect(
   }),
 )
 
+const memoryConfigLayer = (memory: ConfigMemoryV1.Info | undefined) =>
+  TestConfig.layer({
+    directories: () => InstanceState.directory.pipe(Effect.map((dir) => [path.join(dir, ".loongcode")])),
+    get: () => Effect.succeed({ memory }),
+  })
+
+// Read-side gating (specs/memory/builtin-memory-pipeline.md): `use_memories: false`
+// must remove every memory tool from the registry even while the `memory`
+// section still exists.
+const withMemoryDisabled = testEffect(
+  LayerNode.buildLayer(root, {
+    replacements: [
+      LayerNode.replace(Config.node, memoryConfigLayer({ generate_memories: false, use_memories: false })),
+      LayerNode.replace(RuntimeFlags.node, RuntimeFlags.layer()),
+    ],
+  }),
+)
+
+const withMemoryEnabled = testEffect(
+  LayerNode.buildLayer(root, {
+    replacements: [
+      LayerNode.replace(Config.node, memoryConfigLayer({})),
+      LayerNode.replace(RuntimeFlags.node, RuntimeFlags.layer()),
+    ],
+  }),
+)
+
 afterEach(async () => {
   await disposeAllInstances()
 })
@@ -72,6 +100,31 @@ describe("tool.registry", () => {
       const ids = yield* registry.ids()
 
       expect(ids).not.toContain("task_status")
+    }),
+  )
+
+  const memoryToolIDs = [
+    "memory_inspect",
+    "memory_reset",
+    "memory_read",
+    "memory_search",
+    "memory_list",
+    "memory_add_note",
+  ]
+
+  withMemoryDisabled.instance("hides every memory tool when use_memories is false", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const ids = yield* registry.ids()
+      for (const id of memoryToolIDs) expect(ids).not.toContain(id)
+    }),
+  )
+
+  withMemoryEnabled.instance("exposes every memory tool when the memory section uses defaults", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const ids = yield* registry.ids()
+      for (const id of memoryToolIDs) expect(ids).toContain(id)
     }),
   )
 

@@ -208,8 +208,10 @@ export const layer = Layer.effect(
 
         const configInfo = yield* config.get()
         const questionEnabled = ["app", "cli", "desktop"].includes(flags.client) || flags.enableQuestionTool
-        const memoryEnabled = configInfo.memory !== undefined
-        const memoryToolsEnabled = memoryEnabled && (configInfo.memory?.use_memories ?? true)
+        // Read-side gating (specs/memory/builtin-memory-pipeline.md): `use_memories: false`
+        // removes every memory tool from the model's toolset, including inspect/reset.
+        // The background write path stays controlled by `generate_memories` alone.
+        const memoryToolsEnabled = configInfo.memory !== undefined && (configInfo.memory.use_memories ?? true)
 
         const tool = yield* Effect.all({
           invalid: Tool.init(invalid),
@@ -253,8 +255,16 @@ export const layer = Layer.effect(
             tool.search,
             tool.skill,
             tool.patch,
-            ...(memoryEnabled ? [tool.memoryInspect, tool.memoryReset] : []),
-            ...(memoryToolsEnabled ? [tool.memoryRead, tool.memorySearch, tool.memoryList, tool.memoryAddNote] : []),
+            ...(memoryToolsEnabled
+              ? [
+                  tool.memoryInspect,
+                  tool.memoryReset,
+                  tool.memoryRead,
+                  tool.memorySearch,
+                  tool.memoryList,
+                  tool.memoryAddNote,
+                ]
+              : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
           ],
