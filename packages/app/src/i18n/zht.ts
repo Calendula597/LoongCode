@@ -826,7 +826,6 @@ export const dict = {
   "settings.tdai.header.keyPlaceholder": "header-key",
   "settings.tdai.header.valuePlaceholder": "header-value",
   "settings.tdai.header.add": "新增請求標頭",
-  "settings.tdai.identity.duplicateKey": "不允許存在重複的身份標識（key），否則後新增的身份會靜默覆蓋先前的身份。",
   "settings.agents.title": "代理程式",
   "settings.agents.description": "代理程式設定將在此處可設定。",
   "settings.commands.title": "命令",

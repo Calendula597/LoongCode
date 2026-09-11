@@ -845,7 +845,6 @@ export const dict = {
   "settings.tdai.header.keyPlaceholder": "header-key",
   "settings.tdai.header.valuePlaceholder": "header-value",
   "settings.tdai.header.add": "添加请求头",
-  "settings.tdai.identity.duplicateKey": "不允许存在重复的身份标识（key），否则后添加的身份会静默覆盖先前的身份。",
 
   "settings.agents.title": "智能体",
   "settings.agents.description": "智能体设置将在此处可配置。",
