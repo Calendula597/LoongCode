@@ -690,11 +690,6 @@
   gap: 8px;
 }
 
-.settings-v2-tdai-identity-key {
-  flex: 1;
-  min-width: 120px;
-}
-
 .settings-v2-tdai-identity-name {
   flex: 2;
   min-width: 160px;

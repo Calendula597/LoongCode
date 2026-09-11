@@ -1032,7 +1032,6 @@ export const dict = {
   "settings.tdai.section.identities": "Identities",
   "settings.tdai.identities.empty": "No identities configured. Add one to get started.",
   "settings.tdai.identity.add": "Add identity",
-  "settings.tdai.identity.keyPlaceholder": "identity-key",
   "settings.tdai.identity.namePlaceholder": "Display name",
   "settings.tdai.identity.headers": "Identity headers",
   "settings.tdai.identity.headersDescription": "Key/value pairs injected verbatim into every request for this identity.",

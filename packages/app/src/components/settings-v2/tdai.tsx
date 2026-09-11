@@ -8,6 +8,7 @@ import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
+import { nextIdentityKey } from "./tdai-identity-key"
 import "./settings-v2.css"
 
 const DEFAULT_HEADER_KEYS = [
@@ -53,9 +54,9 @@ type FormState = {
 const emptyHeaderRows = (): HeaderRow[] =>
   DEFAULT_HEADER_KEYS.map((key) => ({ id: nextRowID(), key, value: "" }))
 
-const emptyAgent = (): AgentDraft => ({
+const emptyAgent = (key: string): AgentDraft => ({
   id: nextRowID(),
-  key: "",
+  key,
   name: "",
   headers: emptyHeaderRows(),
 })
@@ -146,7 +147,14 @@ export const SettingsTDAIV2: Component = () => {
   const removeModel = (id: string) =>
     setStore("models", (models) => models.filter((row) => row.id !== id))
 
-  const addAgent = () => setStore("agents", (agents) => [...agents, emptyAgent()])
+  // Keys are generated once at add time and never rewritten: renaming an
+  // identity must not break the `tdai/<key>` provider ID referenced by
+  // default-model configs. Occupied keys include hand-written config keys.
+  const addAgent = () =>
+    setStore("agents", (agents) => [
+      ...agents,
+      emptyAgent(nextIdentityKey(agents.map((agent) => agent.key.trim()))),
+    ])
   const updateAgent = (id: string, patch: Partial<AgentDraft>) =>
     setStore("agents", (agents) => agents.map((agent) => (agent.id === id ? { ...agent, ...patch } : agent)))
   const removeAgent = (id: string) => setStore("agents", (agents) => agents.filter((agent) => agent.id !== id))
@@ -294,13 +302,6 @@ export const SettingsTDAIV2: Component = () => {
                 {(agent) => (
                   <div data-component="settings-v2-tdai-identity">
                     <div data-slot="settings-v2-tdai-identity-header">
-                      <TextInputV2
-                        type="text"
-                        class="settings-v2-tdai-identity-key"
-                        value={agent().key}
-                        placeholder={language.t("settings.tdai.identity.keyPlaceholder")}
-                        onInput={(event) => updateAgent(agent().id, { key: event.currentTarget.value })}
-                      />
                       <TextInputV2
                         type="text"
                         class="settings-v2-tdai-identity-name"

@@ -838,7 +838,6 @@ export const dict = {
   "settings.tdai.section.identities": "身份",
   "settings.tdai.identities.empty": "尚未配置身份。添加一个开始使用。",
   "settings.tdai.identity.add": "添加身份",
-  "settings.tdai.identity.keyPlaceholder": "identity-key",
   "settings.tdai.identity.namePlaceholder": "显示名称",
   "settings.tdai.identity.headers": "身份请求头",
   "settings.tdai.identity.headersDescription": "逐字注入该身份每次请求的键值对。",
