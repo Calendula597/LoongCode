@@ -1920,6 +1920,13 @@ export type Config = {
   skills?: {
     paths?: Array<string>
     urls?: Array<string>
+    giteeHosts?: Array<{
+      /**
+       * Self-hosted Gitee hostname allowed as a skill repo source (e.g., gitee.internal.example)
+       */
+      host: string
+      token?: string
+    }>
   }
   references?: {
     [key: string]: string | ConfigV2ReferenceGit | ConfigV2ReferenceLocal
@@ -6757,6 +6764,7 @@ export type V2SkillReposResponses = {
    */
   200: Array<{
     host: "github" | "gitee"
+    baseUrl: string
     url: string
     owner: string
     name: string
@@ -6797,6 +6805,7 @@ export type V2SkillAddRepoResponses = {
    */
   200: {
     host: "github" | "gitee"
+    baseUrl: string
     url: string
     owner: string
     name: string

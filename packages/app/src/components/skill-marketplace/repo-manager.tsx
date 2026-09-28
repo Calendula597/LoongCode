@@ -96,6 +96,7 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
   const client = createMemo(() => serverSDK().createClient({ throwOnError: false }))
   const [state, setState] = createStore({
     newRepoUrl: "",
+    newRepoBranch: "",
     adding: false,
     error: null as string | null,
   })
@@ -106,8 +107,11 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
   })
 
   const addRepo = async () => {
-    const url = state.newRepoUrl.trim()
-    if (!url) return
+    const raw = state.newRepoUrl.trim()
+    if (!raw) return
+    // Branch is stored URL-embedded (`/tree/<branch>`), per ADR 0006.
+    const branch = state.newRepoBranch.trim()
+    const url = branch && !raw.includes("/tree/") ? `${raw.replace(/\/+$/, "")}/tree/${branch}` : raw
     setState({ adding: true, error: null })
     const res = await client().v2.skill.addRepo({ url })
     setState({ adding: false })
@@ -115,7 +119,7 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
       setState({ error: errorMessage(res.error, language.t("settings.skills.error.addRepo")) })
       return
     }
-    setState({ newRepoUrl: "" })
+    setState({ newRepoUrl: "", newRepoBranch: "" })
     await refetch()
     // Repo membership feeds the marketplace skill list — let the parent refresh it.
     props.onChanged?.()
@@ -138,24 +142,47 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
   // }
 
   return (
-    <>
-      <div class="settings-v2-skills-repos-add">
-        <TextInputV2
-          appearance="base"
-          placeholder={language.t("settings.skills.repoPlaceholder")}
-          value={state.newRepoUrl}
-          onInput={(e) => setState({ newRepoUrl: e.currentTarget.value })}
-          onKeyDown={(e) => e.key === "Enter" && addRepo()}
-          spellcheck={false}
-          autocorrect="off"
-          autocomplete="off"
-          autocapitalize="off"
-          aria-label={language.t("settings.skills.repoAria")}
-        />
+    <div class="settings-v2-skills-repos">
+      <div class="settings-v2-skills-repos-card">
+        <h3 class="settings-v2-skills-repos-title">{language.t("settings.skills.addRepoTitle")}</h3>
+        <label class="settings-v2-skills-field">
+          <span class="settings-v2-skills-label">{language.t("settings.skills.repoLabel")}</span>
+          <TextInputV2
+            appearance="base"
+            placeholder={language.t("settings.skills.repoPlaceholder")}
+            value={state.newRepoUrl}
+            onInput={(e) => setState({ newRepoUrl: e.currentTarget.value })}
+            onKeyDown={(e) => e.key === "Enter" && addRepo()}
+            spellcheck={false}
+            autocorrect="off"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-label={language.t("settings.skills.repoAria")}
+          />
+        </label>
+        <label class="settings-v2-skills-field">
+          <span class="settings-v2-skills-label">{language.t("settings.skills.branchLabel")}</span>
+          <TextInputV2
+            appearance="base"
+            placeholder={language.t("settings.skills.branchPlaceholder")}
+            value={state.newRepoBranch}
+            onInput={(e) => setState({ newRepoBranch: e.currentTarget.value })}
+            onKeyDown={(e) => e.key === "Enter" && addRepo()}
+            spellcheck={false}
+            autocorrect="off"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-label={language.t("settings.skills.branchAria")}
+          />
+        </label>
         <ButtonV2 variant="ghost-muted" icon="plus" disabled={state.adding} onClick={addRepo}>
           {state.adding ? language.t("settings.skills.addingRepo") : language.t("settings.skills.addRepo")}
         </ButtonV2>
       </div>
+      <Show when={state.error}>
+        <p class="settings-v2-skills-error">{state.error}</p>
+      </Show>
+      <h3 class="settings-v2-skills-repos-title">{language.t("settings.skills.addedRepos")}</h3>
       <SettingsListV2>
         <div class="settings-v2-skills-row">
           <div class="settings-v2-skills-lead">
@@ -186,9 +213,6 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
           */}
         </div>
       </SettingsListV2>
-      <Show when={state.error}>
-        <p class="settings-v2-skills-error">{state.error}</p>
-      </Show>
       <Show when={(repos() ?? []).length > 0}>
         <SettingsListV2>
           <For each={repos() ?? []}>
@@ -218,6 +242,6 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
           </For>
         </SettingsListV2>
       </Show>
-    </>
+    </div>
   )
 }

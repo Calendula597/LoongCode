@@ -65,7 +65,7 @@ export class InvalidRepoUrlError extends Schema.TaggedErrorClass<InvalidRepoUrlE
   url: Schema.String,
 }) {
   override get message() {
-    return `Invalid repo URL (expected a GitHub or Gitee repository): ${this.url}`
+    return `Invalid repo URL (expected a GitHub, Gitee, or configured self-hosted Gitee repository): ${this.url}`
   }
 }
 
@@ -101,7 +101,14 @@ const SkillHubFilesResponse = Schema.Struct({
   data: Schema.Array(Schema.Struct({ filePath: Schema.String })),
 })
 
-type SkillsConfig = { skills?: { urls?: string[]; paths?: string[] } }
+type SkillsConfig = {
+  skills?: { urls?: string[]; paths?: string[]; giteeHosts?: { host: string; token?: string }[] }
+}
+
+const giteeHostNames = (cfg: SkillsConfig) => (cfg.skills?.giteeHosts ?? []).map((entry) => entry.host)
+
+const giteeToken = (cfg: SkillsConfig, repo: SkillRepo) =>
+  cfg.skills?.giteeHosts?.find((entry) => `https://${entry.host}` === repo.baseUrl)?.token
 
 export const layer = Layer.effect(
   Service,
@@ -148,11 +155,12 @@ export const layer = Layer.effect(
       },
     )
 
-    const loadRepoEntries = (url: string): Effect.Effect<ReadonlyArray<Tarball.TarEntry>> => {
-      const parsed = Repo.parseRepoUrl(url)
+    const loadRepoEntries = (cfg: SkillsConfig, url: string): Effect.Effect<ReadonlyArray<Tarball.TarEntry>> => {
+      const parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
       if (!parsed) return Effect.succeed([])
-      return resolveRepo(http, parsed).pipe(
-        Effect.flatMap((repo) => (repo === null ? Effect.succeed(null) : downloadTarball(http, repo))),
+      const token = giteeToken(cfg, parsed)
+      return resolveRepo(http, parsed, token).pipe(
+        Effect.flatMap((repo) => (repo === null ? Effect.succeed(null) : downloadTarball(http, repo, token))),
         Effect.flatMap((buffer) => (buffer === null ? Effect.succeed([]) : Tarball.readEntries(buffer))),
         Effect.catch(() => Effect.succeed([])),
         // A corrupt archive dies inside readEntries; without this the defect (and
@@ -164,19 +172,19 @@ export const layer = Layer.effect(
     const repos = Effect.fn("SkillMarketplace.repos")(function* () {
       const cfg = yield* config.get()
       return effectiveRepoUrls(cfg).flatMap((url) => {
-        const parsed = Repo.parseRepoUrl(url)
+        const parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
         return parsed ? [parsed] : []
       })
     })
 
     const addRepo = Effect.fn("SkillMarketplace.addRepo")(function* (url: string) {
-      const parsed = Repo.parseRepoUrl(url)
+      const cfg = yield* config.get()
+      const parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
       if (!parsed) return yield* new InvalidRepoUrlError({ url })
 
-      const exists = yield* resolveRepo(http, parsed)
+      const exists = yield* resolveRepo(http, parsed, giteeToken(cfg, parsed))
       if (!exists) return yield* new InvalidRepoUrlError({ url })
 
-      const cfg = yield* config.get()
       const urls = effectiveRepoUrls(cfg)
       if (urls.includes(url)) return parsed
 
@@ -200,9 +208,9 @@ export const layer = Layer.effect(
         [...effectiveRepoUrls(cfg)].reverse(),
         (url) =>
           Effect.gen(function* () {
-            const repo = Repo.parseRepoUrl(url)
+            const repo = Repo.parseRepoUrl(url, giteeHostNames(cfg))
             if (!repo) return []
-            const entries = yield* repoEntries(url, loadRepoEntries(url))
+            const entries = yield* repoEntries(url, loadRepoEntries(cfg, url))
             return Tarball.scanEntriesForSkills(entries).map(
               (skill): DiscoverableSkill => ({
                 name: skill.name,
@@ -239,9 +247,9 @@ export const layer = Layer.effect(
 
     const repoSkillFiles = Effect.fnUntraced(function* (cfg: SkillsConfig, host: RepoHost, name: string) {
       for (const url of effectiveRepoUrls(cfg)) {
-        const repo = Repo.parseRepoUrl(url)
+        const repo = Repo.parseRepoUrl(url, giteeHostNames(cfg))
         if (!repo || repo.host !== host) continue
-        const entries = yield* repoEntries(url, loadRepoEntries(url))
+        const entries = yield* repoEntries(url, loadRepoEntries(cfg, url))
         const skill = Tarball.scanEntriesForSkills(entries).find((s) => s.name === name)
         if (!skill) continue
         return Tarball.extractEntriesFiles(entries, skill.path)
@@ -401,11 +409,13 @@ const RepoInfoResponse = Schema.Struct({ default_branch: Schema.optional(Schema.
 // breaks branch probes and tarball downloads. Returns null only when the host
 // says the repo does not exist (404); transient errors keep the branch parsed
 // from the URL so an outage neither blocks adding a repo nor breaks listing.
-function resolveRepo(http: HttpClient.HttpClient, repo: SkillRepo): Effect.Effect<SkillRepo | null> {
-  const url =
+function resolveRepo(http: HttpClient.HttpClient, repo: SkillRepo, token?: string): Effect.Effect<SkillRepo | null> {
+  const url = withToken(
     repo.host === "gitee"
-      ? `https://gitee.com/api/v5/repos/${repo.owner}/${repo.name}`
-      : `https://api.github.com/repos/${repo.owner}/${repo.name}`
+      ? `${repo.baseUrl}/api/v5/repos/${repo.owner}/${repo.name}`
+      : `https://api.github.com/repos/${repo.owner}/${repo.name}`,
+    token,
+  )
   const request = HttpClientRequest.get(url).pipe(
     repo.host === "github" ? HttpClientRequest.setHeader("User-Agent", "loongcode") : HttpClientRequest.acceptJson,
   )
@@ -426,22 +436,48 @@ function resolveRepo(http: HttpClient.HttpClient, repo: SkillRepo): Effect.Effec
   )
 }
 
-function downloadTarball(http: HttpClient.HttpClient, repo: SkillRepo): Effect.Effect<Uint8Array | null> {
-  const url =
-    repo.host === "gitee"
-      ? `https://gitee.com/${repo.owner}/${repo.name}/repository/archive/${repo.branch}.tar.gz`
-      : `https://github.com/${repo.owner}/${repo.name}/archive/refs/heads/${repo.branch}.tar.gz`
-  return HttpClientRequest.get(url).pipe(
-    http.execute,
-    Effect.flatMap((res) => (res.status === 200 ? Effect.succeed(res) : Effect.fail(null))),
-    Effect.flatMap((res) => {
-      const declared = Number(res.headers["content-length"] ?? 0)
-      if (declared > MAX_TARBALL_BYTES) return Effect.succeed(null)
-      return Effect.map(res.arrayBuffer, (buf) =>
-        buf.byteLength > MAX_TARBALL_BYTES ? null : new Uint8Array(buf),
-      )
+// Gitee's API and web archive endpoints both accept the private token as an
+// access_token query parameter; GitHub requests stay anonymous as before.
+function withToken(url: string, token?: string): string {
+  return token ? `${url}?access_token=${encodeURIComponent(token)}` : url
+}
+
+// Sentinel distinguishing "branch not found" (retry the other conventional
+// default) from any other download failure (no retry).
+const NOT_FOUND = Symbol("tarball-not-found")
+
+function downloadTarball(http: HttpClient.HttpClient, repo: SkillRepo, token?: string): Effect.Effect<Uint8Array | null> {
+  const attempt = (branch: string): Effect.Effect<Uint8Array | null | typeof NOT_FOUND> => {
+    const url = withToken(
+      repo.host === "gitee"
+        ? `${repo.baseUrl}/${repo.owner}/${repo.name}/repository/archive/${branch}.tar.gz`
+        : `https://github.com/${repo.owner}/${repo.name}/archive/refs/heads/${branch}.tar.gz`,
+      token,
+    )
+    return HttpClientRequest.get(url).pipe(
+      http.execute,
+      // 404 means "this branch name does not exist" and is the only status that
+      // justifies the main/master fallback; other failures must not retry.
+      Effect.flatMap((res) => (res.status === 200 ? Effect.succeed(res) : Effect.fail(res.status))),
+      Effect.flatMap((res) => {
+        const declared = Number(res.headers["content-length"] ?? 0)
+        if (declared > MAX_TARBALL_BYTES) return Effect.succeed(null)
+        return Effect.map(res.arrayBuffer, (buf) =>
+          buf.byteLength > MAX_TARBALL_BYTES ? null : new Uint8Array(buf),
+        )
+      }),
+      Effect.catch((status) => Effect.succeed(typeof status === "number" && status === 404 ? NOT_FOUND : null)),
+    )
+  }
+  return attempt(repo.branch).pipe(
+    Effect.flatMap((buffer) => {
+      if (buffer !== NOT_FOUND) return Effect.succeed(buffer)
+      // The URL-embedded or API-probed branch can still be wrong (probe down +
+      // wrong guess), so retry once with the other conventional default (ADR 0006).
+      const fallback = repo.branch === "main" ? "master" : repo.branch === "master" ? "main" : undefined
+      return fallback === undefined ? Effect.succeed(null) : attempt(fallback)
     }),
-    Effect.catch(() => Effect.succeed(null)),
+    Effect.map((buffer) => (buffer === NOT_FOUND ? null : buffer)),
   )
 }
 

@@ -23,16 +23,13 @@ const locales = [...englishLocales] as const
 
 // The marketplace panel is fully localized only for Chinese (zh/zh-TW). The
 // other locales fall back to English. Keys that are identical by design are
-// excluded from the "differs from English" assertion: the API-key sample and
-// the repo URL placeholder are the same string in every locale.
+// excluded from the "differs from English" assertion: the API-key sample is
+// the same string in every locale.
 const cnLocales: Record<string, string>[] = [zh, zht]
 
 const enRecord = en as Record<string, string>
 
-const cnSameByDesign = new Set([
-  "settings.skills.skillhub.dialog.placeholder",
-  "settings.skills.repoPlaceholder",
-])
+const cnSameByDesign = new Set(["settings.skills.skillhub.dialog.placeholder"])
 
 const skillsKeys = Object.keys(enRecord).filter(
   (key) => key.startsWith("settings.skills.") && !cnSameByDesign.has(key),

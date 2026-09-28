@@ -221,10 +221,11 @@ const discoverSkills = Effect.fnUntraced(function* (
     yield* scan(state, dir, SKILL_PATTERN)
   }
 
+  const giteeHosts = (cfg.skills?.giteeHosts ?? []).map((entry) => entry.host)
   for (const url of cfg.skills?.urls ?? []) {
     // GitHub/Gitee repo URLs are installed on demand via the marketplace, not
     // pulled through the legacy index.json discovery protocol.
-    if (Repo.parseRepoUrl(url)) continue
+    if (Repo.parseRepoUrl(url, giteeHosts)) continue
     const pulledDirs = yield* discovery.pull(url)
     for (const dir of pulledDirs) {
       yield* scan(state, dir, SKILL_PATTERN)

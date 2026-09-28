@@ -9,6 +9,7 @@ import { InvalidRequestError } from "../errors"
 
 const SkillRepoSchema = Schema.Struct({
   host: Schema.Literals(["github", "gitee"]),
+  baseUrl: Schema.String,
   url: Schema.String,
   owner: Schema.String,
   name: Schema.String,
