@@ -181,8 +181,22 @@ export const layer = Layer.effect(
       if (!parsed) return Effect.succeed([])
       const token = giteeToken(cfg, parsed)
       return resolveRepo(http, parsed, token).pipe(
-        Effect.flatMap((repo) => (repo === null ? Effect.succeed(null) : downloadTarball(http, repo, token))),
-        Effect.flatMap((buffer) => (buffer === null ? Effect.succeed([]) : Tarball.readEntries(buffer))),
+        Effect.flatMap((repo) => {
+          if (repo === null) return Effect.succeed([])
+          return downloadTarball(http, repo, token).pipe(
+            Effect.flatMap((buffer) => {
+              // Some self-hosted fronts answer archive URLs with a 200 HTML
+              // page instead of a tarball; only a gzip payload is an archive.
+              if (buffer === null || buffer.length < 2 || buffer[0] !== 0x1f || buffer[1] !== 0x8b) {
+                return walkRepoContents(http, repo, token)
+              }
+              return Tarball.readEntries(buffer).pipe(
+                Effect.catch(() => walkRepoContents(http, repo, token)),
+                Effect.catchDefect(() => walkRepoContents(http, repo, token)),
+              )
+            }),
+          )
+        }),
         Effect.catch(() => Effect.succeed([])),
         // A corrupt archive dies inside readEntries; without this the defect (and
         // its cached replay) would 500 every list/install until a server restart.
@@ -555,6 +569,71 @@ function downloadTarball(http: HttpClient.HttpClient, repo: SkillRepo, token?: s
 }
 
 const SKILLHUB_PAGE_SIZE = 100
+
+// Gitee v5 contents API, used as a fallback when a host's archive endpoints
+// answer with HTML instead of a tarball. Directory listings return an array of
+// {type, path}; file responses carry base64 content.
+const ContentsItem = Schema.Struct({ type: Schema.String, path: Schema.String })
+const ContentsFile = Schema.Struct({ type: Schema.String, content: Schema.optional(Schema.String) })
+
+// Same spirit as the tarball guards: a repo walk must not turn an accidental
+// huge repo into an unbounded download.
+const WALK_MAX_FILES = 1000
+const WALK_MAX_BYTES = Tarball.MAX_EXTRACTED_BYTES
+
+function walkRepoContents(
+  http: HttpClient.HttpClient,
+  repo: SkillRepo,
+  token?: string,
+): Effect.Effect<Tarball.TarEntry[]> {
+  if (repo.host !== "gitee") return Effect.succeed([])
+  const api = (path: string) => {
+    const url = `${repo.baseUrl}/api/v5/repos/${repo.owner}/${repo.name}/contents${path === "" ? "" : `/${path}`}`
+    const params = new URLSearchParams({ ref: repo.branch })
+    if (token) params.set("access_token", token)
+    return `${url}?${params.toString()}`
+  }
+
+  const listDir = (path: string) =>
+    HttpClientRequest.get(api(path)).pipe(
+      http.execute,
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(Schema.Array(ContentsItem))),
+      Effect.catch(() => Effect.succeed<typeof ContentsItem.Type[]>([])),
+    )
+
+  const collect = (path: string, files: string[]): Effect.Effect<string[]> =>
+    Effect.gen(function* () {
+      if (files.length >= WALK_MAX_FILES) return files
+      const items = yield* listDir(path)
+      let acc = files
+      for (const item of items) {
+        if (acc.length >= WALK_MAX_FILES) break
+        if (item.type === "dir") acc = yield* collect(item.path, acc)
+        if (item.type === "file") acc = [...acc, item.path]
+      }
+      return acc
+    })
+
+  let walked = 0
+  const fetchFile = (filePath: string): Effect.Effect<Tarball.TarEntry[]> =>
+    HttpClientRequest.get(api(filePath)).pipe(
+      http.execute,
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(ContentsFile)),
+      Effect.map((file): Tarball.TarEntry[] => {
+        if (file.content === undefined) return []
+        const content = Buffer.from(file.content, "base64").toString("utf8")
+        if (walked + content.length > WALK_MAX_BYTES) return []
+        walked += content.length
+        return [{ name: `${repo.name}-${repo.branch}/${filePath}`, content }]
+      }),
+      Effect.catch(() => Effect.succeed([])),
+    )
+
+  return collect("", []).pipe(
+    Effect.flatMap((files) => Effect.forEach(files, fetchFile, { concurrency: 8 })),
+    Effect.map((nested) => nested.flat()),
+  )
+}
 
 function fetchSkillHubSkills(http: HttpClient.HttpClient, apiKey?: string): Effect.Effect<ReadonlyArray<SkillHubItem>> {
   return fetchSkillHubList(http, `${SKILLHUB_BASE}/api/web/skills`, apiKey)

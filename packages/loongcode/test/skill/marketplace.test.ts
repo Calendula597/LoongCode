@@ -930,6 +930,54 @@ describe("SkillMarketplace gitea-style self-hosted host", () => {
   )
 })
 
+describe("SkillMarketplace archive HTML fallback (contents API walk)", () => {
+  // The host's archive endpoints answer 200 with an HTML page (SPA fallback),
+  // so listing must fall back to walking the Gitee v5 contents API.
+  const b64 = (text: string) => Buffer.from(text).toString("base64")
+  const skillMd = b64("---\nname: walked-skill\ndescription: via contents api\n---\n# Walked\n")
+  const htmlArchiveHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/v5/repos/") && !request.url.includes("/contents"))
+      return jsonResponse(request, { default_branch: "master" })
+    if (request.url.includes("/contents/go/walked-skill/SKILL.md"))
+      return jsonResponse(request, { type: "file", encoding: "base64", content: skillMd })
+    if (request.url.includes("/contents/go/walked-skill/reference.md"))
+      return jsonResponse(request, { type: "file", encoding: "base64", content: b64("reference\n") })
+    if (request.url.includes("/contents/go/walked-skill"))
+      return jsonResponse(request, [
+        { type: "file", path: "go/walked-skill/SKILL.md" },
+        { type: "file", path: "go/walked-skill/reference.md" },
+      ])
+    if (request.url.includes("/contents/go")) return jsonResponse(request, [{ type: "dir", path: "go/walked-skill" }])
+    if (request.url.includes("/contents"))
+      return jsonResponse(request, [{ type: "dir", path: "go" }, { type: "file", path: "README.md" }])
+    if (request.url.includes("skillhub")) return jsonResponse(request, { data: { items: [], total: 0 } })
+    // Archive endpoints: 200 HTML, like an SPA fallback.
+    if (request.url.includes("archive/")) {
+      return HttpClientResponse.fromWeb(request, new Response("<html>repo page</html>", { status: 200 }))
+    }
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const htmlTrack = trackingConfigLayer({ urls: ["https://lggitee.lgdg.cc/lgdg/LoongCode-Standards"] })
+  const htmlIt = testEffect(marketplaceLayer(htmlTrack.layer, { http: htmlArchiveHttp }))
+
+  htmlIt.effect("discovers skills via the contents API when archives serve HTML", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const skills = yield* marketplace.list()
+      expect(skills.map((skill) => skill.name)).toContain("walked-skill")
+      expect(skills.find((skill) => skill.name === "walked-skill")?.source).toBe("gitee")
+    }),
+  )
+
+  htmlIt.effect("installs a walked skill with its reference files", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.install({ source: "gitee", name: "walked-skill" }))
+      expect(exit._tag).toBe("Success")
+    }),
+  )
+})
+
 describe("SkillMarketplace gitee host management", () => {
   const track = trackingConfigLayer({ giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }] })
   const hostIt = testEffect(marketplaceLayer(track.layer))
