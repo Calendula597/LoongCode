@@ -459,34 +459,42 @@ const RepoInfoResponse = Schema.Struct({ default_branch: Schema.optional(Schema.
 
 // Resolve the repo's default branch via the host API — GitHub repos usually
 // default to "main" while Gitee repos often still use "master", so guessing
-// breaks branch probes and tarball downloads. Returns null only when the host
-// says the repo does not exist (404); transient errors keep the branch parsed
-// from the URL so an outage neither blocks adding a repo nor breaks listing.
+// breaks branch probes and tarball downloads. Self-hosted instances may serve
+// the Gitee API (/api/v5) or the Gitea API (/api/v1), so 404 on one probes the
+// other. Returns null only when every candidate says the repo does not exist
+// (404); transient errors keep the branch parsed from the URL so an outage
+// neither blocks adding a repo nor breaks listing.
 function resolveRepo(http: HttpClient.HttpClient, repo: SkillRepo, token?: string): Effect.Effect<SkillRepo | null> {
-  const url = withToken(
+  const urls =
     repo.host === "gitee"
-      ? `${repo.baseUrl}/api/v5/repos/${repo.owner}/${repo.name}`
-      : `https://api.github.com/repos/${repo.owner}/${repo.name}`,
-    token,
-  )
-  const request = HttpClientRequest.get(url).pipe(
-    repo.host === "github" ? HttpClientRequest.setHeader("User-Agent", "loongcode") : HttpClientRequest.acceptJson,
-  )
-  return request.pipe(
-    http.execute,
-    Effect.timeoutOption("10 seconds"),
-    Effect.flatMap((maybe) => {
-      if (maybe._tag === "None") return Effect.succeed(repo)
-      const response = maybe.value
-      if (response.status === 404) return Effect.succeed(null)
-      if (response.status !== 200) return Effect.succeed(repo)
-      return HttpClientResponse.schemaBodyJson(RepoInfoResponse)(response).pipe(
-        Effect.map((info) => (info.default_branch ? { ...repo, branch: info.default_branch } : repo)),
-        Effect.catch(() => Effect.succeed(repo)),
-      )
-    }),
-    Effect.catch(() => Effect.succeed(repo)),
-  )
+      ? [
+          `${repo.baseUrl}/api/v5/repos/${repo.owner}/${repo.name}`,
+          `${repo.baseUrl}/api/v1/repos/${repo.owner}/${repo.name}`,
+        ]
+      : [`https://api.github.com/repos/${repo.owner}/${repo.name}`]
+  const probe = (index: number): Effect.Effect<SkillRepo | null> => {
+    const url = urls[index]
+    if (url === undefined) return Effect.succeed(null)
+    const request = HttpClientRequest.get(withToken(url, token)).pipe(
+      repo.host === "github" ? HttpClientRequest.setHeader("User-Agent", "loongcode") : HttpClientRequest.acceptJson,
+    )
+    return request.pipe(
+      http.execute,
+      Effect.timeoutOption("10 seconds"),
+      Effect.flatMap((maybe) => {
+        if (maybe._tag === "None") return Effect.succeed(repo)
+        const response = maybe.value
+        if (response.status === 404) return probe(index + 1)
+        if (response.status !== 200) return Effect.succeed(repo)
+        return HttpClientResponse.schemaBodyJson(RepoInfoResponse)(response).pipe(
+          Effect.map((info) => (info.default_branch ? { ...repo, branch: info.default_branch } : repo)),
+          Effect.catch(() => Effect.succeed(repo)),
+        )
+      }),
+      Effect.catch(() => Effect.succeed(repo)),
+    )
+  }
+  return probe(0)
 }
 
 // Gitee's API and web archive endpoints both accept the private token as an
@@ -500,27 +508,39 @@ function withToken(url: string, token?: string): string {
 const NOT_FOUND = Symbol("tarball-not-found")
 
 function downloadTarball(http: HttpClient.HttpClient, repo: SkillRepo, token?: string): Effect.Effect<Uint8Array | null> {
+  // Gitee serves /repository/archive/<ref>.tar.gz while Gitea serves
+  // /archive/<ref>.tar.gz; self-hosted instances may expose either, so a 404
+  // on the first shape falls through to the second.
+  const archiveUrls = (branch: string) =>
+    repo.host === "gitee"
+      ? [
+          `${repo.baseUrl}/${repo.owner}/${repo.name}/repository/archive/${branch}.tar.gz`,
+          `${repo.baseUrl}/${repo.owner}/${repo.name}/archive/${branch}.tar.gz`,
+        ]
+      : [`https://github.com/${repo.owner}/${repo.name}/archive/refs/heads/${branch}.tar.gz`]
   const attempt = (branch: string): Effect.Effect<Uint8Array | null | typeof NOT_FOUND> => {
-    const url = withToken(
-      repo.host === "gitee"
-        ? `${repo.baseUrl}/${repo.owner}/${repo.name}/repository/archive/${branch}.tar.gz`
-        : `https://github.com/${repo.owner}/${repo.name}/archive/refs/heads/${branch}.tar.gz`,
-      token,
-    )
-    return HttpClientRequest.get(url).pipe(
-      http.execute,
-      // 404 means "this branch name does not exist" and is the only status that
-      // justifies the main/master fallback; other failures must not retry.
-      Effect.flatMap((res) => (res.status === 200 ? Effect.succeed(res) : Effect.fail(res.status))),
-      Effect.flatMap((res) => {
-        const declared = Number(res.headers["content-length"] ?? 0)
-        if (declared > MAX_TARBALL_BYTES) return Effect.succeed(null)
-        return Effect.map(res.arrayBuffer, (buf) =>
-          buf.byteLength > MAX_TARBALL_BYTES ? null : new Uint8Array(buf),
-        )
-      }),
-      Effect.catch((status) => Effect.succeed(typeof status === "number" && status === 404 ? NOT_FOUND : null)),
-    )
+    const urls = archiveUrls(branch)
+    const fetchUrl = (index: number): Effect.Effect<Uint8Array | null | typeof NOT_FOUND> => {
+      const url = urls[index]
+      if (url === undefined) return Effect.succeed(NOT_FOUND)
+      return HttpClientRequest.get(withToken(url, token)).pipe(
+        http.execute,
+        // 404 means "this branch or path shape does not exist" and is the only
+        // status that justifies the next fallback; other failures must not retry.
+        Effect.flatMap((res) => (res.status === 200 ? Effect.succeed(res) : Effect.fail(res.status))),
+        Effect.flatMap((res) => {
+          const declared = Number(res.headers["content-length"] ?? 0)
+          if (declared > MAX_TARBALL_BYTES) return Effect.succeed(null)
+          return Effect.map(res.arrayBuffer, (buf) =>
+            buf.byteLength > MAX_TARBALL_BYTES ? null : new Uint8Array(buf),
+          )
+        }),
+        Effect.catch((status) =>
+          typeof status === "number" && status === 404 ? fetchUrl(index + 1) : Effect.succeed(null),
+        ),
+      )
+    }
+    return fetchUrl(0)
   }
   return attempt(repo.branch).pipe(
     Effect.flatMap((buffer) => {

@@ -890,6 +890,46 @@ describe("SkillMarketplace default branch resolution", () => {
   )
 })
 
+describe("SkillMarketplace gitea-style self-hosted host", () => {
+  // The host has no /api/v5 (404) but answers /api/v1, and serves tarballs at
+  // the Gitea /archive/ path rather than Gitee's /repository/archive/.
+  const giteaHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/v5/")) return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+    if (request.url.includes("/api/v1/repos/")) {
+      if (request.url.includes("does-not-exist"))
+        return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+      return jsonResponse(request, { default_branch: "master" })
+    }
+    if (request.url.includes("skillhub")) return jsonResponse(request, { data: { items: [], total: 0 } })
+    if (request.url.includes("/repository/archive/"))
+      return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+    if (request.url.includes("/archive/master.tar.gz")) {
+      return HttpClientResponse.fromWeb(request, new Response(skillTarGzip() as unknown as BodyInit, { status: 200 }))
+    }
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const giteaIt = testEffect(
+    marketplaceLayer(mockConfigLayer({ urls: ["https://lggitee.lgdg.cc/lgdg/LoongCode-Standards"] }), { http: giteaHttp }),
+  )
+
+  giteaIt.effect("falls back from /api/v5 to /api/v1 and from /repository/archive to /archive", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const skills = yield* marketplace.list()
+      expect(skills.map((skill) => skill.name)).toContain("test-skill")
+      expect(skills.find((skill) => skill.name === "test-skill")?.source).toBe("gitee")
+    }),
+  )
+
+  giteaIt.effect("rejects the repo only when both API shapes 404", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://lggitee.lgdg.cc/lgdg/does-not-exist"))
+      expect(exit._tag).toBe("Failure")
+    }),
+  )
+})
+
 describe("SkillMarketplace gitee host management", () => {
   const track = trackingConfigLayer({ giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }] })
   const hostIt = testEffect(marketplaceLayer(track.layer))
