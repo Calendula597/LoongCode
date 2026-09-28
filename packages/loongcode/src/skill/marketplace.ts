@@ -24,13 +24,15 @@ const MAX_TARBALL_BYTES = 20 * 1024 * 1024
 // loser only costs a single duplicate fetch on the first concurrent access.
 function keyedCache<A>() {
   const store = new Map<string, Effect.Effect<A>>()
-  return Effect.fnUntraced(function* (key: string, load: Effect.Effect<A>) {
+  const fn = Effect.fnUntraced(function* (key: string, load: Effect.Effect<A>) {
     const existing = store.get(key)
     if (existing) return yield* existing
     const created = yield* Effect.cachedWithTTL(load, TTL)
     store.set(key, created)
     return yield* created
   })
+  // Credential changes must not keep serving cached anonymous responses.
+  return Object.assign(fn, { clear: () => store.clear() })
 }
 
 export type RepoHost = Repo.RepoHost
@@ -57,6 +59,9 @@ export interface Interface {
   readonly skillHubStatus: () => Effect.Effect<{ configured: boolean }>
   readonly setSkillHubKey: (key: string) => Effect.Effect<void, InvalidSkillHubKeyError>
   readonly removeSkillHubKey: () => Effect.Effect<void>
+  readonly giteeHosts: () => Effect.Effect<GiteeHostEntry[]>
+  readonly setGiteeHost: (input: { host: string; token?: string }) => Effect.Effect<void, InvalidGiteeHostError>
+  readonly removeGiteeHost: (host: string) => Effect.Effect<void>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@loongcode/SkillMarketplace") {}
@@ -79,6 +84,22 @@ export class InvalidSkillHubKeyError extends Schema.TaggedErrorClass<InvalidSkil
     message: Schema.String,
   },
 ) {}
+
+export interface GiteeHostEntry {
+  host: string
+  hasToken: boolean
+}
+
+export class InvalidGiteeHostError extends Schema.TaggedErrorClass<InvalidGiteeHostError>()(
+  "SkillMarketplace.InvalidGiteeHostError",
+  {
+    host: Schema.String,
+  },
+) {
+  override get message() {
+    return `Invalid Gitee host (expected a bare hostname like "gitee.example.com"): ${this.host}`
+  }
+}
 
 // SkillHub API wraps every response in a `{ code, data }` envelope.
 const SkillHubItem = Schema.Struct({
@@ -384,6 +405,35 @@ export const layer = Layer.effect(
       yield* auth.remove(SKILLHUB_PROVIDER_ID).pipe(Effect.catch(() => Effect.void))
     })
 
+    // Tokens are write-only: the UI never reads them back, only whether one
+    // is stored. The built-in host (Repo.BUILTIN_GITEE_HOSTS) needs no entry
+    // here unless it has a token.
+    const giteeHosts = Effect.fn("SkillMarketplace.giteeHosts")(function* () {
+      const cfg = yield* config.get()
+      return (cfg.skills?.giteeHosts ?? []).map((entry) => ({ host: entry.host, hasToken: entry.token !== undefined }))
+    })
+
+    const setGiteeHost = Effect.fn("SkillMarketplace.setGiteeHost")(function* (input: { host: string; token?: string }) {
+      const host = input.host.trim().toLowerCase()
+      if (!/^[a-z0-9][a-z0-9.-]*$/.test(host) || host.includes(".."))
+        return yield* new InvalidGiteeHostError({ host: input.host })
+      const token = input.token?.trim() ? input.token.trim() : undefined
+      const cfg = yield* config.get()
+      const entries = (cfg.skills?.giteeHosts ?? []).filter((entry) => entry.host !== host)
+      yield* config.updateGlobal({ skills: { giteeHosts: [...entries, { host, token }] } })
+      repoEntries.clear()
+      yield* config.invalidate()
+    })
+
+    const removeGiteeHost = Effect.fn("SkillMarketplace.removeGiteeHost")(function* (host: string) {
+      const cfg = yield* config.get()
+      yield* config.updateGlobal({
+        skills: { giteeHosts: (cfg.skills?.giteeHosts ?? []).filter((entry) => entry.host !== host) },
+      })
+      repoEntries.clear()
+      yield* config.invalidate()
+    })
+
     return Service.of({
       repos,
       addRepo,
@@ -394,6 +444,9 @@ export const layer = Layer.effect(
       skillHubStatus,
       setSkillHubKey,
       removeSkillHubKey,
+      giteeHosts,
+      setGiteeHost,
+      removeGiteeHost,
     })
   }),
 )

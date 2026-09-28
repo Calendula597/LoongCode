@@ -33,6 +33,20 @@ const SetSkillHubKeyRequest = Schema.Struct({
   key: Schema.String,
 })
 
+const GiteeHostEntry = Schema.Struct({
+  host: Schema.String,
+  hasToken: Schema.Boolean,
+})
+
+const SetGiteeHostRequest = Schema.Struct({
+  host: Schema.String,
+  token: Schema.optional(Schema.String),
+})
+
+const GiteeHostRequest = Schema.Struct({
+  host: Schema.String,
+})
+
 const SkillHubStatusResponse = Schema.Struct({
   configured: Schema.Boolean,
 })
@@ -47,6 +61,7 @@ export const SkillMarketplacePaths = {
   addRepo: "/api/skill/repos/add",
   removeRepo: "/api/skill/repos/remove",
   skillhub: "/api/skill/skillhub",
+  giteeHosts: "/api/skill/gitee-hosts",
 } as const
 
 export const SkillMarketplaceGroup = HttpApiGroup.make("instance.skill-marketplace")
@@ -163,6 +178,45 @@ export const SkillMarketplaceGroup = HttpApiGroup.make("instance.skill-marketpla
         identifier: "v2.skill.removeSkillHubKey",
         summary: "Remove Skill Hub API key",
         description: "Remove the configured Skill Hub API key.",
+      }),
+    ),
+  )
+  .add(
+    HttpApiEndpoint.get("skill.giteeHosts", SkillMarketplacePaths.giteeHosts, {
+      query: WorkspaceRoutingQuery,
+      success: described(Schema.Array(GiteeHostEntry), "Configured self-hosted Gitee instances"),
+    }).annotateMerge(
+      OpenApi.annotations({
+        identifier: "v2.skill.giteeHosts",
+        summary: "List self-hosted Gitee instances",
+        description: "List configured self-hosted Gitee hosts; tokens are never returned, only whether one is stored.",
+      }),
+    ),
+  )
+  .add(
+    HttpApiEndpoint.put("skill.setGiteeHost", SkillMarketplacePaths.giteeHosts, {
+      query: WorkspaceRoutingQuery,
+      payload: SetGiteeHostRequest,
+      success: described(OkResponse, "Save result"),
+      error: InvalidRequestError,
+    }).annotateMerge(
+      OpenApi.annotations({
+        identifier: "v2.skill.setGiteeHost",
+        summary: "Set self-hosted Gitee host token",
+        description: "Add or update a self-hosted Gitee host entry (hostname plus optional private token).",
+      }),
+    ),
+  )
+  .add(
+    HttpApiEndpoint.delete("skill.removeGiteeHost", SkillMarketplacePaths.giteeHosts, {
+      query: WorkspaceRoutingQuery,
+      payload: GiteeHostRequest,
+      success: described(OkResponse, "Removal result"),
+    }).annotateMerge(
+      OpenApi.annotations({
+        identifier: "v2.skill.removeGiteeHost",
+        summary: "Remove self-hosted Gitee host entry",
+        description: "Remove a self-hosted Gitee host entry, including any stored token.",
       }),
     ),
   )

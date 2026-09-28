@@ -16,9 +16,16 @@ export function isSafeSegment(segment: string): boolean {
 }
 
 /**
+ * Self-hosted Gitee instances always accepted as skill repo sources, without
+ * any config entry (ADR 0006). Configured `giteeHosts` extend this list.
+ */
+export const BUILTIN_GITEE_HOSTS: readonly string[] = ["lggitee.lgdg.cc"]
+
+/**
  * Parse a GitHub or Gitee repo URL into host/owner/name/branch. Self-hosted
- * Gitee instances are accepted only when their host appears in the configured
- * `giteeHosts` allowlist (ADR 0006). Returns null for other hosts or unsafe URLs.
+ * Gitee instances are accepted when their host is built in or appears in the
+ * configured `giteeHosts` allowlist (ADR 0006). Returns null for other hosts
+ * or unsafe URLs.
  */
 export function parseRepoUrl(url: string, giteeHosts: string[] = []): SkillRepo | null {
   const match = url.match(/^https:\/\/(?:www\.)?([^/]+)\/([^/]+)\/([^/]+?)(?:\.git)?(?:\/tree\/([^/]+?))?\/?$/)
@@ -28,7 +35,7 @@ export function parseRepoUrl(url: string, giteeHosts: string[] = []): SkillRepo 
   if (branch && !isSafeSegment(branch)) return null
   const repo = { url, owner, name, branch: branch ?? "main" }
   if (domain === "github.com") return { host: "github", baseUrl: "https://github.com", ...repo }
-  if (domain === "gitee.com" || giteeHosts.includes(domain)) {
+  if (domain === "gitee.com" || BUILTIN_GITEE_HOSTS.includes(domain) || giteeHosts.includes(domain)) {
     return { host: "gitee", baseUrl: `https://${domain}`, ...repo }
   }
   return null

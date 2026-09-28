@@ -6956,6 +6956,114 @@ export type V2SkillSetSkillHubKeyResponses = {
 
 export type V2SkillSetSkillHubKeyResponse = V2SkillSetSkillHubKeyResponses[keyof V2SkillSetSkillHubKeyResponses]
 
+export type V2SkillRemoveGiteeHostData = {
+  body: {
+    host: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillRemoveGiteeHostErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillRemoveGiteeHostError = V2SkillRemoveGiteeHostErrors[keyof V2SkillRemoveGiteeHostErrors]
+
+export type V2SkillRemoveGiteeHostResponses = {
+  /**
+   * Removal result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillRemoveGiteeHostResponse = V2SkillRemoveGiteeHostResponses[keyof V2SkillRemoveGiteeHostResponses]
+
+export type V2SkillGiteeHostsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillGiteeHostsErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillGiteeHostsError = V2SkillGiteeHostsErrors[keyof V2SkillGiteeHostsErrors]
+
+export type V2SkillGiteeHostsResponses = {
+  /**
+   * Configured self-hosted Gitee instances
+   */
+  200: Array<{
+    host: string
+    hasToken: boolean
+  }>
+}
+
+export type V2SkillGiteeHostsResponse = V2SkillGiteeHostsResponses[keyof V2SkillGiteeHostsResponses]
+
+export type V2SkillSetGiteeHostData = {
+  body: {
+    host: string
+    token?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillSetGiteeHostErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillSetGiteeHostError = V2SkillSetGiteeHostErrors[keyof V2SkillSetGiteeHostErrors]
+
+export type V2SkillSetGiteeHostResponses = {
+  /**
+   * Save result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillSetGiteeHostResponse = V2SkillSetGiteeHostResponses[keyof V2SkillSetGiteeHostResponses]
+
 export type McpStatusData = {
   body?: never
   path?: never

@@ -71,9 +71,29 @@ describe("parseRepoUrl", () => {
     })
   })
 
-  it("rejects a self-hosted Gitee URL when the host is not configured", () => {
-    expect(Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards")).toBeNull()
-    expect(Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards", ["other.lgdg.cc"])).toBeNull()
+  it("accepts the built-in self-hosted Gitee host without any config", () => {
+    const result = Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards")
+    expect(result).toEqual({
+      host: "gitee",
+      baseUrl: "https://lggitee.lgdg.cc",
+      url: "https://lggitee.lgdg.cc/lgdg/loongcode-standards",
+      owner: "lgdg",
+      name: "loongcode-standards",
+      branch: "main",
+    })
+  })
+
+  it("rejects a self-hosted Gitee URL when the host is neither built in nor configured", () => {
+    expect(Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards")).toBeNull()
+    expect(Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards", ["other.lgdg.cc"])).toBeNull()
+  })
+
+  it("parses another self-hosted Gitee URL when the host is configured", () => {
+    const result = Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards", [
+      "gitee.internal.example",
+    ])
+    expect(result?.host).toBe("gitee")
+    expect(result?.baseUrl).toBe("https://gitee.internal.example")
   })
 
   it("parses a self-hosted Gitee URL with explicit branch", () => {
@@ -866,6 +886,60 @@ describe("SkillMarketplace default branch resolution", () => {
     Effect.gen(function* () {
       const marketplace = yield* SkillMarketplace.Service
       expect(yield* marketplace.list()).toEqual([])
+    }),
+  )
+})
+
+describe("SkillMarketplace gitee host management", () => {
+  const track = trackingConfigLayer({ giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }] })
+  const hostIt = testEffect(marketplaceLayer(track.layer))
+
+  hostIt.effect("giteeHosts lists entries without exposing tokens", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toEqual([{ host: "gitee.internal.example", hasToken: true }])
+      expect(JSON.stringify(hosts)).not.toContain("secret-token")
+    }),
+  )
+
+  hostIt.effect("setGiteeHost upserts and normalizes the hostname", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.setGiteeHost({ host: "  New-Host.Example.COM ", token: "tok" })
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "new-host.example.com", hasToken: true })
+      // Upserting an existing host keeps it a single entry.
+      yield* marketplace.setGiteeHost({ host: "new-host.example.com", token: "tok2" })
+      expect((yield* marketplace.giteeHosts()).filter((h) => h.host === "new-host.example.com")).toHaveLength(1)
+    }),
+  )
+
+  hostIt.effect("setGiteeHost without a token clears the stored token", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.setGiteeHost({ host: "gitee.internal.example" })
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.internal.example", hasToken: false })
+    }),
+  )
+
+  hostIt.effect("setGiteeHost rejects hostnames that are not bare hostnames", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      for (const host of ["https://evil.example.com", "evil/example.com", "evil..example.com", ""]) {
+        const exit = yield* Effect.exit(marketplace.setGiteeHost({ host }))
+        expect(exit._tag).toBe("Failure")
+      }
+      expect(yield* marketplace.giteeHosts()).toHaveLength(2)
+    }),
+  )
+
+  hostIt.effect("removeGiteeHost drops the entry", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.removeGiteeHost("gitee.internal.example")
+      expect(yield* marketplace.giteeHosts()).toEqual([{ host: "new-host.example.com", hasToken: true }])
     }),
   )
 })

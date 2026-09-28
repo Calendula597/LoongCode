@@ -170,3 +170,12 @@
 .settings-v2-skills-repos-card > button {
   align-self: flex-start;
 }
+
+.settings-v2-skills-gitee-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-v2-skills-label > [data-component="tag"] {
+  margin-left: 8px;
+}

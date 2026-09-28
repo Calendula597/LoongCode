@@ -99,12 +99,66 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
     newRepoBranch: "",
     adding: false,
     error: null as string | null,
+    defaultToken: "",
+    newHost: "",
+    newHostToken: "",
+    hostSaving: false,
+    hostError: null as string | null,
   })
 
   const [repos, { refetch }] = createResource(async () => {
     const res = await client().v2.skill.repos()
     return res.data ?? []
   })
+
+  const [giteeHosts, { refetch: refetchGiteeHosts }] = createResource(async () => {
+    const res = await client().v2.skill.giteeHosts()
+    return res.data ?? []
+  })
+
+  // The built-in self-hosted Gitee instance needs no allowlist entry — this
+  // row only manages its (optional) private token.
+  const defaultGiteeHost = "lggitee.lgdg.cc"
+  const defaultGiteeEntry = createMemo(() => giteeHosts()?.find((entry) => entry.host === defaultGiteeHost))
+  const customGiteeHosts = createMemo(() => (giteeHosts() ?? []).filter((entry) => entry.host !== defaultGiteeHost))
+
+  const saveDefaultToken = async () => {
+    const token = state.defaultToken.trim()
+    if (!token) return
+    setState({ hostSaving: true, hostError: null })
+    const res = await client().v2.skill.setGiteeHost({ host: defaultGiteeHost, token })
+    setState({ hostSaving: false })
+    if (res.error) {
+      setState({ hostError: errorMessage(res.error, language.t("settings.skills.gitee.error")) })
+      return
+    }
+    setState({ defaultToken: "" })
+    await refetchGiteeHosts()
+  }
+
+  const clearDefaultToken = async () => {
+    await client().v2.skill.removeGiteeHost({ host: defaultGiteeHost })
+    await refetchGiteeHosts()
+  }
+
+  const addGiteeHost = async () => {
+    const host = state.newHost.trim()
+    if (!host) return
+    setState({ hostSaving: true, hostError: null })
+    const res = await client().v2.skill.setGiteeHost({ host, token: state.newHostToken.trim() || undefined })
+    setState({ hostSaving: false })
+    if (res.error) {
+      setState({ hostError: errorMessage(res.error, language.t("settings.skills.gitee.error")) })
+      return
+    }
+    setState({ newHost: "", newHostToken: "" })
+    await refetchGiteeHosts()
+  }
+
+  const removeGiteeHost = async (host: string) => {
+    await client().v2.skill.removeGiteeHost({ host })
+    await refetchGiteeHosts()
+  }
 
   const addRepo = async () => {
     const raw = state.newRepoUrl.trim()
@@ -179,6 +233,116 @@ export const RepoManager: Component<{ onChanged?: () => void }> = (props) => {
           {state.adding ? language.t("settings.skills.addingRepo") : language.t("settings.skills.addRepo")}
         </ButtonV2>
       </div>
+      <div class="settings-v2-skills-repos-card">
+        <h3 class="settings-v2-skills-repos-title">{language.t("settings.skills.gitee.title")}</h3>
+        <label class="settings-v2-skills-field">
+          <span class="settings-v2-skills-label">
+            {defaultGiteeHost}
+            <Tag>{language.t("settings.skills.gitee.defaultTag")}</Tag>
+          </span>
+          <TextInputV2
+            appearance="base"
+            type="password"
+            placeholder={
+              defaultGiteeEntry()?.hasToken
+                ? language.t("settings.skills.gitee.tokenConfiguredPlaceholder")
+                : language.t("settings.skills.gitee.tokenPlaceholder")
+            }
+            value={state.defaultToken}
+            onInput={(e) => setState({ defaultToken: e.currentTarget.value })}
+            onKeyDown={(e) => e.key === "Enter" && saveDefaultToken()}
+            spellcheck={false}
+            autocorrect="off"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-label={language.t("settings.skills.gitee.tokenLabel")}
+          />
+        </label>
+        <div class="settings-v2-skills-gitee-actions">
+          <ButtonV2
+            variant="ghost-muted"
+            disabled={state.hostSaving || !state.defaultToken.trim()}
+            onClick={saveDefaultToken}
+          >
+            {language.t("settings.skills.gitee.save")}
+          </ButtonV2>
+          <Show when={defaultGiteeEntry()?.hasToken}>
+            <ButtonV2 variant="ghost-muted" disabled={state.hostSaving} onClick={clearDefaultToken}>
+              {language.t("settings.skills.gitee.clearToken")}
+            </ButtonV2>
+          </Show>
+        </div>
+        <label class="settings-v2-skills-field">
+          <span class="settings-v2-skills-label">{language.t("settings.skills.gitee.hostLabel")}</span>
+          <TextInputV2
+            appearance="base"
+            placeholder={language.t("settings.skills.gitee.hostPlaceholder")}
+            value={state.newHost}
+            onInput={(e) => setState({ newHost: e.currentTarget.value })}
+            onKeyDown={(e) => e.key === "Enter" && addGiteeHost()}
+            spellcheck={false}
+            autocorrect="off"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-label={language.t("settings.skills.gitee.hostLabel")}
+          />
+        </label>
+        <label class="settings-v2-skills-field">
+          <span class="settings-v2-skills-label">{language.t("settings.skills.gitee.tokenLabel")}</span>
+          <TextInputV2
+            appearance="base"
+            type="password"
+            placeholder={language.t("settings.skills.gitee.tokenPlaceholder")}
+            value={state.newHostToken}
+            onInput={(e) => setState({ newHostToken: e.currentTarget.value })}
+            onKeyDown={(e) => e.key === "Enter" && addGiteeHost()}
+            spellcheck={false}
+            autocorrect="off"
+            autocomplete="off"
+            autocapitalize="off"
+            aria-label={language.t("settings.skills.gitee.tokenLabel")}
+          />
+        </label>
+        <ButtonV2
+          variant="ghost-muted"
+          icon="plus"
+          disabled={state.hostSaving || !state.newHost.trim()}
+          onClick={addGiteeHost}
+        >
+          {language.t("settings.skills.gitee.add")}
+        </ButtonV2>
+        <Show when={customGiteeHosts().length > 0}>
+          <SettingsListV2>
+            <For each={customGiteeHosts()}>
+              {(entry) => (
+                <div class="settings-v2-skills-row">
+                  <div class="settings-v2-skills-lead">
+                    <div class="settings-v2-skills-copy">
+                      <span class="settings-v2-skills-name">{entry.host}</span>
+                    </div>
+                  </div>
+                  <div class="settings-v2-skills-actions">
+                    <Show when={entry.hasToken}>
+                      <Tag>{language.t("settings.skills.gitee.hasToken")}</Tag>
+                    </Show>
+                    <IconButtonV2
+                      type="button"
+                      variant="ghost-muted"
+                      size="small"
+                      icon={<IconV2 name="close" size="large" class="text-v2-icon-icon-muted" />}
+                      aria-label={language.t("settings.skills.gitee.removeHost", { host: entry.host })}
+                      onClick={() => removeGiteeHost(entry.host)}
+                    />
+                  </div>
+                </div>
+              )}
+            </For>
+          </SettingsListV2>
+        </Show>
+      </div>
+      <Show when={state.hostError}>
+        <p class="settings-v2-skills-error">{state.hostError}</p>
+      </Show>
       <Show when={state.error}>
         <p class="settings-v2-skills-error">{state.error}</p>
       </Show>
