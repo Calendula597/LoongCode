@@ -343,6 +343,12 @@
   padding-right: 28px;
 }
 
+/* Hide Chromium/Safari's native search cancel button — we render our own. */
+.settings-v2-tab-search input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .settings-v2-tab-search-clear {
   position: absolute;
   top: 50%;
