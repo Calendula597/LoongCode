@@ -2466,13 +2466,14 @@ export class Skill extends HeyApiClient {
   /**
    * Add a repo skill source
    *
-   * Add a GitHub or Gitee repository URL as a skill source.
+   * Add a GitHub or Gitee repository URL as a skill source. An optional token is stored per-host and also allowlists self-hosted Gitee instances.
    */
   public addRepo<ThrowOnError extends boolean = false>(
     parameters?: {
       directory?: string
       workspace?: string
       url?: string
+      token?: string
     },
     options?: Options<never, ThrowOnError>,
   ) {
@@ -2484,6 +2485,7 @@ export class Skill extends HeyApiClient {
             { in: "query", key: "directory" },
             { in: "query", key: "workspace" },
             { in: "body", key: "url" },
+            { in: "body", key: "token" },
           ],
         },
       ],

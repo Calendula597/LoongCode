@@ -6777,6 +6777,10 @@ export type V2SkillReposResponse = V2SkillReposResponses[keyof V2SkillReposRespo
 export type V2SkillAddRepoData = {
   body: {
     url: string
+    /**
+     * Optional private token for the repo's host; stored per-host and reused for listing and installs.
+     */
+    token?: string
   }
   path?: never
   query?: {

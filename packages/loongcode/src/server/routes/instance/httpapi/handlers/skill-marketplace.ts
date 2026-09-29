@@ -38,8 +38,8 @@ export const skillMarketplaceHandlers = HttpApiBuilder.group(InstanceHttpApi, "i
       return yield* marketplace.repos()
     })
 
-    const addRepo = Effect.fn("SkillMarketplaceHttpApi.addRepo")(function* (ctx: { payload: { url: string } }) {
-      return yield* marketplace.addRepo(ctx.payload.url).pipe(
+    const addRepo = Effect.fn("SkillMarketplaceHttpApi.addRepo")(function* (ctx: { payload: { url: string; token?: string } }) {
+      return yield* marketplace.addRepo(ctx.payload.url, ctx.payload.token).pipe(
         Effect.catchTag("SkillMarketplace.InvalidRepoUrlError", (error) =>
           Effect.fail(new InvalidRequestError({ message: error.message, kind: "invalid_url" })),
         ),

@@ -29,6 +29,15 @@ const RepoRequest = Schema.Struct({
   url: Schema.String,
 })
 
+const AddRepoRequest = Schema.Struct({
+  url: Schema.String,
+  token: Schema.optional(
+    Schema.String.annotate({
+      description: "Optional private token for the repo's host; stored per-host and reused for listing and installs.",
+    }),
+  ),
+})
+
 const SetSkillHubKeyRequest = Schema.Struct({
   key: Schema.String,
 })
@@ -119,14 +128,15 @@ export const SkillMarketplaceGroup = HttpApiGroup.make("instance.skill-marketpla
   .add(
     HttpApiEndpoint.post("skill.addRepo", SkillMarketplacePaths.addRepo, {
       query: WorkspaceRoutingQuery,
-      payload: RepoRequest,
+      payload: AddRepoRequest,
       success: described(SkillRepoSchema, "Parsed repo info"),
       error: InvalidRequestError,
     }).annotateMerge(
       OpenApi.annotations({
         identifier: "v2.skill.addRepo",
         summary: "Add a repo skill source",
-        description: "Add a GitHub or Gitee repository URL as a skill source.",
+        description:
+          "Add a GitHub or Gitee repository URL as a skill source. An optional token is stored per-host and also allowlists self-hosted Gitee instances.",
       }),
     ),
   )

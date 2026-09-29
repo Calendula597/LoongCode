@@ -29,11 +29,7 @@ const cnLocales: Record<string, string>[] = [zh, zht]
 
 const enRecord = en as Record<string, string>
 
-const cnSameByDesign = new Set([
-  "settings.skills.skillhub.dialog.placeholder",
-  // A hostname example is language-neutral by design.
-  "settings.skills.gitee.hostPlaceholder",
-])
+const cnSameByDesign = new Set(["settings.skills.skillhub.dialog.placeholder"])
 
 const skillsKeys = Object.keys(enRecord).filter(
   (key) => key.startsWith("settings.skills.") && !cnSameByDesign.has(key),

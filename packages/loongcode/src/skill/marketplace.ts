@@ -51,7 +51,7 @@ export type DiscoverableSkill = Schema.Schema.Type<typeof DiscoverableSkill>
 
 export interface Interface {
   readonly repos: () => Effect.Effect<SkillRepo[]>
-  readonly addRepo: (url: string) => Effect.Effect<SkillRepo, InvalidRepoUrlError>
+  readonly addRepo: (url: string, token?: string) => Effect.Effect<SkillRepo, InvalidRepoUrlError>
   readonly removeRepo: (url: string) => Effect.Effect<void>
   readonly list: () => Effect.Effect<DiscoverableSkill[]>
   readonly install: (input: { source: "skillhub" | RepoHost; name: string }) => Effect.Effect<void, InstallError>
@@ -212,9 +212,27 @@ export const layer = Layer.effect(
       })
     })
 
-    const addRepo = Effect.fn("SkillMarketplace.addRepo")(function* (url: string) {
-      const cfg = yield* config.get()
-      const parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
+    const addRepo = Effect.fn("SkillMarketplace.addRepo")(function* (url: string, token?: string) {
+      let cfg = yield* config.get()
+      let parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
+      const trimmed = token?.trim()
+
+      // A token for an unknown host implies the user trusts it: allowlist the
+      // host and parse again, so self-hosted instances need no separate setup.
+      // GitHub repos never use this credential path, so skip storing there.
+      if (trimmed && parsed?.host !== "github") {
+        const domain = url.match(/^https:\/\/(?:www\.)?([^/]+)\//)?.[1]
+        if (domain && /^[a-z0-9][a-z0-9.-]*$/.test(domain) && !domain.includes("..")) {
+          // The regex above is the same guard setGiteeHost applies, so this
+          // cannot fail; the catchTag only narrows the error channel.
+          yield* setGiteeHost({ host: domain, token: trimmed }).pipe(
+            Effect.catchTag("SkillMarketplace.InvalidGiteeHostError", () => Effect.void),
+          )
+          cfg = yield* config.get()
+          parsed = Repo.parseRepoUrl(url, giteeHostNames(cfg))
+        }
+      }
+
       if (!parsed) return yield* new InvalidRepoUrlError({ url })
 
       const exists = yield* resolveRepo(http, parsed, giteeToken(cfg, parsed))

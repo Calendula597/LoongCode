@@ -978,6 +978,54 @@ describe("SkillMarketplace archive HTML fallback (contents API walk)", () => {
   )
 })
 
+describe("SkillMarketplace addRepo with token", () => {
+  const repoTrack = trackingConfigLayer()
+  const repoHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/") && request.url.includes("exists"))
+      return jsonResponse(request, { default_branch: "master" })
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const repoIt = testEffect(marketplaceLayer(repoTrack.layer, { http: repoHttp }))
+
+  repoIt.effect("allowlists an unknown host when a token is provided", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const parsed = yield* marketplace.addRepo("https://gitee.internal.example/acme/exists/tree/master", "tok123")
+      expect(parsed.host).toBe("gitee")
+      expect(parsed.baseUrl).toBe("https://gitee.internal.example")
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.internal.example", hasToken: true })
+    }),
+  )
+
+  repoIt.effect("rejects an unknown host without a token", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://no-token.example/acme/skills"))
+      expect(exit._tag).toBe("Failure")
+    }),
+  )
+
+  repoIt.effect("stores the token under the repo host for known hosts", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.addRepo("https://gitee.com/acme/exists/tree/master", "gitee-tok")
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.com", hasToken: true })
+    }),
+  )
+
+  repoIt.effect("does not store a token for GitHub repos", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://github.com/acme/missing", "gh-tok"))
+      // The repo does not exist upstream, so adding fails, but no host entry may be written.
+      expect(exit._tag).toBe("Failure")
+      expect(yield* marketplace.giteeHosts()).toHaveLength(2)
+    }),
+  )
+})
+
 describe("SkillMarketplace gitee host management", () => {
   const track = trackingConfigLayer({ giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }] })
   const hostIt = testEffect(marketplaceLayer(track.layer))
