@@ -1920,6 +1920,13 @@ export type Config = {
   skills?: {
     paths?: Array<string>
     urls?: Array<string>
+    giteeHosts?: Array<{
+      /**
+       * Self-hosted Gitee hostname allowed as a skill repo source (e.g., gitee.internal.example)
+       */
+      host: string
+      token?: string
+    }>
   }
   references?: {
     [key: string]: string | ConfigV2ReferenceGit | ConfigV2ReferenceLocal
@@ -6796,6 +6803,7 @@ export type V2SkillReposResponses = {
    */
   200: Array<{
     host: "github" | "gitee"
+    baseUrl: string
     url: string
     owner: string
     name: string
@@ -6808,6 +6816,10 @@ export type V2SkillReposResponse = V2SkillReposResponses[keyof V2SkillReposRespo
 export type V2SkillAddRepoData = {
   body: {
     url: string
+    /**
+     * Optional private token for the repo's host; stored per-host and reused for listing and installs.
+     */
+    token?: string
   }
   path?: never
   query?: {
@@ -6836,6 +6848,7 @@ export type V2SkillAddRepoResponses = {
    */
   200: {
     host: "github" | "gitee"
+    baseUrl: string
     url: string
     owner: string
     name: string
@@ -6985,6 +6998,114 @@ export type V2SkillSetSkillHubKeyResponses = {
 }
 
 export type V2SkillSetSkillHubKeyResponse = V2SkillSetSkillHubKeyResponses[keyof V2SkillSetSkillHubKeyResponses]
+
+export type V2SkillRemoveGiteeHostData = {
+  body: {
+    host: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillRemoveGiteeHostErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillRemoveGiteeHostError = V2SkillRemoveGiteeHostErrors[keyof V2SkillRemoveGiteeHostErrors]
+
+export type V2SkillRemoveGiteeHostResponses = {
+  /**
+   * Removal result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillRemoveGiteeHostResponse = V2SkillRemoveGiteeHostResponses[keyof V2SkillRemoveGiteeHostResponses]
+
+export type V2SkillGiteeHostsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillGiteeHostsErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillGiteeHostsError = V2SkillGiteeHostsErrors[keyof V2SkillGiteeHostsErrors]
+
+export type V2SkillGiteeHostsResponses = {
+  /**
+   * Configured self-hosted Gitee instances
+   */
+  200: Array<{
+    host: string
+    hasToken: boolean
+  }>
+}
+
+export type V2SkillGiteeHostsResponse = V2SkillGiteeHostsResponses[keyof V2SkillGiteeHostsResponses]
+
+export type V2SkillSetGiteeHostData = {
+  body: {
+    host: string
+    token?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/api/skill/gitee-hosts"
+}
+
+export type V2SkillSetGiteeHostErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * Unauthorized
+   */
+  401: unknown
+}
+
+export type V2SkillSetGiteeHostError = V2SkillSetGiteeHostErrors[keyof V2SkillSetGiteeHostErrors]
+
+export type V2SkillSetGiteeHostResponses = {
+  /**
+   * Save result
+   */
+  200: {
+    ok: boolean
+  }
+}
+
+export type V2SkillSetGiteeHostResponse = V2SkillSetGiteeHostResponses[keyof V2SkillSetGiteeHostResponses]
 
 export type McpStatusData = {
   body?: never

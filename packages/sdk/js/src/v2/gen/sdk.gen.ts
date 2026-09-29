@@ -365,18 +365,24 @@ import type {
   V2SessionWaitResponses,
   V2SkillAddRepoErrors,
   V2SkillAddRepoResponses,
+  V2SkillGiteeHostsErrors,
+  V2SkillGiteeHostsResponses,
   V2SkillInstallErrors,
   V2SkillInstallResponses,
   V2SkillListErrors,
   V2SkillListResponses,
   V2SkillMarketplaceErrors,
   V2SkillMarketplaceResponses,
+  V2SkillRemoveGiteeHostErrors,
+  V2SkillRemoveGiteeHostResponses,
   V2SkillRemoveRepoErrors,
   V2SkillRemoveRepoResponses,
   V2SkillRemoveSkillHubKeyErrors,
   V2SkillRemoveSkillHubKeyResponses,
   V2SkillReposErrors,
   V2SkillReposResponses,
+  V2SkillSetGiteeHostErrors,
+  V2SkillSetGiteeHostResponses,
   V2SkillSetSkillHubKeyErrors,
   V2SkillSetSkillHubKeyResponses,
   V2SkillSkillhubStatusErrors,
@@ -2460,13 +2466,14 @@ export class Skill extends HeyApiClient {
   /**
    * Add a repo skill source
    *
-   * Add a GitHub or Gitee repository URL as a skill source.
+   * Add a GitHub or Gitee repository URL as a skill source. An optional token is stored per-host and also allowlists self-hosted Gitee instances.
    */
   public addRepo<ThrowOnError extends boolean = false>(
     parameters?: {
       directory?: string
       workspace?: string
       url?: string
+      token?: string
     },
     options?: Options<never, ThrowOnError>,
   ) {
@@ -2478,6 +2485,7 @@ export class Skill extends HeyApiClient {
             { in: "query", key: "directory" },
             { in: "query", key: "workspace" },
             { in: "body", key: "url" },
+            { in: "body", key: "token" },
           ],
         },
       ],
@@ -2630,6 +2638,116 @@ export class Skill extends HeyApiClient {
       ThrowOnError
     >({
       url: "/api/skill/skillhub",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Remove self-hosted Gitee host entry
+   *
+   * Remove a self-hosted Gitee host entry, including any stored token.
+   */
+  public removeGiteeHost<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      host?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "host" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).delete<
+      V2SkillRemoveGiteeHostResponses,
+      V2SkillRemoveGiteeHostErrors,
+      ThrowOnError
+    >({
+      url: "/api/skill/gitee-hosts",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * List self-hosted Gitee instances
+   *
+   * List configured self-hosted Gitee hosts; tokens are never returned, only whether one is stored.
+   */
+  public giteeHosts<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<V2SkillGiteeHostsResponses, V2SkillGiteeHostsErrors, ThrowOnError>({
+      url: "/api/skill/gitee-hosts",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Set self-hosted Gitee host token
+   *
+   * Add or update a self-hosted Gitee host entry (hostname plus optional private token).
+   */
+  public setGiteeHost<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      host?: string
+      token?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "host" },
+            { in: "body", key: "token" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).put<V2SkillSetGiteeHostResponses, V2SkillSetGiteeHostErrors, ThrowOnError>({
+      url: "/api/skill/gitee-hosts",
       ...options,
       ...params,
       headers: {

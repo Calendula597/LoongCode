@@ -15,6 +15,7 @@ describe("parseRepoUrl", () => {
     const result = Repo.parseRepoUrl("https://github.com/anthropics/skills")
     expect(result).toEqual({
       host: "github",
+      baseUrl: "https://github.com",
       url: "https://github.com/anthropics/skills",
       owner: "anthropics",
       name: "skills",
@@ -26,6 +27,7 @@ describe("parseRepoUrl", () => {
     const result = Repo.parseRepoUrl("https://github.com/anthropics/skills/tree/dev")
     expect(result).toEqual({
       host: "github",
+      baseUrl: "https://github.com",
       url: "https://github.com/anthropics/skills/tree/dev",
       owner: "anthropics",
       name: "skills",
@@ -37,6 +39,7 @@ describe("parseRepoUrl", () => {
     const result = Repo.parseRepoUrl("https://gitee.com/some-org/some-repo")
     expect(result).toEqual({
       host: "gitee",
+      baseUrl: "https://gitee.com",
       url: "https://gitee.com/some-org/some-repo",
       owner: "some-org",
       name: "some-repo",
@@ -48,11 +51,57 @@ describe("parseRepoUrl", () => {
     const result = Repo.parseRepoUrl("https://gitee.com/some-org/some-repo/tree/master")
     expect(result).toEqual({
       host: "gitee",
+      baseUrl: "https://gitee.com",
       url: "https://gitee.com/some-org/some-repo/tree/master",
       owner: "some-org",
       name: "some-repo",
       branch: "master",
     })
+  })
+
+  it("parses a self-hosted Gitee URL when the host is configured", () => {
+    const result = Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards.git", ["lggitee.lgdg.cc"])
+    expect(result).toEqual({
+      host: "gitee",
+      baseUrl: "https://lggitee.lgdg.cc",
+      url: "https://lggitee.lgdg.cc/lgdg/loongcode-standards.git",
+      owner: "lgdg",
+      name: "loongcode-standards",
+      branch: "main",
+    })
+  })
+
+  it("accepts the built-in self-hosted Gitee host without any config", () => {
+    const result = Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards")
+    expect(result).toEqual({
+      host: "gitee",
+      baseUrl: "https://lggitee.lgdg.cc",
+      url: "https://lggitee.lgdg.cc/lgdg/loongcode-standards",
+      owner: "lgdg",
+      name: "loongcode-standards",
+      branch: "main",
+    })
+  })
+
+  it("rejects a self-hosted Gitee URL when the host is neither built in nor configured", () => {
+    expect(Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards")).toBeNull()
+    expect(Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards", ["other.lgdg.cc"])).toBeNull()
+  })
+
+  it("parses another self-hosted Gitee URL when the host is configured", () => {
+    const result = Repo.parseRepoUrl("https://gitee.internal.example/lgdg/loongcode-standards", [
+      "gitee.internal.example",
+    ])
+    expect(result?.host).toBe("gitee")
+    expect(result?.baseUrl).toBe("https://gitee.internal.example")
+  })
+
+  it("parses a self-hosted Gitee URL with explicit branch", () => {
+    const result = Repo.parseRepoUrl("https://lggitee.lgdg.cc/lgdg/loongcode-standards/tree/master", [
+      "lggitee.lgdg.cc",
+    ])
+    expect(result?.branch).toBe("master")
+    expect(result?.host).toBe("gitee")
   })
 
   it("parses a repo URL with trailing slash", () => {
@@ -80,7 +129,9 @@ describe("parseRepoUrl", () => {
   })
 })
 
-type SkillsConfig = { skills?: { urls?: string[]; paths?: string[] } }
+type SkillsConfig = {
+  skills?: { urls?: string[]; paths?: string[]; giteeHosts?: { host: string; token?: string }[] }
+}
 
 function mockConfigLayer(skills?: SkillsConfig["skills"]) {
   const config: SkillsConfig = { skills }
@@ -174,6 +225,7 @@ describe("SkillMarketplace.repos", () => {
       expect(repos).toHaveLength(2)
       expect(repos[0]).toEqual({
         host: "github",
+        baseUrl: "https://github.com",
         url: "https://github.com/anthropics/skills",
         owner: "anthropics",
         name: "skills",
@@ -181,6 +233,7 @@ describe("SkillMarketplace.repos", () => {
       })
       expect(repos[1]).toEqual({
         host: "gitee",
+        baseUrl: "https://gitee.com",
         url: "https://gitee.com/some-org/some-repo/tree/master",
         owner: "some-org",
         name: "some-repo",
@@ -195,6 +248,84 @@ describe("SkillMarketplace.repos", () => {
       const marketplace = yield* SkillMarketplace.Service
       const repos = yield* marketplace.repos()
       expect(repos).toEqual([])
+    }),
+  )
+})
+
+describe("SkillMarketplace self-hosted Gitee hosts", () => {
+  const selfHostedConfig = mockConfigLayer({
+    urls: ["https://gitee.internal.example/lgdg/loongcode-standards"],
+    giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }],
+  })
+
+  const reposIt = testEffect(marketplaceLayer(selfHostedConfig))
+  reposIt.effect("repos() includes a configured self-hosted Gitee repo", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const repos = yield* marketplace.repos()
+      expect(repos).toEqual([
+        {
+          host: "gitee",
+          baseUrl: "https://gitee.internal.example",
+          url: "https://gitee.internal.example/lgdg/loongcode-standards",
+          owner: "lgdg",
+          name: "loongcode-standards",
+          branch: "main",
+        },
+      ])
+    }),
+  )
+
+  // Assert the repo-info probe hits the configured host's Gitee API with the token.
+  const seen: string[] = []
+  const tokenHttp = stubHttpLayer((request) => {
+    seen.push(request.url)
+    return jsonResponse(request, { default_branch: "master" })
+  })
+  const addTrack = trackingConfigLayer({
+    giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }],
+  })
+  const addIt = testEffect(marketplaceLayer(addTrack.layer, { http: tokenHttp }))
+  addIt.effect("addRepo probes the self-hosted API with the configured access_token", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      // addRepo returns the parsed URL repo (branch probed separately); the
+      // assertions that matter are on the probe request itself.
+      yield* marketplace.addRepo("https://gitee.internal.example/lgdg/loongcode-standards")
+      expect(seen[0]).toContain("https://gitee.internal.example/api/v5/repos/lgdg/loongcode-standards")
+      expect(seen[0]).toContain("access_token=secret-token")
+      expect(addTrack.captured[0]?.skills?.urls).toEqual([
+        "https://gitee.internal.example/lgdg/loongcode-standards",
+      ])
+    }),
+  )
+
+  // Branch fallback: URL guesses "main", API is down (404 keeps the guess), the
+  // main tarball 404s, and the master tarball serves the skill.
+  const fallbackHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/")) {
+      return HttpClientResponse.fromWeb(request, new Response("down", { status: 500 }))
+    }
+    if (request.url.includes("skillhub")) return jsonResponse(request, { data: { items: [], total: 0 } })
+    if (request.url.includes("/repository/archive/master.tar.gz")) {
+      return HttpClientResponse.fromWeb(request, new Response(skillTarGzip() as unknown as BodyInit, { status: 200 }))
+    }
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const fallbackIt = testEffect(
+    marketplaceLayer(
+      mockConfigLayer({
+        urls: ["https://gitee.internal.example/lgdg/loongcode-standards"],
+        giteeHosts: [{ host: "gitee.internal.example" }],
+      }),
+      { http: fallbackHttp },
+    ),
+  )
+  fallbackIt.effect("falls back from main to master when the tarball 404s", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const skills = yield* marketplace.list()
+      expect(skills.map((skill) => skill.name)).toContain("test-skill")
     }),
   )
 })
@@ -254,6 +385,7 @@ describe("SkillMarketplace.addRepo", () => {
       const result = yield* marketplace.addRepo("https://gitee.com/oschina/git-osc/tree/master")
       expect(result).toEqual({
         host: "gitee",
+        baseUrl: "https://gitee.com",
         url: "https://gitee.com/oschina/git-osc/tree/master",
         owner: "oschina",
         name: "git-osc",
@@ -754,6 +886,196 @@ describe("SkillMarketplace default branch resolution", () => {
     Effect.gen(function* () {
       const marketplace = yield* SkillMarketplace.Service
       expect(yield* marketplace.list()).toEqual([])
+    }),
+  )
+})
+
+describe("SkillMarketplace gitea-style self-hosted host", () => {
+  // The host has no /api/v5 (404) but answers /api/v1, and serves tarballs at
+  // the Gitea /archive/ path rather than Gitee's /repository/archive/.
+  const giteaHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/v5/")) return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+    if (request.url.includes("/api/v1/repos/")) {
+      if (request.url.includes("does-not-exist"))
+        return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+      return jsonResponse(request, { default_branch: "master" })
+    }
+    if (request.url.includes("skillhub")) return jsonResponse(request, { data: { items: [], total: 0 } })
+    if (request.url.includes("/repository/archive/"))
+      return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+    if (request.url.includes("/archive/master.tar.gz")) {
+      return HttpClientResponse.fromWeb(request, new Response(skillTarGzip() as unknown as BodyInit, { status: 200 }))
+    }
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const giteaIt = testEffect(
+    marketplaceLayer(mockConfigLayer({ urls: ["https://lggitee.lgdg.cc/lgdg/LoongCode-Standards"] }), { http: giteaHttp }),
+  )
+
+  giteaIt.effect("falls back from /api/v5 to /api/v1 and from /repository/archive to /archive", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const skills = yield* marketplace.list()
+      expect(skills.map((skill) => skill.name)).toContain("test-skill")
+      expect(skills.find((skill) => skill.name === "test-skill")?.source).toBe("gitee")
+    }),
+  )
+
+  giteaIt.effect("rejects the repo only when both API shapes 404", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://lggitee.lgdg.cc/lgdg/does-not-exist"))
+      expect(exit._tag).toBe("Failure")
+    }),
+  )
+})
+
+describe("SkillMarketplace archive HTML fallback (contents API walk)", () => {
+  // The host's archive endpoints answer 200 with an HTML page (SPA fallback),
+  // so listing must fall back to walking the Gitee v5 contents API.
+  const b64 = (text: string) => Buffer.from(text).toString("base64")
+  const skillMd = b64("---\nname: walked-skill\ndescription: via contents api\n---\n# Walked\n")
+  const htmlArchiveHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/v5/repos/") && !request.url.includes("/contents"))
+      return jsonResponse(request, { default_branch: "master" })
+    if (request.url.includes("/contents/go/walked-skill/SKILL.md"))
+      return jsonResponse(request, { type: "file", encoding: "base64", content: skillMd })
+    if (request.url.includes("/contents/go/walked-skill/reference.md"))
+      return jsonResponse(request, { type: "file", encoding: "base64", content: b64("reference\n") })
+    if (request.url.includes("/contents/go/walked-skill"))
+      return jsonResponse(request, [
+        { type: "file", path: "go/walked-skill/SKILL.md" },
+        { type: "file", path: "go/walked-skill/reference.md" },
+      ])
+    if (request.url.includes("/contents/go")) return jsonResponse(request, [{ type: "dir", path: "go/walked-skill" }])
+    if (request.url.includes("/contents"))
+      return jsonResponse(request, [{ type: "dir", path: "go" }, { type: "file", path: "README.md" }])
+    if (request.url.includes("skillhub")) return jsonResponse(request, { data: { items: [], total: 0 } })
+    // Archive endpoints: 200 HTML, like an SPA fallback.
+    if (request.url.includes("archive/")) {
+      return HttpClientResponse.fromWeb(request, new Response("<html>repo page</html>", { status: 200 }))
+    }
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const htmlTrack = trackingConfigLayer({ urls: ["https://lggitee.lgdg.cc/lgdg/LoongCode-Standards"] })
+  const htmlIt = testEffect(marketplaceLayer(htmlTrack.layer, { http: htmlArchiveHttp }))
+
+  htmlIt.effect("discovers skills via the contents API when archives serve HTML", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const skills = yield* marketplace.list()
+      expect(skills.map((skill) => skill.name)).toContain("walked-skill")
+      expect(skills.find((skill) => skill.name === "walked-skill")?.source).toBe("gitee")
+    }),
+  )
+
+  htmlIt.effect("installs a walked skill with its reference files", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.install({ source: "gitee", name: "walked-skill" }))
+      expect(exit._tag).toBe("Success")
+    }),
+  )
+})
+
+describe("SkillMarketplace addRepo with token", () => {
+  const repoTrack = trackingConfigLayer()
+  const repoHttp = stubHttpLayer((request) => {
+    if (request.url.includes("/api/") && request.url.includes("exists"))
+      return jsonResponse(request, { default_branch: "master" })
+    return HttpClientResponse.fromWeb(request, new Response("not found", { status: 404 }))
+  })
+  const repoIt = testEffect(marketplaceLayer(repoTrack.layer, { http: repoHttp }))
+
+  repoIt.effect("allowlists an unknown host when a token is provided", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const parsed = yield* marketplace.addRepo("https://gitee.internal.example/acme/exists/tree/master", "tok123")
+      expect(parsed.host).toBe("gitee")
+      expect(parsed.baseUrl).toBe("https://gitee.internal.example")
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.internal.example", hasToken: true })
+    }),
+  )
+
+  repoIt.effect("rejects an unknown host without a token", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://no-token.example/acme/skills"))
+      expect(exit._tag).toBe("Failure")
+    }),
+  )
+
+  repoIt.effect("stores the token under the repo host for known hosts", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.addRepo("https://gitee.com/acme/exists/tree/master", "gitee-tok")
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.com", hasToken: true })
+    }),
+  )
+
+  repoIt.effect("does not store a token for GitHub repos", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const exit = yield* Effect.exit(marketplace.addRepo("https://github.com/acme/missing", "gh-tok"))
+      // The repo does not exist upstream, so adding fails, but no host entry may be written.
+      expect(exit._tag).toBe("Failure")
+      expect(yield* marketplace.giteeHosts()).toHaveLength(2)
+    }),
+  )
+})
+
+describe("SkillMarketplace gitee host management", () => {
+  const track = trackingConfigLayer({ giteeHosts: [{ host: "gitee.internal.example", token: "secret-token" }] })
+  const hostIt = testEffect(marketplaceLayer(track.layer))
+
+  hostIt.effect("giteeHosts lists entries without exposing tokens", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toEqual([{ host: "gitee.internal.example", hasToken: true }])
+      expect(JSON.stringify(hosts)).not.toContain("secret-token")
+    }),
+  )
+
+  hostIt.effect("setGiteeHost upserts and normalizes the hostname", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.setGiteeHost({ host: "  New-Host.Example.COM ", token: "tok" })
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "new-host.example.com", hasToken: true })
+      // Upserting an existing host keeps it a single entry.
+      yield* marketplace.setGiteeHost({ host: "new-host.example.com", token: "tok2" })
+      expect((yield* marketplace.giteeHosts()).filter((h) => h.host === "new-host.example.com")).toHaveLength(1)
+    }),
+  )
+
+  hostIt.effect("setGiteeHost without a token clears the stored token", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.setGiteeHost({ host: "gitee.internal.example" })
+      const hosts = yield* marketplace.giteeHosts()
+      expect(hosts).toContainEqual({ host: "gitee.internal.example", hasToken: false })
+    }),
+  )
+
+  hostIt.effect("setGiteeHost rejects hostnames that are not bare hostnames", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      for (const host of ["https://evil.example.com", "evil/example.com", "evil..example.com", ""]) {
+        const exit = yield* Effect.exit(marketplace.setGiteeHost({ host }))
+        expect(exit._tag).toBe("Failure")
+      }
+      expect(yield* marketplace.giteeHosts()).toHaveLength(2)
+    }),
+  )
+
+  hostIt.effect("removeGiteeHost drops the entry", () =>
+    Effect.gen(function* () {
+      const marketplace = yield* SkillMarketplace.Service
+      yield* marketplace.removeGiteeHost("gitee.internal.example")
+      expect(yield* marketplace.giteeHosts()).toEqual([{ host: "new-host.example.com", hasToken: true }])
     }),
   )
 })

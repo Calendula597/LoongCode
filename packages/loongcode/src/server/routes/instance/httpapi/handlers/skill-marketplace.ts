@@ -38,8 +38,8 @@ export const skillMarketplaceHandlers = HttpApiBuilder.group(InstanceHttpApi, "i
       return yield* marketplace.repos()
     })
 
-    const addRepo = Effect.fn("SkillMarketplaceHttpApi.addRepo")(function* (ctx: { payload: { url: string } }) {
-      return yield* marketplace.addRepo(ctx.payload.url).pipe(
+    const addRepo = Effect.fn("SkillMarketplaceHttpApi.addRepo")(function* (ctx: { payload: { url: string; token?: string } }) {
+      return yield* marketplace.addRepo(ctx.payload.url, ctx.payload.token).pipe(
         Effect.catchTag("SkillMarketplace.InvalidRepoUrlError", (error) =>
           Effect.fail(new InvalidRequestError({ message: error.message, kind: "invalid_url" })),
         ),
@@ -69,6 +69,28 @@ export const skillMarketplaceHandlers = HttpApiBuilder.group(InstanceHttpApi, "i
       return { ok: true }
     })
 
+    const giteeHosts = Effect.fn("SkillMarketplaceHttpApi.giteeHosts")(function* () {
+      return yield* marketplace.giteeHosts()
+    })
+
+    const setGiteeHost = Effect.fn("SkillMarketplaceHttpApi.setGiteeHost")(function* (ctx: {
+      payload: { host: string; token?: string }
+    }) {
+      yield* marketplace.setGiteeHost(ctx.payload).pipe(
+        Effect.catchTag("SkillMarketplace.InvalidGiteeHostError", (error) =>
+          Effect.fail(new InvalidRequestError({ message: error.message, kind: "invalid_gitee_host" })),
+        ),
+      )
+      return { ok: true }
+    })
+
+    const removeGiteeHost = Effect.fn("SkillMarketplaceHttpApi.removeGiteeHost")(function* (ctx: {
+      payload: { host: string }
+    }) {
+      yield* marketplace.removeGiteeHost(ctx.payload.host)
+      return { ok: true }
+    })
+
     return handlers
       .handle("skill.marketplace", list)
       .handle("skill.install", install)
@@ -79,5 +101,8 @@ export const skillMarketplaceHandlers = HttpApiBuilder.group(InstanceHttpApi, "i
       .handle("skill.skillhubStatus", skillhubStatus)
       .handle("skill.setSkillHubKey", setSkillHubKey)
       .handle("skill.removeSkillHubKey", removeSkillHubKey)
+      .handle("skill.giteeHosts", giteeHosts)
+      .handle("skill.setGiteeHost", setGiteeHost)
+      .handle("skill.removeGiteeHost", removeGiteeHost)
   }),
 )
