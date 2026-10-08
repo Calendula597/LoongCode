@@ -51,16 +51,21 @@ import { Worktree } from "@/worktree"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { MoveSession } from "@loongcode/core/control-plane/move-session"
 import { Database } from "@loongcode/core/database/database"
+import { AppNodeBuilderV1 } from "@/effect/app-node-builder-v1"
 import { LayerNode } from "@loongcode/core/effect/layer-node"
-import { httpClient } from "@loongcode/core/effect/layer-node-platform"
+import { httpClient } from "@loongcode/core/effect/app-node-platform"
 import { EventV2 } from "@loongcode/core/event"
 import { ModelsDev } from "@loongcode/core/models-dev"
 import { Npm } from "@loongcode/core/npm"
+import { PermissionSaved } from "@loongcode/core/permission/saved"
 import { ProjectV2 } from "@loongcode/core/project"
 import { ProjectCopy } from "@loongcode/core/project/copy"
 import { PtyTicket } from "@loongcode/core/pty/ticket"
 import { Ripgrep } from "@loongcode/core/ripgrep"
 import { SessionProjector } from "@loongcode/core/session/projector"
+import { SessionV2 } from "@loongcode/core/session"
+import { SessionExecution } from "@loongcode/core/session/execution"
+import * as SessionExecutionLocal from "@loongcode/core/session/execution/local"
 import { lazy } from "@/util/lazy"
 import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@loongcode/server/cors"
 import { serveUIEffect } from "@/server/shared/ui"
@@ -98,6 +103,10 @@ import { syncHandlers } from "./handlers/sync"
 import { tuiHandlers } from "./handlers/tui"
 import { sshDeployHandlers } from "./handlers/ssh-deploy"
 import { handlers } from "@loongcode/server/handlers"
+import { buildLocationServiceMap, LocationServiceMap } from "@loongcode/core/location-services"
+import { layer as locationLayer } from "@loongcode/server/location"
+import { sessionLocationLayer } from "@loongcode/server/middleware/session-location"
+import { PtyEnvironment } from "@loongcode/server/pty-environment"
 import { schemaErrorLayer as v2SchemaErrorLayer } from "@loongcode/server/middleware/schema-error"
 import { workspaceHandlers } from "./handlers/workspace"
 import { instanceContextLayer } from "./middleware/instance-context"
@@ -127,10 +136,10 @@ const cors = (corsOptions?: CorsOptions) =>
 // - ptyConnectApiRoutes: typed WebSocket upgrade route with ticket-aware auth.
 // - instanceApiRoutes: remaining typed instance routes.
 // - uiRoute: raw catch-all fallback; auth is router middleware so public static assets can bypass it.
-const authOnlyRouterLayer = authorizationRouterMiddleware.layer.pipe(Layer.provide(ServerAuth.Config.defaultLayer))
-const httpApiAuthLayer = authorizationLayer.pipe(Layer.provide(ServerAuth.Config.defaultLayer))
-const ptyConnectHttpApiAuthLayer = ptyConnectAuthorizationLayer.pipe(Layer.provide(ServerAuth.Config.defaultLayer))
-const serverHttpApiAuthLayer = serverAuthorizationLayer.pipe(Layer.provide(ServerAuth.Config.defaultLayer))
+const authOnlyRouterLayer = authorizationRouterMiddleware.layer.pipe(Layer.provide(ServerAuth.Config.layer))
+const httpApiAuthLayer = authorizationLayer.pipe(Layer.provide(ServerAuth.Config.layer))
+const ptyConnectHttpApiAuthLayer = ptyConnectAuthorizationLayer.pipe(Layer.provide(ServerAuth.Config.layer))
+const serverHttpApiAuthLayer = serverAuthorizationLayer.pipe(Layer.provide(ServerAuth.Config.layer))
 const workspaceRoutingLive = workspaceRoutingLayer.pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal))
 const rootApiRoutes = HttpApiBuilder.layer(RootHttpApi).pipe(
   Layer.provide([controlHandlers, controlPlaneHandlers, globalHandlers, sshDeployHandlers]),
@@ -164,7 +173,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     tuiHandlers,
     workspaceHandlers,
   ]),
-  Layer.provide(SkillMarketplace.defaultLayer),
+  Layer.provide(SkillMarketplace.layer),
 )
 
 const instanceRoutes = instanceApiRoutes.pipe(
@@ -226,6 +235,7 @@ const app = LayerNode.group([
   Discovery.node,
   Question.node,
   Permission.node,
+  PermissionSaved.node,
   Todo.node,
   Session.node,
   SessionProjector.node,
@@ -266,6 +276,8 @@ const app = LayerNode.group([
 export function createRoutes(
   corsOptions?: CorsOptions,
 ): Layer.Layer<never, EffectConfig.ConfigError, RouteRequirements> {
+  const locationServiceMapV2 = buildLocationServiceMap()
+
   return Layer.mergeAll(
     rootApiRoutes,
     eventApiRoutes,
@@ -281,12 +293,24 @@ export function createRoutes(
       corsVaryFix,
       fenceLayer,
       cors(corsOptions),
-      MoveSession.defaultLayer,
+      AppNodeBuilderV1.build(MoveSession.node, [[LocationServiceMap.node, locationServiceMapV2]]),
       HttpServer.layerServices,
     ]),
-    Layer.provide(LayerNode.buildLayer(app)),
     Layer.provide(Layer.succeed(CorsConfig)(corsOptions)),
     Layer.provideMerge(Observability.layer),
+
+    Layer.provide(sessionLocationLayer),
+    Layer.provide(locationLayer),
+    Layer.provide(PtyEnvironment.layer),
+    Layer.provide(
+      AppNodeBuilderV1.build(SessionV2.node, [
+        [LocationServiceMap.node, locationServiceMapV2],
+        [SessionExecution.node, SessionExecutionLocal.node],
+      ]),
+    ),
+    Layer.provide(locationServiceMapV2),
+
+    Layer.provide(AppNodeBuilderV1.build(app)),
   )
 }
 

@@ -2,12 +2,13 @@ import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
 import { Effect } from "effect"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Ripgrep } from "@loongcode/core/ripgrep"
 import { AbsolutePath, RelativePath } from "@loongcode/core/schema"
 import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
 
-const it = testEffect(Ripgrep.defaultLayer)
+const it = testEffect(LayerNode.compile(Ripgrep.node))
 
 const withTmp = <A, E, R>(f: (directory: AbsolutePath) => Effect.Effect<A, E, R>) =>
   Effect.acquireRelease(

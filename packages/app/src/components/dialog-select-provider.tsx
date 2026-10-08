@@ -1,4 +1,4 @@
-import { Component, Show } from "solid-js"
+import { type Accessor, Component, Show } from "solid-js"
 import { useDialog } from "@loongcode/ui/context/dialog"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
 import { Dialog } from "@loongcode/ui/dialog"
@@ -11,9 +11,9 @@ import { DialogCustomProvider } from "./dialog-custom-provider"
 
 const CUSTOM_ID = "_custom"
 
-export const DialogSelectProvider: Component = () => {
+export const DialogSelectProvider: Component<{ directory?: Accessor<string | undefined> }> = (props) => {
   const dialog = useDialog()
-  const providers = useProviders()
+  const providers = useProviders(props.directory)
   const language = useLanguage()
 
   // lgdg (ModelHub) is deprecated; "龙岗数据" group now only holds tokenStore
@@ -65,10 +65,10 @@ export const DialogSelectProvider: Component = () => {
         onSelect={(x) => {
           if (!x) return
           if (x.id === CUSTOM_ID) {
-            dialog.show(() => <DialogCustomProvider back="providers" />)
+            dialog.show(() => <DialogCustomProvider back="providers" directory={props.directory} />)
             return
           }
-          dialog.show(() => <DialogConnectProvider provider={x.id} />)
+          dialog.show(() => <DialogConnectProvider provider={x.id} directory={props.directory} />)
         }}
       >
         {(i) => (

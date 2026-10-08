@@ -1,7 +1,7 @@
 import { EOL } from "os"
 import { Effect } from "effect"
 import { FileSystem } from "@loongcode/core/filesystem"
-import { LocationServiceMap } from "@loongcode/core/location-layer"
+import { LocationServiceMap, locationServiceMapLayer } from "@loongcode/core/location-services"
 import { Location } from "@loongcode/core/location"
 import { AbsolutePath, RelativePath } from "@loongcode/core/schema"
 import { effectCmd } from "../../effect-cmd"
@@ -9,8 +9,8 @@ import { cmd } from "../cmd"
 
 const filesystem = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
   effect.pipe(
-    Effect.provide(LocationServiceMap.get(Location.Ref.make({ directory: AbsolutePath.make(process.cwd()) }))),
-    Effect.provide(LocationServiceMap.layer),
+    Effect.provide(LocationServiceMap.Service.get(Location.Ref.make({ directory: AbsolutePath.make(process.cwd()) }))),
+    Effect.provide(locationServiceMapLayer),
   )
 
 const FileSearchCommand = effectCmd({

@@ -1,14 +1,15 @@
 import { describe, expect } from "bun:test"
-import { Effect, Layer, Schema } from "effect"
+import { Effect, Schema } from "effect"
 import { Database } from "@loongcode/core/database/database"
-import { EventV2 } from "@loongcode/core/event"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { Project } from "@loongcode/core/project"
 import { ProjectDirectories } from "@loongcode/core/project/directories"
 import { ProjectTable } from "@loongcode/core/project/sql"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { testEffect } from "./lib/effect"
 
-const it = testEffect(Layer.mergeAll(Database.defaultLayer, EventV2.defaultLayer, ProjectDirectories.defaultLayer))
+const it = testEffect(AppNodeBuilder.build(LayerNode.group([Database.node, ProjectDirectories.node])))
 
 const projectID = Project.ID.make("project-directories")
 const directory = AbsolutePath.make("/tmp/project-directories")

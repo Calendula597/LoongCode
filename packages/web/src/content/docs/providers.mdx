@@ -1,17 +1,17 @@
 ---
 title: Providers
-description: Using any LLM provider in Loongcode.
+description: Using any LLM provider in LoongCode.
 ---
 
 import config from "../../../config.mjs"
 export const console = config.console
 
-Loongcode uses the [AI SDK](https://ai-sdk.dev/) and [Models.dev](https://models.dev) to support **75+ LLM providers** and it supports running local models.
+LoongCode uses the [AI SDK](https://ai-sdk.dev/) and [Models.dev](https://models.dev) to support **75+ LLM providers** and it supports running local models.
 
 To add a provider you need to:
 
 1. Add the API keys for the provider using the `/connect` command.
-2. Configure the provider in your Loongcode config.
+2. Configure the provider in your LoongCode config.
 
 ---
 
@@ -24,7 +24,7 @@ in `~/.local/share/loongcode/auth.json`.
 
 ### Config
 
-You can customize the providers through the `provider` section in your Loongcode
+You can customize the providers through the `provider` section in your LoongCode
 config.
 
 ---
@@ -48,48 +48,52 @@ You can customize the base URL for any provider by setting the `baseURL` option.
 
 ---
 
-## Loongcode Zen
+#### Hiding models
 
-Loongcode Zen is a list of models provided by the Loongcode team that have been
-tested and verified to work well with Loongcode. [Learn more](/docs/zen).
+You can hide specific models from the `/models` picker for a provider using the `blacklist` option. This is useful when a provider exposes models you don't want to use or select.
 
-:::tip
-If you are new, we recommend starting with Loongcode Zen.
-:::
+```json title="loongcode.json" {6}
+{
+  "$schema": "https://modelhub.lgdg.cc/config.json",
+  "provider": {
+    "anthropic": {
+      "blacklist": ["claude-opus-4-20250514"]
+    }
+  }
+}
+```
 
-1. Run the `/connect` command in the TUI, select `Loongcode Zen`, and head to [modelhub.lgdg.cc/auth](https://modelhub.lgdg.cc/zen).
+The inverse `whitelist` option hides every model except the ones listed.
 
-   ```txt
-   /connect
-   ```
+```json title="loongcode.json" {6}
+{
+  "$schema": "https://modelhub.lgdg.cc/config.json",
+  "provider": {
+    "anthropic": {
+      "whitelist": ["claude-sonnet-4-20250514"]
+    }
+  }
+}
+```
 
-2. Sign in, add your billing details, and copy your API key.
+Both options take an array of model IDs — the same IDs shown in the `/models` picker.
 
-3. Paste your API key.
-
-   ```txt
-   ┌ API key
-   │
-   │
-   └ enter
-   ```
-
-4. Run `/models` in the TUI to see the list of models we recommend.
-
-   ```txt
-   /models
-   ```
-
-It works like any other provider in Loongcode and is completely optional to use.
+- `blacklist` removes the listed models from the picker.
+- `whitelist` keeps only the listed models and hides the rest.
+- You can combine them: `whitelist` narrows the set, then `blacklist` removes entries from it.
 
 ---
 
-## Loongcode Go
+## LoongCode Zen
 
-Loongcode Go is a low cost subscription plan that provides reliable access to popular open coding models provided by the Loongcode team that have been
-tested and verified to work well with Loongcode.
+LoongCode Zen is a list of models provided by the LoongCode team that have been
+tested and verified to work well with LoongCode. [Learn more](/docs/zen).
 
-1. Run the `/connect` command in the TUI, select `Loongcode Go`, and head to [modelhub.lgdg.cc/auth](https://modelhub.lgdg.cc/zen).
+:::tip
+If you are new, we recommend starting with LoongCode Zen.
+:::
+
+1. Run the `/connect` command in the TUI, select `LoongCode Zen`, and head to [modelhub.lgdg.cc/auth](https://modelhub.lgdg.cc/zen).
 
    ```txt
    /connect
@@ -112,7 +116,39 @@ tested and verified to work well with Loongcode.
    /models
    ```
 
-It works like any other provider in Loongcode and is completely optional to use.
+It works like any other provider in LoongCode and is completely optional to use.
+
+---
+
+## LoongCode Go
+
+LoongCode Go is a low cost subscription plan that provides reliable access to popular open coding models provided by the LoongCode team that have been
+tested and verified to work well with LoongCode.
+
+1. Run the `/connect` command in the TUI, select `LoongCode Go`, and head to [modelhub.lgdg.cc/auth](https://modelhub.lgdg.cc/zen).
+
+   ```txt
+   /connect
+   ```
+
+2. Sign in, add your billing details, and copy your API key.
+
+3. Paste your API key.
+
+   ```txt
+   ┌ API key
+   │
+   │
+   └ enter
+   ```
+
+4. Run `/models` in the TUI to see the list of models we recommend.
+
+   ```txt
+   /models
+   ```
+
+It works like any other provider in LoongCode and is completely optional to use.
 
 ---
 
@@ -156,7 +192,7 @@ Don't see a provider here? Submit a PR.
 
 ### Amazon Bedrock
 
-To use Amazon Bedrock with Loongcode:
+To use Amazon Bedrock with LoongCode:
 
 1. Head over to the **Model catalog** in the Amazon Bedrock console and request
    access to the models you want.
@@ -319,13 +355,13 @@ For custom inference profiles, use the model and provider name in the key and se
 
 :::info
 There are plugins that allow you to use your Claude Pro/Max models with
-Loongcode. Anthropic explicitly prohibits this.
+LoongCode. Anthropic explicitly prohibits this.
 
-Previous versions of Loongcode came bundled with these plugins but that is no
+Previous versions of LoongCode came bundled with these plugins but that is no
 longer the case as of 1.3.0
 
 Other companies support freedom of choice with developer tooling - you can use
-the following subscriptions in Loongcode with zero setup:
+the following subscriptions in LoongCode with zero setup:
 
 - ChatGPT Plus
 - Github Copilot
@@ -725,9 +761,9 @@ Cloudflare Workers AI lets you run AI models on Cloudflare's global network dire
 
 DigitalOcean's [Inference Engine](https://docs.digitalocean.com/products/inference/) provides access to open models like GPT-OSS, Llama, Qwen, and DeepSeek, plus custom [Inference Routers](https://docs.digitalocean.com/products/genai-platform/concepts/inference-routers/) that route each request to the cheapest, fastest, or best-fit model for a task.
 
-Loongcode supports two authentication methods:
+LoongCode supports two authentication methods:
 
-- **OAuth (Recommended)** — Sign in to your DigitalOcean account; Loongcode uses your DigitalOcean API token directly for inference and discovers your Inference Routers.
+- **OAuth (Recommended)** — Sign in to your DigitalOcean account; LoongCode uses your DigitalOcean API token directly for inference and discovers your Inference Routers.
 - **Model Access Key** — Paste an existing key from the DigitalOcean console.
 
 #### OAuth (Recommended)
@@ -748,10 +784,10 @@ Loongcode supports two authentication methods:
    └
    ```
 
-3. Your browser opens to authorize Loongcode. Sign in and approve.
+3. Your browser opens to authorize LoongCode. Sign in and approve.
 
    :::note
-   Loongcode requests `genai:read` and `inference:query` OAuth scopes. Your DigitalOcean API token is used directly for inference — no separate Model Access Key is created.
+   LoongCode requests `genai:read` and `inference:query` OAuth scopes. Your DigitalOcean API token is used directly for inference — no separate Model Access Key is created.
    :::
 
    :::note
@@ -801,9 +837,9 @@ export DIGITALOCEAN_ACCESS_TOKEN=your-model-access-key
 
 #### Inference Routers
 
-Inference Routers let you define a routing policy across multiple models — picking the cheapest, fastest, or most appropriate model per request based on the task. After OAuth, Loongcode surfaces each router as `router:<router-name>` in the model picker.
+Inference Routers let you define a routing policy across multiple models — picking the cheapest, fastest, or most appropriate model per request based on the task. After OAuth, LoongCode surfaces each router as `router:<router-name>` in the model picker.
 
-Selecting a router model is a drop-in replacement for any other model — Loongcode forwards your request and DigitalOcean picks the underlying model based on your router's policy. Learn more about [Inference Routers](https://docs.digitalocean.com/products/inference/how-to/use-inference-router/)
+Selecting a router model is a drop-in replacement for any other model — LoongCode forwards your request and DigitalOcean picks the underlying model based on your router's policy. Learn more about [Inference Routers](https://docs.digitalocean.com/products/inference/how-to/use-inference-router/)
 
 ---
 
@@ -864,11 +900,11 @@ Selecting a router model is a drop-in replacement for any other model — Loongc
 ### GitLab Duo
 
 :::caution[Experimental]
-GitLab Duo support in Loongcode is experimental. Features, configuration, and
+GitLab Duo support in LoongCode is experimental. Features, configuration, and
 behavior may change in future releases.
 :::
 
-Loongcode integrates with the [GitLab Duo Agent Platform](https://docs.gitlab.com/user/duo_agent_platform/),
+LoongCode integrates with the [GitLab Duo Agent Platform](https://docs.gitlab.com/user/duo_agent_platform/),
 providing AI-powered agentic chat with native tool calling capabilities.
 
 :::note[License requirements]
@@ -901,7 +937,7 @@ for full requirements.
    #### Using Personal Access Token
    1. Go to [GitLab User Settings > Access Tokens](https://gitlab.com/-/user_settings/personal_access_tokens)
    2. Click **Add new token**
-   3. Name: `Loongcode`, Scopes: `api`
+   3. Name: `LoongCode`, Scopes: `api`
    4. Copy the token (starts with `glpat-`)
    5. Enter it in the terminal
 
@@ -924,8 +960,8 @@ to store token in loongcode auth storage.
 ##### Self-Hosted GitLab
 
 :::note[compliance note]
-Loongcode uses a small model for some AI tasks like generating the session title.
-It is configured to use gpt-5-nano by default, hosted by Zen. To lock Loongcode
+LoongCode uses a small model for some AI tasks like generating the session title.
+It is configured to use gpt-5-nano by default, hosted by Zen. To lock LoongCode
 to only use your own GitLab-hosted instance, add the following to your
 `loongcode.json` file. It is also recommended to disable session sharing.
 
@@ -1010,12 +1046,12 @@ Customize through `loongcode.json`:
 
 DAP workflow models provide an alternative execution path that routes tool calls
 through GitLab's Duo Workflow Service (DWS) instead of the standard agentic chat.
-When a `duo-workflow-*` model is selected, Loongcode will:
+When a `duo-workflow-*` model is selected, LoongCode will:
 
 1. Discover available models from your GitLab namespace
 2. Present a selection picker if multiple models are available
 3. Cache the selected model to disk for fast subsequent startups
-4. Route tool execution requests through Loongcode's permission-gated tool system
+4. Route tool execution requests through LoongCode's permission-gated tool system
 
 Available DAP workflow models follow the `duo-workflow-*` naming convention and
 are dynamically discovered from your GitLab instance.
@@ -1070,9 +1106,38 @@ subscription](https://github.com/features/copilot/plans) to use.
 
 ---
 
+### GMI Cloud
+
+To use GMI Cloud with LoongCode:
+
+1. Head over to the [GMI Cloud console](https://console.gmicloud.ai/) to create an API key. You can also review the [API reference](https://docs.gmicloud.ai/inference-engine/api-reference/llm-api-reference) for the endpoint details.
+
+2. Run the `/connect` command and search for **GMI Cloud**.
+
+   ```txt
+   /connect
+   ```
+
+3. Enter your GMI Cloud API key.
+
+   ```txt
+   ┌ API key
+   │
+   │
+   └ enter
+   ```
+
+4. Run the `/models` command to select the model you want.
+
+   ```txt
+   /models
+   ```
+
+---
+
 ### Google Vertex AI
 
-To use Google Vertex AI with Loongcode:
+To use Google Vertex AI with LoongCode:
 
 1. Head over to the **Model Garden** in the Google Cloud Console and check the
    models available in your region.
@@ -1254,7 +1319,7 @@ Helicone supports custom headers for features like caching, user tracking, and s
 
 ##### Session tracking
 
-Helicone's [Sessions](https://docs.helicone.ai/features/sessions) feature lets you group related LLM requests together. Use the [loongcode-helicone-session](https://github.com/H2Shami/loongcode-helicone-session) plugin to automatically log each Loongcode conversation as a session in Helicone.
+Helicone's [Sessions](https://docs.helicone.ai/features/sessions) feature lets you group related LLM requests together. Use the [loongcode-helicone-session](https://github.com/H2Shami/loongcode-helicone-session) plugin to automatically log each LoongCode conversation as a session in Helicone.
 
 ```bash
 npm install -g loongcode-helicone-session
@@ -1268,7 +1333,7 @@ Add it to your config.
 }
 ```
 
-The plugin injects `Helicone-Session-Id` and `Helicone-Session-Name` headers into your requests. In Helicone's Sessions page, you'll see each Loongcode conversation listed as a separate session.
+The plugin injects `Helicone-Session-Id` and `Helicone-Session-Name` headers into your requests. In Helicone's Sessions page, you'll see each LoongCode conversation listed as a separate session.
 
 ##### Common Helicone headers
 
@@ -1526,7 +1591,7 @@ export NVIDIA_API_KEY=nvapi-your-key-here
 You can configure loongcode to use local models through Ollama.
 
 :::tip
-Ollama can automatically configure itself for Loongcode. See the [Ollama integration docs](https://docs.ollama.com/integrations/loongcode) for details.
+Ollama can automatically configure itself for LoongCode. See the [Ollama integration docs](https://docs.ollama.com/integrations/loongcode) for details.
 :::
 
 ```json title="loongcode.json" "ollama" {5, 6, 8, 10-14}
@@ -1565,13 +1630,13 @@ If tool calls aren't working, try increasing `num_ctx` in Ollama. Start around 1
 
 ### Ollama Cloud
 
-To use Ollama Cloud with Loongcode:
+To use Ollama Cloud with LoongCode:
 
 1. Head over to [https://ollama.com/](https://ollama.com/) and sign in or create an account.
 
 2. Navigate to **Settings** > **Keys** and click **Add API Key** to generate a new API key.
 
-3. Copy the API key for use in Loongcode.
+3. Copy the API key for use in LoongCode.
 
 4. Run the `/connect` command and search for **Ollama Cloud**.
 
@@ -1588,7 +1653,7 @@ To use Ollama Cloud with Loongcode:
    └ enter
    ```
 
-6. **Important**: Before using cloud models in Loongcode, you must pull the model information locally:
+6. **Important**: Before using cloud models in LoongCode, you must pull the model information locally:
 
    ```bash
    ollama pull gpt-oss:20b-cloud
@@ -1635,19 +1700,19 @@ If you already have an API key, you can select **Manually enter API Key** and pa
 
 ---
 
-### Loongcode Zen
+### LoongCode Zen
 
-Loongcode Zen is a list of tested and verified models provided by the Loongcode team. [Learn more](/docs/zen).
+LoongCode Zen is a list of tested and verified models provided by the LoongCode team. [Learn more](/docs/zen).
 
-1. Sign in to **<a href={console}>Loongcode Zen</a>** and click **Create API Key**.
+1. Sign in to **<a href={console}>LoongCode Zen</a>** and click **Create API Key**.
 
-2. Run the `/connect` command and search for **Loongcode Zen**.
+2. Run the `/connect` command and search for **LoongCode Zen**.
 
    ```txt
    /connect
    ```
 
-3. Enter your Loongcode API key.
+3. Enter your LoongCode API key.
 
    ```txt
    ┌ API key
@@ -1913,7 +1978,7 @@ STACKIT AI Model Serving provides fully managed sovereign hosting environment fo
 
 ### Scaleway
 
-To use [Scaleway Generative APIs](https://www.scaleway.com/en/docs/generative-apis/) with Opencode:
+To use [Scaleway Generative APIs](https://www.scaleway.com/en/docs/generative-apis/) with Loongcode:
 
 1. Head over to the [Scaleway Console IAM settings](https://console.scaleway.com/iam/api-keys) to generate a new API key.
 
@@ -1948,7 +2013,7 @@ Don't have a Snowflake account? [Sign up for a free trial](https://signup.snowfl
 
 loongcode's core workflow for coding, editing files, and running commands relies on tool calling. Only the Claude and OpenAI families within Snowflake Cortex support this. The provider is limited to those families to support the core workflow.
 
-Loongcode supports two authentication methods:
+LoongCode supports two authentication methods:
 
 - **Browser OAuth (Recommended)** — sign in with your IdP/SSO; no secrets to manage, tokens refresh automatically.
 - **Manual bearer token** — paste a PAT or JWT from the Snowflake console.
@@ -1982,7 +2047,7 @@ Loongcode supports two authentication methods:
 
 4. Optionally enter a Snowflake role to scope the session (e.g. `SYSADMIN`). Leave blank to use your default role.
 
-5. Complete sign-in in the browser that opens. Loongcode captures the OAuth callback automatically and stores the token — no copy/paste needed.
+5. Complete sign-in in the browser that opens. LoongCode captures the OAuth callback automatically and stores the token — no copy/paste needed.
 
 6. Run the `/models` command to select a model.
 
@@ -2165,7 +2230,7 @@ Three ways to authenticate: a SuperGrok subscription via browser OAuth, the same
    /connect
    ```
 
-2. Select **xAI Grok OAuth (SuperGrok Subscription)**. Loongcode opens xAI's consent screen in your browser and waits for the callback on `http://127.0.0.1:56121/callback`.
+2. Select **xAI Grok OAuth (SuperGrok Subscription)**. LoongCode opens xAI's consent screen in your browser and waits for the callback on `http://127.0.0.1:56121/callback`.
 
 3. Run the `/models` command to select a Grok model.
 
@@ -2173,11 +2238,11 @@ Three ways to authenticate: a SuperGrok subscription via browser OAuth, the same
    /models
    ```
 
-Loongcode refreshes the OAuth access token automatically. Any Grok or X Premium plan that includes Grok API access works; you do not need a separate `XAI_API_KEY`.
+LoongCode refreshes the OAuth access token automatically. Any Grok or X Premium plan that includes Grok API access works; you do not need a separate `XAI_API_KEY`.
 
 #### Option B — SuperGrok device-code (headless / remote server / VPS)
 
-Use this when Loongcode is running somewhere a browser can't reach the loopback redirect: a VPS, a remote dev box over SSH, inside Docker, in CI, etc. No callback port is opened on the host running Loongcode — instead xAI hands the CLI a short code that you type into a browser on any other device (laptop, phone, …).
+Use this when LoongCode is running somewhere a browser can't reach the loopback redirect: a VPS, a remote dev box over SSH, inside Docker, in CI, etc. No callback port is opened on the host running LoongCode — instead xAI hands the CLI a short code that you type into a browser on any other device (laptop, phone, …).
 
 1. Run the `/connect` command on the remote host and search for **xAI**.
 
@@ -2185,13 +2250,13 @@ Use this when Loongcode is running somewhere a browser can't reach the loopback 
    /connect
    ```
 
-2. Select **xAI Grok OAuth (Headless / Remote / VPS)**. Loongcode prints a verification URL and a short user code.
+2. Select **xAI Grok OAuth (Headless / Remote / VPS)**. LoongCode prints a verification URL and a short user code.
 
    ```txt
    Open https://x.ai/device on any device and enter code: ABCD-1234
    ```
 
-3. Open the URL on a device that has a browser (your laptop or phone), enter the code, and approve the consent screen. Loongcode polls xAI's token endpoint and stores the resulting OAuth tokens once you approve. Token refresh works the same as Option A.
+3. Open the URL on a device that has a browser (your laptop or phone), enter the code, and approve the consent screen. LoongCode polls xAI's token endpoint and stores the resulting OAuth tokens once you approve. Token refresh works the same as Option A.
 
 #### Option C — API key
 
@@ -2417,7 +2482,7 @@ Configuration details:
 - **limit.context**: Maximum input tokens the model accepts.
 - **limit.output**: Maximum tokens the model can generate.
 
-The `limit` fields allow Loongcode to understand how much context you have left. Standard providers pull these from models.dev automatically.
+The `limit` fields allow LoongCode to understand how much context you have left. Standard providers pull these from models.dev automatically.
 
 ---
 

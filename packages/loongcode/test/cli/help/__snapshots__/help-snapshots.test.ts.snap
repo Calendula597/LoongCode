@@ -1,7 +1,7 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode acp --help 1`] = `
-"lgcode acp
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode acp --help 1`] = `
+"loongcode acp
 
 start ACP (Agent Client Protocol) server
 
@@ -15,23 +15,23 @@ Options:
       --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
       --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
                                                                           [boolean] [default: false]
-      --mdns-domain  custom domain name for mDNS service (default: lgcode.local)
-                                                                [string] [default: "lgcode.local"]
+      --mdns-domain  custom domain name for mDNS service (default: loongcode.local)
+                                                                [string] [default: "loongcode.local"]
       --cors         additional domains to allow for CORS                      [array] [default: []]
       --cwd          working directory [string] [default: "<HOME>"]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode mcp --help 1`] = `
-"lgcode mcp
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode mcp --help 1`] = `
+"loongcode mcp
 
 manage MCP (Model Context Protocol) servers
 
 Commands:
-  lgcode mcp add [name]     add an MCP server
-  lgcode mcp list           list MCP servers and their status                        [aliases: ls]
-  lgcode mcp auth [name]    authenticate with an OAuth-enabled MCP server
-  lgcode mcp logout [name]  remove OAuth credentials for an MCP server
-  lgcode mcp debug <name>   debug OAuth connection for an MCP server
+  loongcode mcp add [name]     add an MCP server
+  loongcode mcp list           list MCP servers and their status                        [aliases: ls]
+  loongcode mcp auth [name]    authenticate with an OAuth-enabled MCP server
+  loongcode mcp logout [name]  remove OAuth credentials for an MCP server
+  loongcode mcp debug <name>   debug OAuth connection for an MCP server
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -41,10 +41,10 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode attach --help 1`] = `
-"lgcode attach <url>
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode attach --help 1`] = `
+"loongcode attach <url>
 
-attach to a running lgcode server
+attach to a running loongcode server
 
 Positionals:
   url  http://localhost:4096                                                     [string] [required]
@@ -59,77 +59,73 @@ Options:
   -c, --continue      continue the last session                                            [boolean]
   -s, --session       session id to continue                                                [string]
       --fork          fork the session when continuing (use with --continue or --session)  [boolean]
-  -p, --password      basic auth password (defaults to OPENCODE_SERVER_PASSWORD)            [string]
-  -u, --username      basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'loongcode')
+  -p, --password      basic auth password (defaults to LOONGCODE_SERVER_PASSWORD)            [string]
+  -u, --username      basic auth username (defaults to LOONGCODE_SERVER_USERNAME or 'loongcode')
                                                                                             [string]
       --mini          start the minimal interactive interface             [boolean] [default: false]
       --no-replay     disable mini session history replay on resume and after resize       [boolean]
       --replay-limit  cap visible mini replay to the newest N messages                      [number]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode run --help 1`] = `
-"lgcode run [message..]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode run --help 1`] = `
+"loongcode run [message..]
 
-run lgcode with a message
+run loongcode with a message
 
 Positionals:
   message  message to send                                                     [array] [default: []]
 
 Options:
-  -h, --help                          show help                                            [boolean]
-  -v, --version                       show version number                                  [boolean]
-      --print-logs                    print logs to stderr                                 [boolean]
-      --log-level                     log level [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure                          run without external plugins                         [boolean]
-      --command                       the command to run, use message for args              [string]
-  -c, --continue                      continue the last session                            [boolean]
-  -s, --session                       session id to continue                                [string]
-      --fork                          fork the session before continuing (requires --continue or
-                                      --session)                                           [boolean]
-      --share                         share the session                                    [boolean]
-  -m, --model                         model to use in the format of provider/model          [string]
-      --agent                         agent to use                                          [string]
-      --format                        format: default (formatted) or json (raw JSON events)
+  -h, --help         show help                                                             [boolean]
+  -v, --version      show version number                                                   [boolean]
+      --print-logs   print logs to stderr                                                  [boolean]
+      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure         run without external plugins                                          [boolean]
+      --command      the command to run, use message for args                               [string]
+  -c, --continue     continue the last session                                             [boolean]
+  -s, --session      session id to continue                                                 [string]
+      --fork         fork the session before continuing (requires --continue or --session) [boolean]
+      --share        share the session                                                     [boolean]
+  -m, --model        model to use in the format of provider/model                           [string]
+      --agent        agent to use                                                           [string]
+      --format       format: default (formatted) or json (raw JSON events)
                                           [string] [choices: "default", "json"] [default: "default"]
-  -f, --file                          file(s) to attach to message                           [array]
-      --title                         title for the session (uses truncated prompt if no value
-                                      provided)                                             [string]
-      --attach                        attach to a running lgcode server (e.g.,
-                                      http://localhost:4096)                                [string]
-  -p, --password                      basic auth password (defaults to OPENCODE_SERVER_PASSWORD)
+  -f, --file         file(s) to attach to message                                            [array]
+      --title        title for the session (uses truncated prompt if no value provided)     [string]
+      --attach       attach to a running loongcode server (e.g., http://localhost:4096)      [string]
+  -p, --password     basic auth password (defaults to LOONGCODE_SERVER_PASSWORD)             [string]
+  -u, --username     basic auth username (defaults to LOONGCODE_SERVER_USERNAME or 'loongcode')
                                                                                             [string]
-  -u, --username                      basic auth username (defaults to OPENCODE_SERVER_USERNAME or
-                                      'lgcode')                                           [string]
-      --dir                           directory to run in, path on remote server if attaching
+      --dir          directory to run in, path on remote server if attaching                [string]
+      --port         port for the local server (defaults to random port if no value provided)
+                                                                                            [number]
+      --variant      model variant (provider-specific reasoning effort, e.g., high, max, minimal)
                                                                                             [string]
-      --port                          port for the local server (defaults to random port if no value
-                                      provided)                                             [number]
-      --variant                       model variant (provider-specific reasoning effort, e.g., high,
-                                      max, minimal)                                         [string]
-      --thinking                      show thinking blocks                                 [boolean]
-      --dangerously-skip-permissions  auto-approve permissions that are not explicitly denied
-                                      (dangerous!)                        [boolean] [default: false]"
+      --thinking     show thinking blocks                                                  [boolean]
+  -i, --interactive  run in direct interactive split-footer mode          [boolean] [default: false]
+      --auto         auto-approve permissions that are not explicitly denied (dangerous!)
+                                                                          [boolean] [default: false]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode debug --help 1`] = `
-"lgcode debug
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode debug --help 1`] = `
+"loongcode debug
 
 debugging and troubleshooting tools
 
 Commands:
-  lgcode debug config        show resolved configuration
-  lgcode debug lsp           LSP debugging utilities
-  lgcode debug rg            ripgrep debugging utilities
-  lgcode debug file          file system debugging utilities
-  lgcode debug scrap         list all known projects
-  lgcode debug skill         list all available skills
-  lgcode debug snapshot      snapshot debugging utilities
-  lgcode debug startup       print startup timing
-  lgcode debug agent <name>  show agent configuration details
-  lgcode debug v2            debug v2 catalog and built-in plugins
-  lgcode debug info          show debug information
-  lgcode debug paths         show global paths (data, config, cache, state)
-  lgcode debug wait          wait indefinitely (for debugging)
+  loongcode debug config        show resolved configuration
+  loongcode debug lsp           LSP debugging utilities
+  loongcode debug rg            ripgrep debugging utilities
+  loongcode debug file          file system debugging utilities
+  loongcode debug scrap         list all known projects
+  loongcode debug skill         list all available skills
+  loongcode debug snapshot      snapshot debugging utilities
+  loongcode debug startup       print startup timing
+  loongcode debug agent <name>  show agent configuration details
+  loongcode debug v2            debug v2 catalog and built-in plugins
+  loongcode debug info          show debug information
+  loongcode debug paths         show global paths (data, config, cache, state)
+  loongcode debug wait          wait indefinitely (for debugging)
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -139,15 +135,15 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode providers --help 1`] = `
-"lgcode providers
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode providers --help 1`] = `
+"loongcode providers
 
 manage AI providers and credentials
 
 Commands:
-  lgcode providers list               list providers and credentials                 [aliases: ls]
-  lgcode providers login [url]        log in to a provider
-  lgcode providers logout [provider]  log out from a configured provider
+  loongcode providers list               list providers and credentials                 [aliases: ls]
+  loongcode providers login [url]        log in to a provider
+  loongcode providers logout [provider]  log out from a configured provider
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -157,14 +153,14 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode agent --help 1`] = `
-"lgcode agent
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode agent --help 1`] = `
+"loongcode agent
 
 manage agents
 
 Commands:
-  lgcode agent create  create a new agent
-  lgcode agent list    list all available agents
+  loongcode agent create  create a new agent
+  loongcode agent list    list all available agents
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -174,10 +170,10 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode upgrade --help 1`] = `
-"lgcode upgrade [target]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode upgrade --help 1`] = `
+"loongcode upgrade [target]
 
-upgrade lgcode to the latest or a specific version
+upgrade loongcode to the latest or a specific version
 
 Positionals:
   target  version to upgrade to, for ex '0.1.48' or 'v0.1.48'                               [string]
@@ -192,10 +188,10 @@ Options:
                           [string] [choices: "curl", "npm", "pnpm", "bun", "brew", "choco", "scoop"]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode uninstall --help 1`] = `
-"lgcode uninstall
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode uninstall --help 1`] = `
+"loongcode uninstall
 
-uninstall lgcode and remove all related files
+uninstall loongcode and remove all related files
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -209,30 +205,10 @@ Options:
   -f, --force        skip confirmation prompts                            [boolean] [default: false]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode serve --help 1`] = `
-"lgcode serve
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode serve --help 1`] = `
+"loongcode serve
 
-starts a headless lgcode server
-
-Options:
-  -h, --help         show help                                                             [boolean]
-  -v, --version      show version number                                                   [boolean]
-      --print-logs   print logs to stderr                                                  [boolean]
-      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure         run without external plugins                                          [boolean]
-      --port         port to listen on                                         [number] [default: 0]
-      --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
-      --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
-                                                                          [boolean] [default: false]
-      --mdns-domain  custom domain name for mDNS service (default: lgcode.local)
-                                                                [string] [default: "lgcode.local"]
-      --cors         additional domains to allow for CORS                      [array] [default: []]"
-`;
-
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode web --help 1`] = `
-"lgcode web
-
-start lgcode server and open web interface
+starts a headless loongcode server
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -244,13 +220,33 @@ Options:
       --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
       --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
                                                                           [boolean] [default: false]
-      --mdns-domain  custom domain name for mDNS service (default: lgcode.local)
-                                                                [string] [default: "lgcode.local"]
+      --mdns-domain  custom domain name for mDNS service (default: loongcode.local)
+                                                                [string] [default: "loongcode.local"]
       --cors         additional domains to allow for CORS                      [array] [default: []]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode models --help 1`] = `
-"lgcode models [provider]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode web --help 1`] = `
+"loongcode web
+
+start loongcode server and open web interface
+
+Options:
+  -h, --help         show help                                                             [boolean]
+  -v, --version      show version number                                                   [boolean]
+      --print-logs   print logs to stderr                                                  [boolean]
+      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure         run without external plugins                                          [boolean]
+      --port         port to listen on                                         [number] [default: 0]
+      --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
+      --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
+                                                                          [boolean] [default: false]
+      --mdns-domain  custom domain name for mDNS service (default: loongcode.local)
+                                                                [string] [default: "loongcode.local"]
+      --cors         additional domains to allow for CORS                      [array] [default: []]"
+`;
+
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode models --help 1`] = `
+"loongcode models [provider]
 
 list all available models
 
@@ -267,8 +263,8 @@ Options:
       --refresh     refresh the models cache from models.dev                               [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode stats --help 1`] = `
-"lgcode stats
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode stats --help 1`] = `
+"loongcode stats
 
 show token usage and cost statistics
 
@@ -285,8 +281,8 @@ Options:
       --project     filter by project (default: all projects, empty string: current project)[string]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode export --help 1`] = `
-"lgcode export [sessionID]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode export --help 1`] = `
+"loongcode export [sessionID]
 
 export session data as JSON
 
@@ -302,8 +298,8 @@ Options:
       --sanitize    redact sensitive transcript and file data                              [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode import --help 1`] = `
-"lgcode import <file>
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode import --help 1`] = `
+"loongcode import <file>
 
 import session data from JSON file or URL
 
@@ -318,14 +314,14 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode github --help 1`] = `
-"lgcode github
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode github --help 1`] = `
+"loongcode github
 
 manage GitHub agent
 
 Commands:
-  lgcode github install  install the GitHub agent
-  lgcode github run      run the GitHub agent
+  loongcode github install  install the GitHub agent
+  loongcode github run      run the GitHub agent
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -335,10 +331,10 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode pr --help 1`] = `
-"lgcode pr <number>
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode pr --help 1`] = `
+"loongcode pr <number>
 
-fetch and checkout a GitHub PR branch, then run lgcode
+fetch and checkout a GitHub PR branch, then run loongcode
 
 Positionals:
   number  PR number to checkout                                                  [number] [required]
@@ -351,14 +347,14 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode session --help 1`] = `
-"lgcode session
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode session --help 1`] = `
+"loongcode session
 
 manage sessions
 
 Commands:
-  lgcode session list                list sessions
-  lgcode session delete <sessionID>  delete a session
+  loongcode session list                list sessions
+  loongcode session delete <sessionID>  delete a session
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -368,8 +364,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode plugin --help 1`] = `
-"lgcode plugin <module>
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode plugin --help 1`] = `
+"loongcode plugin <module>
 
 install plugin and update config
 
@@ -386,14 +382,14 @@ Options:
   -f, --force       replace existing plugin version                       [boolean] [default: false]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode db --help 1`] = `
-"lgcode db
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode db --help 1`] = `
+"loongcode db
 
 database tools
 
 Commands:
-  lgcode db [query]     open an interactive sqlite3 shell or run a query                 [default]
-  lgcode db path        print the database path
+  loongcode db [query]     open an interactive sqlite3 shell or run a query                 [default]
+  loongcode db path        print the database path
 
 Positionals:
   query  SQL query to execute                                                               [string]
@@ -407,8 +403,8 @@ Options:
       --format      Output format                 [string] [choices: "json", "tsv"] [default: "tsv"]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode mcp list --help 1`] = `
-"lgcode mcp list
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode mcp list --help 1`] = `
+"loongcode mcp list
 
 list MCP servers and their status
 
@@ -420,8 +416,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode mcp add --help 1`] = `
-"lgcode mcp add [name]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode mcp add --help 1`] = `
+"loongcode mcp add [name]
 
 add an MCP server
 
@@ -439,13 +435,13 @@ Options:
       --header      HTTP header for a remote MCP server (KEY=VALUE)                          [array]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode mcp auth --help 1`] = `
-"lgcode mcp auth [name]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode mcp auth --help 1`] = `
+"loongcode mcp auth [name]
 
 authenticate with an OAuth-enabled MCP server
 
 Commands:
-  lgcode mcp auth list  list OAuth-capable MCP servers and their auth status         [aliases: ls]
+  loongcode mcp auth list  list OAuth-capable MCP servers and their auth status         [aliases: ls]
 
 Positionals:
   name  name of the MCP server                                                              [string]
@@ -458,8 +454,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode mcp logout --help 1`] = `
-"lgcode mcp logout [name]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode mcp logout --help 1`] = `
+"loongcode mcp logout [name]
 
 remove OAuth credentials for an MCP server
 
@@ -474,8 +470,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode providers list --help 1`] = `
-"lgcode providers list
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode providers list --help 1`] = `
+"loongcode providers list
 
 list providers and credentials
 
@@ -487,13 +483,13 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode providers login --help 1`] = `
-"lgcode providers login [url]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode providers login --help 1`] = `
+"loongcode providers login [url]
 
 log in to a provider
 
 Positionals:
-  url  lgcode auth provider                                                               [string]
+  url  loongcode auth provider                                                               [string]
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -505,8 +501,8 @@ Options:
   -m, --method      login method label (skips method selection)                             [string]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode providers logout --help 1`] = `
-"lgcode providers logout [provider]
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode providers logout --help 1`] = `
+"loongcode providers logout [provider]
 
 log out from a configured provider
 
@@ -521,8 +517,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode agent create --help 1`] = `
-"lgcode agent create
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode agent create --help 1`] = `
+"loongcode agent create
 
 create a new agent
 
@@ -541,8 +537,8 @@ Options:
   -m, --model                 model to use in the format of provider/model                  [string]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode agent list --help 1`] = `
-"lgcode agent list
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode agent list --help 1`] = `
+"loongcode agent list
 
 list all available agents
 
@@ -554,8 +550,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode session list --help 1`] = `
-"lgcode session list
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode session list --help 1`] = `
+"loongcode session list
 
 list sessions
 
@@ -569,8 +565,8 @@ Options:
       --format      output format             [string] [choices: "table", "json"] [default: "table"]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode session delete --help 1`] = `
-"lgcode session delete <sessionID>
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode session delete --help 1`] = `
+"loongcode session delete <sessionID>
 
 delete a session
 
@@ -585,8 +581,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode github install --help 1`] = `
-"lgcode github install
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode github install --help 1`] = `
+"loongcode github install
 
 install the GitHub agent
 
@@ -598,8 +594,8 @@ Options:
       --pure        run without external plugins                                           [boolean]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode github run --help 1`] = `
-"lgcode github run
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode github run --help 1`] = `
+"loongcode github run
 
 run the GitHub agent
 
@@ -613,8 +609,8 @@ Options:
       --token       GitHub personal access token (github_pat_********)                      [string]"
 `;
 
-exports[`lgcode CLI help-text snapshots every documented command emits stable help text: lgcode db path --help 1`] = `
-"lgcode db path
+exports[`loongcode CLI help-text snapshots every documented command emits stable help text: loongcode db path --help 1`] = `
+"loongcode db path
 
 print the database path
 

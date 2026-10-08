@@ -1,6 +1,8 @@
 import { describe, expect } from "bun:test"
 import { Cause, Deferred, Effect, Exit, Layer, Queue } from "effect"
 import { Config } from "@loongcode/core/config"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { Location } from "@loongcode/core/location"
 import { Pty } from "@loongcode/core/pty"
@@ -17,11 +19,10 @@ const locationLayer = Layer.succeed(
 )
 const configLayer = Layer.mock(Config.Service)({ entries: () => Effect.succeed([]) })
 const it = testEffect(
-  Pty.layer.pipe(
-    Layer.provide(configLayer),
-    Layer.provideMerge(EventV2.defaultLayer),
-    Layer.provideMerge(locationLayer),
-  ),
+  AppNodeBuilder.build(LayerNode.group([Pty.node, EventV2.node]), [
+    [Config.node, configLayer],
+    [Location.node, locationLayer],
+  ]),
 )
 const ptyTest = process.platform === "win32" ? it.live.skip : it.live
 
@@ -205,8 +206,9 @@ describe("pty", () => {
 
 const configuredShell = process.platform === "win32" ? undefined : Bun.which("bash")
 const configuredIt = testEffect(
-  Pty.layer.pipe(
-    Layer.provide(
+  AppNodeBuilder.build(LayerNode.group([Pty.node, EventV2.node]), [
+    [
+      Config.node,
       Layer.mock(Config.Service)({
         entries: () =>
           Effect.succeed(
@@ -215,10 +217,9 @@ const configuredIt = testEffect(
               : [],
           ),
       }),
-    ),
-    Layer.provideMerge(EventV2.defaultLayer),
-    Layer.provideMerge(locationLayer),
-  ),
+    ],
+    [Location.node, locationLayer],
+  ]),
 )
 const configuredTest = process.platform === "win32" ? configuredIt.live.skip : configuredIt.live
 

@@ -5,7 +5,7 @@
   "version": "0.0.66",
   "scripts": {
     "dev": "astro dev",
-    "dev:remote": "VITE_API_URL=https://api.opencode.ai astro dev",
+    "dev:remote": "VITE_API_URL=https://api.modelhub.lgdg.cc astro dev",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -36,9 +36,9 @@
     "vscode-languageserver-types": "3.17.5"
   },
   "devDependencies": {
-    "opencode": "workspace:*",
     "@types/node": "catalog:",
     "@astrojs/check": "0.9.6",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "opencode": "workspace:*"
   }
 }

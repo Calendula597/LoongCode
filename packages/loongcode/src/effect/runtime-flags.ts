@@ -57,9 +57,9 @@ export class Service extends ConfigService.Service<Service>()("@loongcode/Runtim
 
 export type Info = Context.Service.Shape<typeof Service>
 
-const emptyConfigLayer = Service.defaultLayer.pipe(
-  Layer.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({}))),
-  Layer.orDie,
+const emptyConfigLayer = Layer.provide(
+  Service.layer,
+  Layer.mergeAll(ConfigProvider.layer(ConfigProvider.fromUnknown({}))),
 )
 
 export const layer = (overrides: Partial<Info> = {}) =>
@@ -69,11 +69,15 @@ export const layer = (overrides: Partial<Info> = {}) =>
       const flags = yield* Service
       return Service.of({ ...flags, ...overrides })
     }),
-  ).pipe(Layer.provide(emptyConfigLayer))
+  ).pipe(Layer.provide(emptyConfigLayer), Layer.orDie)
 
-export const defaultLayer = Service.defaultLayer.pipe(Layer.orDie)
+export const defaultLayer = Service.layer.pipe(Layer.orDie)
 
-export const node = LayerNode.make(defaultLayer, [])
+export const node = LayerNode.make({
+  service: Service,
+  layer: Service.layer.pipe(Layer.orDie),
+  deps: [],
+})
 
 export * as RuntimeFlags from "./runtime-flags"
 import { LayerNode } from "@loongcode/core/effect/layer-node"

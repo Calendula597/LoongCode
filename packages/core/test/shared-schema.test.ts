@@ -9,6 +9,8 @@ import { Model } from "@loongcode/schema/model"
 import { AgentAttachment, FileAttachment, Prompt, Source } from "@loongcode/schema/prompt"
 import { Provider } from "@loongcode/schema/provider"
 import { Project } from "@loongcode/schema/project"
+import { ProjectDirectories } from "@loongcode/schema/project-directories"
+import { PermissionV1 } from "@loongcode/schema/permission-v1"
 import { Session } from "@loongcode/schema/session"
 import { SessionInput } from "@loongcode/schema/session-input"
 import { SessionMessage } from "@loongcode/schema/session-message"
@@ -20,10 +22,14 @@ import { FileSystem } from "@loongcode/schema/filesystem"
 import { Integration } from "@loongcode/schema/integration"
 import { LLM } from "@loongcode/schema/llm"
 import { Permission } from "@loongcode/schema/permission"
+import { Plugin } from "@loongcode/schema/plugin"
+import { Pty } from "@loongcode/schema/pty"
 import { Reference } from "@loongcode/schema/reference"
+import { SessionTodo } from "@loongcode/schema/session-todo"
 import { Skill } from "@loongcode/schema/skill"
-import { AbsolutePath, DateTimeUtcFromMillis } from "@loongcode/schema/schema"
+import { AbsolutePath, DateTimeUtcFromMillis, optional, statics } from "@loongcode/schema/schema"
 import { ProviderV2 } from "@loongcode/core/provider"
+import { PluginV2 } from "@loongcode/core/plugin"
 
 test("Core reuses the canonical shared schemas", async () => {
   const [
@@ -35,13 +41,18 @@ test("Core reuses the canonical shared schemas", async () => {
     coreLocation,
     coreLLM,
     corePermission,
+    corePermissionV1,
+    coreProjectCopy,
+    corePty,
     coreProject,
     coreReference,
     coreSessionInput,
     coreSessionMessage,
+    coreSessionTodo,
     corePrompt,
     coreSkill,
     coreV2Schema,
+    coreSchema,
     coreWorkspace,
   ] = await Promise.all([
     import("@loongcode/core/command"),
@@ -52,13 +63,18 @@ test("Core reuses the canonical shared schemas", async () => {
     import("@loongcode/core/location"),
     import("@loongcode/llm"),
     import("@loongcode/core/permission"),
+    import("@loongcode/core/v1/permission"),
+    import("@loongcode/core/project/copy"),
+    import("@loongcode/core/pty"),
     import("@loongcode/core/project/schema"),
     import("@loongcode/core/reference"),
     import("@loongcode/core/session/input"),
     import("@loongcode/core/session/message"),
+    import("@loongcode/core/session/todo"),
     import("@loongcode/core/session/prompt"),
     import("@loongcode/core/skill"),
     import("@loongcode/core/v2-schema"),
+    import("@loongcode/core/schema"),
     import("@loongcode/core/workspace"),
   ])
 
@@ -111,6 +127,12 @@ test("Core reuses the canonical shared schemas", async () => {
     [corePermission.Effect, Permission.Effect],
     [corePermission.Rule, Permission.Rule],
     [corePermission.Ruleset, Permission.Ruleset],
+    [corePermissionV1.Event, PermissionV1.Event],
+    [coreProjectCopy.Event, ProjectDirectories.Event],
+    [PluginV2.ID, Plugin.ID],
+    [PluginV2.Event, Plugin.Event],
+    [corePty.Info, Pty.Info],
+    [corePty.Event, Pty.Event],
     [coreProject.ID, Project.ID],
     [coreReference.LocalSource, Reference.LocalSource],
     [coreReference.GitSource, Reference.GitSource],
@@ -140,6 +162,8 @@ test("Core reuses the canonical shared schemas", async () => {
     [coreSessionMessage.Assistant, SessionMessage.Assistant],
     [coreSessionMessage.Compaction, SessionMessage.Compaction],
     [coreSessionMessage.Message, SessionMessage.Message],
+    [coreSessionTodo.Info, SessionTodo.Info],
+    [coreSessionTodo.Event, SessionTodo.Event],
     [corePrompt.Source, Source],
     [corePrompt.FileAttachment, FileAttachment],
     [corePrompt.AgentAttachment, AgentAttachment],
@@ -150,6 +174,8 @@ test("Core reuses the canonical shared schemas", async () => {
     [coreSkill.Source, Skill.Source],
     [coreSkill.Info, Skill.Info],
     [coreV2Schema.DateTimeUtcFromMillis, DateTimeUtcFromMillis],
+    [coreSchema.optional, optional],
+    [coreSchema.statics, statics],
     [coreWorkspace.ID, Workspace.ID],
   ]
   for (const [core, shared] of schemas) expect(core).toBe(shared)

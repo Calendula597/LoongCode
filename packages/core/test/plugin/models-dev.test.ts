@@ -3,33 +3,127 @@ import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { Catalog } from "@loongcode/core/catalog"
 import { Integration } from "@loongcode/core/integration"
-import { Credential } from "@loongcode/core/credential"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { Flag } from "@loongcode/core/flag/flag"
 import { Location } from "@loongcode/core/location"
+import { ModelV2 } from "@loongcode/core/model"
 import { ModelsDev } from "@loongcode/core/models-dev"
 import { ModelsDevPlugin } from "@loongcode/core/plugin/models-dev"
-import { Policy } from "@loongcode/core/policy"
+import { ProviderV2 } from "@loongcode/core/provider"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
 import { catalogHost, host, integrationHost } from "./host"
 
-const events = EventV2.defaultLayer
 const locationLayer = Layer.succeed(
   Location.Service,
   Location.Service.of(location({ directory: AbsolutePath.make(import.meta.dir) })),
 )
-const policy = Policy.layer.pipe(Layer.provide(locationLayer))
-const connections = Credential.defaultLayer.pipe(Layer.fresh)
-const integrations = Integration.locationLayer.pipe(Layer.provide(events), Layer.provide(connections))
-const catalog = Catalog.layer.pipe(
-  Layer.provide(Layer.mergeAll(events, locationLayer, policy, connections, integrations)),
-)
-const layer = Layer.mergeAll(catalog.pipe(Layer.provide(connections)), integrations, connections, events, locationLayer)
+const layer = AppNodeBuilder.build(LayerNode.group([Catalog.node, Integration.node, EventV2.node]), [
+  [Location.node, locationLayer],
+])
 const it = testEffect(layer)
 
 describe("ModelsDevPlugin", () => {
+  it.effect("projects models.dev modes as separate models instead of variants", () =>
+    Effect.gen(function* () {
+      const integrations = yield* Integration.Service
+      const catalog = yield* Catalog.Service
+      const models = ModelsDev.Service.of({
+        get: () =>
+          Effect.succeed({
+            acme: {
+              id: "acme",
+              name: "Acme",
+              env: [],
+              npm: "@ai-sdk/openai-compatible",
+              api: "https://api.acme.test/v1",
+              models: {
+                "gpt-5.4": {
+                  id: "gpt-5.4",
+                  name: "GPT-5.4",
+                  family: "gpt",
+                  release_date: "2026-01-01",
+                  attachment: false,
+                  reasoning: true,
+                  temperature: true,
+                  tool_call: true,
+                  cost: {
+                    input: 2.5,
+                    output: 15,
+                    tiers: [
+                      {
+                        tier: { type: "context", size: 272_000 },
+                        input: 3,
+                        output: 18,
+                        cache_read: 0.25,
+                      },
+                    ],
+                    context_over_200k: { input: 5, output: 22.5, cache_read: 0.5 },
+                  },
+                  limit: { context: 1_050_000, input: 922_000, output: 128_000 },
+                  experimental: {
+                    modes: {
+                      fast: {
+                        cost: { input: 5, output: 30, cache_read: 0.5 },
+                        provider: {
+                          headers: { "x-mode": "fast" },
+                          body: { service_tier: "priority" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          } satisfies Record<string, ModelsDev.Provider>),
+        refresh: () => Effect.void,
+      })
+
+      yield* ModelsDevPlugin.effect(
+        host({
+          catalog: catalogHost(catalog),
+          integration: integrationHost(integrations),
+        }),
+      ).pipe(Effect.provideService(ModelsDev.Service, models))
+
+      const providerID = ProviderV2.ID.make("acme")
+      const base = yield* catalog.model.get(providerID, ModelV2.ID.make("gpt-5.4"))
+      const fast = yield* catalog.model.get(providerID, ModelV2.ID.make("gpt-5.4-fast"))
+
+      expect(base?.variants).toEqual([])
+      expect(base?.request.body).toEqual({})
+      expect(fast).toMatchObject({
+        id: "gpt-5.4-fast",
+        providerID: "acme",
+        name: "GPT-5.4 Fast",
+        api: { id: "gpt-5.4" },
+        request: {
+          headers: { "x-mode": "fast" },
+          body: { service_tier: "priority" },
+        },
+        variants: [],
+      })
+      expect(fast?.cost).toEqual([
+        { input: 5, output: 30, cache: { read: 0.5, write: 0 } },
+        {
+          tier: { type: "context", size: 272_000 },
+          input: 3,
+          output: 18,
+          cache: { read: 0.25, write: 0 },
+        },
+        {
+          tier: { type: "context", size: 200_000 },
+          input: 5,
+          output: 22.5,
+          cache: { read: 0.5, write: 0 },
+        },
+      ])
+    }),
+  )
+
   it.effect("registers key methods for providers with environment variables", () =>
     Effect.acquireUseRelease(
       Effect.sync(() => {
@@ -65,7 +159,7 @@ describe("ModelsDevPlugin", () => {
               connections: [],
             }),
           ])
-        }).pipe(Effect.provide(ModelsDev.defaultLayer)),
+        }).pipe(Effect.provide(AppNodeBuilder.build(ModelsDev.node))),
       (previous) =>
         Effect.sync(() => {
           Flag.LOONGCODE_MODELS_PATH = previous.path

@@ -1,5 +1,5 @@
 import { Database } from "@loongcode/core/database/database"
-import { LocationServiceMap } from "@loongcode/core/location-layer"
+import { LocationServiceMap } from "@loongcode/core/location-services"
 import { Location } from "@loongcode/core/location"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SessionV2 } from "@loongcode/core/session"
@@ -9,14 +9,12 @@ import { eq } from "drizzle-orm"
 import { Effect, Layer, Schema } from "effect"
 import { HttpRouter } from "effect/unstable/http"
 import { HttpApiMiddleware } from "effect/unstable/httpapi"
-import { InvalidRequestError, SessionNotFoundError } from "../errors"
-import type { LocationServices } from "../groups/location"
+import { InvalidRequestError, SessionNotFoundError } from "@loongcode/protocol/errors"
+import type { LocationServices } from "../location"
 
 export class SessionLocationMiddleware extends HttpApiMiddleware.Service<
   SessionLocationMiddleware,
-  {
-    provides: LocationServices
-  }
+  { provides: LocationServices }
 >()("@loongcode/HttpApiSessionLocation", {
   error: [InvalidRequestError, SessionNotFoundError],
 }) {}
@@ -27,7 +25,7 @@ export const sessionLocationLayer = Layer.effect(
   SessionLocationMiddleware,
   Effect.gen(function* () {
     const { db } = yield* Database.Service
-    const locations = yield* LocationServiceMap
+    const locations = yield* LocationServiceMap.Service
 
     return SessionLocationMiddleware.of((effect) =>
       Effect.gen(function* () {

@@ -6,7 +6,7 @@ import { Pty } from "@loongcode/core/pty"
 import { PtyProtocol } from "@loongcode/core/pty/protocol"
 import { PtyID } from "@loongcode/core/pty/schema"
 import { PtyTicket } from "@loongcode/core/pty/ticket"
-import { LocationServiceMap } from "@loongcode/core/location-layer"
+import { LocationServiceMap, locationServiceMapLayer } from "@loongcode/core/location-services"
 import { Location } from "@loongcode/core/location"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { Shell } from "@loongcode/core/shell"
@@ -43,7 +43,7 @@ export const ptyHandlers = HttpApiBuilder.group(InstanceHttpApi, "pty", (handler
     const tickets = yield* PtyTicket.Service
     const cors = yield* CorsConfig
     const plugin = yield* Plugin.Service
-    const locations = yield* LocationServiceMap
+    const locations = yield* LocationServiceMap.Service
     const unregister = registerDisposer((directory) =>
       Effect.runPromise(locations.invalidate(Location.Ref.make({ directory: AbsolutePath.make(directory) }))),
     )
@@ -158,13 +158,13 @@ export const ptyHandlers = HttpApiBuilder.group(InstanceHttpApi, "pty", (handler
       .handle("remove", remove)
       .handle("connectToken", connectToken)
   }),
-).pipe(Layer.provide(LocationServiceMap.layer))
+).pipe(Layer.provide(locationServiceMapLayer))
 
 export const ptyConnectHandlers = HttpApiBuilder.group(PtyConnectApi, "pty-connect", (handlers) =>
   Effect.gen(function* () {
     const tickets = yield* PtyTicket.Service
     const cors = yield* CorsConfig
-    const locations = yield* LocationServiceMap
+    const locations = yield* LocationServiceMap.Service
     const unregister = registerDisposer((directory) =>
       Effect.runPromise(locations.invalidate(Location.Ref.make({ directory: AbsolutePath.make(directory) }))),
     )
@@ -270,4 +270,4 @@ export const ptyConnectHandlers = HttpApiBuilder.group(PtyConnectApi, "pty-conne
       }),
     )
   }),
-).pipe(Layer.provide(LocationServiceMap.layer))
+).pipe(Layer.provide(locationServiceMapLayer))

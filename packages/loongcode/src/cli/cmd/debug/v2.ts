@@ -1,7 +1,7 @@
 import { EOL } from "os"
 import { Effect } from "effect"
 import { Catalog } from "@loongcode/core/catalog"
-import { LocationServiceMap } from "@loongcode/core/location-layer"
+import { LocationServiceMap, locationServiceMapLayer } from "@loongcode/core/location-services"
 import { Location } from "@loongcode/core/location"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { effectCmd } from "../../effect-cmd"
@@ -31,12 +31,12 @@ export const V2Command = effectCmd({
     }).pipe(
       Effect.withSpan("Cli.debug.v2"),
       Effect.provide(
-        LocationServiceMap.get(
+        LocationServiceMap.Service.get(
           Location.Ref.make({
             directory: AbsolutePath.make(process.cwd()),
           }),
         ),
       ),
-      Effect.provide(LocationServiceMap.layer),
+      Effect.provide(locationServiceMapLayer),
     ),
 })

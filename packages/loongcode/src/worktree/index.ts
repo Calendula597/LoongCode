@@ -1,7 +1,6 @@
 import { LayerNode } from "@loongcode/core/effect/layer-node"
-import { path } from "@loongcode/core/effect/layer-node-platform"
+import { path } from "@loongcode/core/effect/app-node-platform"
 import { Global } from "@loongcode/core/global"
-import { InstanceLayer } from "@/project/instance-layer"
 import { InstanceStore } from "@/project/instance-store"
 import { Project } from "@/project/project"
 import { Database } from "@loongcode/core/database/database"
@@ -10,31 +9,16 @@ import { ProjectTable } from "@loongcode/core/project/sql"
 import type { ProjectV2 } from "@loongcode/core/project"
 import { Slug } from "@loongcode/core/util/slug"
 import { errorMessage } from "../util/error"
-import { EventV2 } from "@loongcode/core/event"
 import { GlobalBus } from "@/bus/global"
 import { Git } from "@/git"
 import { Effect, Layer, Path, Schema, Scope, Context } from "effect"
 import { ChildProcess } from "effect/unstable/process"
-import { NodePath } from "@effect/platform-node"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { AppProcess } from "@loongcode/core/process"
 import { InstanceState } from "@/effect/instance-state"
+import { WorktreeEvent } from "@loongcode/schema/worktree-event"
 
-export const Event = {
-  Ready: EventV2.define({
-    type: "worktree.ready",
-    schema: {
-      name: Schema.String,
-      branch: Schema.optional(Schema.String),
-    },
-  }),
-  Failed: EventV2.define({
-    type: "worktree.failed",
-    schema: {
-      message: Schema.String,
-    },
-  }),
-}
+export const Event = WorktreeEvent
 
 export const Info = Schema.Struct({
   name: Schema.String,
@@ -145,7 +129,7 @@ export class Service extends Context.Service<Service, Interface>()("@loongcode/W
 
 type GitResult = { code: number; text: string; stderr: string }
 
-export const layer: Layer.Layer<
+const layer: Layer.Layer<
   Service,
   never,
   | FSUtil.Service
@@ -630,25 +614,10 @@ export const layer: Layer.Layer<
   }),
 )
 
-export const appLayer = layer.pipe(
-  Layer.provide(Git.defaultLayer),
-  Layer.provide(AppProcess.defaultLayer),
-  Layer.provide(Project.defaultLayer),
-  Layer.provide(Database.defaultLayer),
-  Layer.provide(FSUtil.defaultLayer),
-  Layer.provide(NodePath.layer),
-)
-
-export const defaultLayer = appLayer.pipe(Layer.provide(InstanceLayer.layer))
-
-export const node = LayerNode.make(layer, [
-  FSUtil.node,
-  path,
-  AppProcess.node,
-  Git.node,
-  Project.node,
-  InstanceStore.node,
-  Database.node,
-])
+export const node = LayerNode.make({
+  service: Service,
+  layer: layer,
+  deps: [FSUtil.node, path, AppProcess.node, Git.node, Project.node, InstanceStore.node, Database.node],
+})
 
 export * as Worktree from "."

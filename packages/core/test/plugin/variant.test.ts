@@ -1,11 +1,9 @@
 import { describe, expect } from "bun:test"
 import { Catalog } from "@loongcode/core/catalog"
-import { Credential } from "@loongcode/core/credential"
-import { EventV2 } from "@loongcode/core/event"
-import { Integration } from "@loongcode/core/integration"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Location } from "@loongcode/core/location"
 import { ModelV2 } from "@loongcode/core/model"
-import { Policy } from "@loongcode/core/policy"
 import { VariantPlugin } from "@loongcode/core/plugin/variant"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { AbsolutePath } from "@loongcode/core/schema"
@@ -14,21 +12,11 @@ import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
 import { catalogHost, host } from "./host"
 
-const events = EventV2.defaultLayer
 const locationLayer = Layer.succeed(
   Location.Service,
   Location.Service.of(location({ directory: AbsolutePath.make(import.meta.dir) })),
 )
-const connections = Credential.defaultLayer.pipe(Layer.fresh)
-const integrations = Integration.locationLayer.pipe(Layer.provide(events), Layer.provide(connections))
-const catalog = Catalog.layer.pipe(
-  Layer.provide(
-    Layer.mergeAll(events, locationLayer, Policy.layer.pipe(Layer.provide(locationLayer)), connections, integrations),
-  ),
-)
-const it = testEffect(
-  Layer.mergeAll(catalog.pipe(Layer.provide(connections)), integrations, connections, events, locationLayer),
-)
+const it = testEffect(AppNodeBuilder.build(Catalog.node, [[Location.node, locationLayer]]))
 
 describe("VariantPlugin", () => {
   it.effect("adds GLM 5.2 variants after catalog sources", () =>

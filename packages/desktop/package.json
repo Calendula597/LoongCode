@@ -4,10 +4,10 @@
   "version": "0.0.66",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://opencode.ai",
+  "homepage": "https://modelhub.lgdg.cc",
   "author": {
-    "name": "OpenCode",
-    "email": "hello@opencode.ai"
+    "name": "LoongCode",
+    "email": "hello@modelhub.lgdg.cc"
   },
   "scripts": {
     "typecheck": "tsgo -b",

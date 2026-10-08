@@ -1,17 +1,17 @@
 ---
 title: CLI
-description: Loongcode CLI options and commands.
+description: LoongCode CLI options and commands.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-The Loongcode CLI by default starts the [TUI](/docs/tui) when run without any arguments.
+The LoongCode CLI by default starts the [TUI](/docs/tui) when run without any arguments.
 
 ```bash
 loongcode
 ```
 
-But it also accepts commands as documented on this page. This allows you to interact with Loongcode programmatically.
+But it also accepts commands as documented on this page. This allows you to interact with LoongCode programmatically.
 
 ```bash
 loongcode run "Explain how closures work in JavaScript"
@@ -21,7 +21,7 @@ loongcode run "Explain how closures work in JavaScript"
 
 ### tui
 
-Start the Loongcode terminal user interface.
+Start the LoongCode terminal user interface.
 
 ```bash
 loongcode [project]
@@ -37,6 +37,7 @@ loongcode [project]
 | <nobr><code>{"--prompt"}</code></nobr>      |       | Prompt to use                                                           |
 | <nobr><code>{"--model"}</code></nobr>       | `-m`  | Model to use in the form of provider/model                              |
 | <nobr><code>{"--agent"}</code></nobr>       |       | Agent to use                                                            |
+| <nobr><code>{"--auto"}</code></nobr>        |       | Auto-approve permissions that are not explicitly denied                 |
 | <nobr><code>{"--port"}</code></nobr>        |       | Port to listen on                                                       |
 | <nobr><code>{"--hostname"}</code></nobr>    |       | Hostname to listen on                                                   |
 | <nobr><code>{"--mdns"}</code></nobr>        |       | Enable mDNS discovery                                                   |
@@ -47,13 +48,13 @@ loongcode [project]
 
 ## Commands
 
-The Loongcode CLI also has the following commands.
+The LoongCode CLI also has the following commands.
 
 ---
 
 ### agent
 
-Manage agents for Loongcode.
+Manage agents for LoongCode.
 
 ```bash
 loongcode agent [command]
@@ -97,13 +98,13 @@ loongcode agent list
 
 ### attach
 
-Attach a terminal to an already running Loongcode backend server started via `serve` or `web` commands.
+Attach a terminal to an already running LoongCode backend server started via `serve` or `web` commands.
 
 ```bash
 loongcode attach [url]
 ```
 
-This allows using the TUI with a remote Loongcode backend. For example:
+This allows using the TUI with a remote LoongCode backend. For example:
 
 ```bash
 # Start the backend server for web/mobile access
@@ -138,13 +139,13 @@ loongcode auth [command]
 
 #### login
 
-Loongcode is powered by the provider list at [Models.dev](https://models.dev), so you can use `loongcode auth login` to configure API keys for any provider you'd like to use. This is stored in `~/.local/share/loongcode/auth.json`.
+LoongCode is powered by the provider list at [Models.dev](https://models.dev), so you can use `loongcode auth login` to configure API keys for any provider you'd like to use. This is stored in `~/.local/share/loongcode/auth.json`.
 
 ```bash
 loongcode auth login
 ```
 
-When Loongcode starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your project.
+When LoongCode starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your project.
 
 ##### Flags
 
@@ -327,7 +328,7 @@ loongcode models anthropic
 | <nobr><code>{"--refresh"}</code></nobr> | Refresh the models cache from models.dev                     |
 | <nobr><code>{"--verbose"}</code></nobr> | Use more verbose model output (includes metadata like costs) |
 
-Use the `--refresh` flag to update the cached model list. This is useful when new models have been added to a provider and you want to see them in Loongcode.
+Use the `--refresh` flag to update the cached model list. This is useful when new models have been added to a provider and you want to see them in LoongCode.
 
 ```bash
 loongcode models --refresh
@@ -361,32 +362,32 @@ loongcode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 
 #### Flags
 
-| Flag                                                         | Short | Description                                                                |
-| ------------------------------------------------------------ | ----- | -------------------------------------------------------------------------- |
-| <nobr><code>{"--command"}</code></nobr>                      |       | The command to run, use message for args                                   |
-| <nobr><code>{"--continue"}</code></nobr>                     | `-c`  | Continue the last session                                                  |
-| <nobr><code>{"--session"}</code></nobr>                      | `-s`  | Session ID to continue                                                     |
-| <nobr><code>{"--fork"}</code></nobr>                         |       | Fork the session when continuing (use with `--continue` or `--session`)    |
-| <nobr><code>{"--share"}</code></nobr>                        |       | Share the session                                                          |
-| <nobr><code>{"--model"}</code></nobr>                        | `-m`  | Model to use in the form of provider/model                                 |
-| <nobr><code>{"--agent"}</code></nobr>                        |       | Agent to use                                                               |
-| <nobr><code>{"--file"}</code></nobr>                         | `-f`  | File(s) to attach to message                                               |
-| <nobr><code>{"--format"}</code></nobr>                       |       | Format: default (formatted) or json (raw JSON events)                      |
-| <nobr><code>{"--title"}</code></nobr>                        |       | Title for the session (uses truncated prompt if no value provided)         |
-| <nobr><code>{"--attach"}</code></nobr>                       |       | Attach to a running loongcode server (e.g., http://localhost:4096)          |
-| <nobr><code>{"--password"}</code></nobr>                     | `-p`  | Basic auth password (defaults to `LOONGCODE_SERVER_PASSWORD`)               |
-| <nobr><code>{"--username"}</code></nobr>                     | `-u`  | Basic auth username (defaults to `LOONGCODE_SERVER_USERNAME` or `loongcode`) |
-| <nobr><code>{"--dir"}</code></nobr>                          |       | Directory to run in, or path on the remote server when attaching           |
-| <nobr><code>{"--port"}</code></nobr>                         |       | Port for the local server (defaults to random port)                        |
-| <nobr><code>{"--variant"}</code></nobr>                      |       | Model variant (provider-specific reasoning effort)                         |
-| <nobr><code>{"--thinking"}</code></nobr>                     |       | Show thinking blocks                                                       |
-| <nobr><code>{"--dangerously-skip-permissions"}</code></nobr> |       | Auto-approve permissions that are not explicitly denied (dangerous!)       |
+| Flag                                     | Short | Description                                                                |
+| ---------------------------------------- | ----- | -------------------------------------------------------------------------- |
+| <nobr><code>{"--command"}</code></nobr>  |       | The command to run, use message for args                                   |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continue the last session                                                  |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`  | Session ID to continue                                                     |
+| <nobr><code>{"--fork"}</code></nobr>     |       | Fork the session when continuing (use with `--continue` or `--session`)    |
+| <nobr><code>{"--share"}</code></nobr>    |       | Share the session                                                          |
+| <nobr><code>{"--model"}</code></nobr>    | `-m`  | Model to use in the form of provider/model                                 |
+| <nobr><code>{"--agent"}</code></nobr>    |       | Agent to use                                                               |
+| <nobr><code>{"--file"}</code></nobr>     | `-f`  | File(s) to attach to message                                               |
+| <nobr><code>{"--format"}</code></nobr>   |       | Format: default (formatted) or json (raw JSON events)                      |
+| <nobr><code>{"--title"}</code></nobr>    |       | Title for the session (uses truncated prompt if no value provided)         |
+| <nobr><code>{"--attach"}</code></nobr>   |       | Attach to a running loongcode server (e.g., http://localhost:4096)          |
+| <nobr><code>{"--password"}</code></nobr> | `-p`  | Basic auth password (defaults to `LOONGCODE_SERVER_PASSWORD`)               |
+| <nobr><code>{"--username"}</code></nobr> | `-u`  | Basic auth username (defaults to `LOONGCODE_SERVER_USERNAME` or `loongcode`) |
+| <nobr><code>{"--dir"}</code></nobr>      |       | Directory to run in, or path on the remote server when attaching           |
+| <nobr><code>{"--port"}</code></nobr>     |       | Port for the local server (defaults to random port)                        |
+| <nobr><code>{"--variant"}</code></nobr>  |       | Model variant (provider-specific reasoning effort)                         |
+| <nobr><code>{"--thinking"}</code></nobr> |       | Show thinking blocks                                                       |
+| <nobr><code>{"--auto"}</code></nobr>     |       | Auto-approve permissions that are not explicitly denied                    |
 
 ---
 
 ### serve
 
-Start a headless Loongcode server for API access. Check out the [server docs](/docs/server) for the full HTTP interface.
+Start a headless LoongCode server for API access. Check out the [server docs](/docs/server) for the full HTTP interface.
 
 ```bash
 loongcode serve
@@ -408,7 +409,7 @@ This starts an HTTP server that provides API access to loongcode functionality w
 
 ### session
 
-Manage Loongcode sessions.
+Manage LoongCode sessions.
 
 ```bash
 loongcode session [command]
@@ -418,7 +419,7 @@ loongcode session [command]
 
 #### list
 
-List all Loongcode sessions.
+List all LoongCode sessions.
 
 ```bash
 loongcode session list
@@ -435,7 +436,7 @@ loongcode session list
 
 #### delete
 
-Delete an Loongcode session.
+Delete an LoongCode session.
 
 ```bash
 loongcode session delete <sessionID>
@@ -445,7 +446,7 @@ loongcode session delete <sessionID>
 
 ### stats
 
-Show token usage and cost statistics for your Loongcode sessions.
+Show token usage and cost statistics for your LoongCode sessions.
 
 ```bash
 loongcode stats
@@ -482,13 +483,13 @@ If you don't provide a session ID, you'll be prompted to select from available s
 
 ### import
 
-Import session data from a JSON file or Loongcode share URL.
+Import session data from a JSON file or LoongCode share URL.
 
 ```bash
 loongcode import <file>
 ```
 
-You can import from a local file or an Loongcode share URL.
+You can import from a local file or an LoongCode share URL.
 
 ```bash
 loongcode import session.json
@@ -499,13 +500,13 @@ loongcode import https://opncd.ai/s/abc123
 
 ### web
 
-Start a headless Loongcode server with a web interface.
+Start a headless LoongCode server with a web interface.
 
 ```bash
 loongcode web
 ```
 
-This starts an HTTP server and opens a web browser to access Loongcode through a web interface. Set `LOONGCODE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `loongcode`).
+This starts an HTTP server and opens a web browser to access LoongCode through a web interface. Set `LOONGCODE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `loongcode`).
 
 #### Flags
 
@@ -567,7 +568,7 @@ loongcode plug <module>
 
 ### pr
 
-Fetch and checkout a GitHub PR branch, then run Loongcode.
+Fetch and checkout a GitHub PR branch, then run LoongCode.
 
 ```bash
 loongcode pr <number>
@@ -613,7 +614,7 @@ loongcode debug [command]
 
 ### uninstall
 
-Uninstall Loongcode and remove all related files.
+Uninstall LoongCode and remove all related files.
 
 ```bash
 loongcode uninstall
@@ -674,7 +675,7 @@ The loongcode CLI takes the following global flags.
 
 ## Environment variables
 
-Loongcode can be configured using environment variables.
+LoongCode can be configured using environment variables.
 
 | Variable                              | Type    | Description                                       |
 | ------------------------------------- | ------- | ------------------------------------------------- |

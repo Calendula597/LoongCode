@@ -3,6 +3,9 @@ import { HttpRecorderInternal } from "@loongcode/http-recorder/internal"
 import * as OpenAIChat from "@loongcode/llm/protocols/openai-chat"
 import { Auth, LLMClient, RequestExecutor } from "@loongcode/llm/route"
 import { Database } from "@loongcode/core/database/database"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNodePlatform } from "@loongcode/core/effect/app-node-platform"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { EventTable } from "@loongcode/core/event/sql"
 import { PermissionV2 } from "@loongcode/core/permission"
@@ -12,6 +15,7 @@ import { Project } from "@loongcode/core/project"
 import { ProjectTable } from "@loongcode/core/project/sql"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SessionV2 } from "@loongcode/core/session"
+import { Snapshot } from "@loongcode/core/snapshot"
 import { Prompt } from "@loongcode/core/session/prompt"
 import { SessionProjector } from "@loongcode/core/session/projector"
 import { SessionExecution } from "@loongcode/core/session/execution"
@@ -20,6 +24,7 @@ import { SessionRunner } from "@loongcode/core/session/runner"
 import * as SessionRunnerLLM from "@loongcode/core/session/runner/llm"
 import { SessionRunnerModel } from "@loongcode/core/session/runner/model"
 import { ToolRegistry } from "@loongcode/core/tool/registry"
+import { ToolOutputStore } from "@loongcode/core/tool-output-store"
 import { SessionTable } from "@loongcode/core/session/sql"
 import { SessionStore } from "@loongcode/core/session/store"
 import { Location } from "@loongcode/core/location"
@@ -55,8 +60,6 @@ const permission = Layer.succeed(
     list: () => Effect.die("unused"),
   }),
 )
-const registry = ToolRegistry.defaultLayer.pipe(Layer.provide(permission))
-const agents = AgentV2.layer
 const model = OpenAIChat.route
   .with({
     endpoint: { baseURL: "https://api.openai.com/v1" },
@@ -65,25 +68,22 @@ const model = OpenAIChat.route
   })
   .model({ id: "gpt-4o-mini" })
 const models = SessionRunnerModel.layerWith(() => Effect.succeed(model))
-const systemContext = SystemContextRegistry.layer
-const location = Location.layer({ directory: AbsolutePath.make("/project") }).pipe(Layer.provide(Project.defaultLayer))
+const systemContext = AppNodeBuilder.build(SystemContextRegistry.node)
 const skillGuidance = Layer.mock(SkillGuidance.Service, { load: () => Effect.succeed(SystemContext.empty) })
 const referenceGuidance = Layer.mock(ReferenceGuidance.Service, { load: () => Effect.succeed(SystemContext.empty) })
 const config = Layer.succeed(Config.Service, Config.Service.of({ entries: () => Effect.succeed([]) }))
-const runner = SessionRunnerLLM.defaultLayer.pipe(
-  Layer.provide(Database.defaultLayer),
-  Layer.provide(SessionStore.defaultLayer),
-  Layer.provide(EventV2.defaultLayer),
-  Layer.provide(client),
-  Layer.provide(registry),
-  Layer.provide(models),
-  Layer.provide(systemContext),
-  Layer.provide(location),
-  Layer.provide(agents),
-  Layer.provide(skillGuidance),
-  Layer.provide(referenceGuidance),
-  Layer.provide(config),
-)
+const runnerLayer = AppNodeBuilder.build(SessionRunnerLLM.node, [
+  [Snapshot.node, Snapshot.noopLayer],
+  [LayerNodePlatform.llmClient, client],
+  [SessionRunnerModel.node, models],
+  [SystemContextRegistry.node, systemContext],
+  [Location.node, Location.boundNode({ directory: AbsolutePath.make("/project") })],
+  [SkillGuidance.node, skillGuidance],
+  [ReferenceGuidance.node, referenceGuidance],
+  [Config.node, config],
+  [PermissionV2.node, permission],
+  [ToolOutputStore.node, ToolOutputStore.nodeWithoutConfig],
+])
 const execution = Layer.effect(
   SessionExecution.Service,
   Effect.gen(function* () {
@@ -92,38 +92,44 @@ const execution = Layer.effect(
       drain: (sessionID, force) => sessionRunner.run({ sessionID, force }),
     })
     return SessionExecution.Service.of({
+      active: coordinator.active,
       resume: coordinator.run,
       wake: coordinator.wake,
       interrupt: coordinator.interrupt,
     })
   }),
-).pipe(Layer.provide(runner))
-const sessions = SessionV2.layer.pipe(
-  Layer.provide(EventV2.defaultLayer),
-  Layer.provide(Database.defaultLayer),
-  Layer.provide(SessionStore.defaultLayer),
-  Layer.provide(Project.defaultLayer),
-  Layer.provide(execution),
-)
+).pipe(Layer.provide(runnerLayer))
 const it = testEffect(
-  Layer.mergeAll(
-    Database.defaultLayer,
-    EventV2.defaultLayer,
-    SessionProjector.defaultLayer,
-    SessionStore.defaultLayer,
-    executor,
-    client,
-    permission,
-    agents,
-    registry,
-    models,
-    systemContext,
-    location,
-    skillGuidance,
-    config,
-    runner,
-    execution,
-    sessions,
+  AppNodeBuilder.build(
+    LayerNode.group([
+      Database.node,
+      EventV2.node,
+      SessionProjector.node,
+      SessionStore.node,
+      AgentV2.node,
+      ToolRegistry.node,
+      SessionRunnerModel.node,
+      SystemContextRegistry.node,
+      SkillGuidance.node,
+      ReferenceGuidance.node,
+      Config.node,
+      Snapshot.node,
+      SessionRunnerLLM.node,
+      SessionV2.node,
+    ]),
+    [
+      [LayerNodePlatform.llmClient, client],
+      [PermissionV2.node, permission],
+      [ToolOutputStore.node, ToolOutputStore.nodeWithoutConfig],
+      [SessionRunnerModel.node, models],
+      [SystemContextRegistry.node, systemContext],
+      [Location.node, Location.boundNode({ directory: AbsolutePath.make("/project") })],
+      [SkillGuidance.node, skillGuidance],
+      [ReferenceGuidance.node, referenceGuidance],
+      [Config.node, config],
+      [Snapshot.node, Snapshot.noopLayer],
+      [SessionExecution.node, execution],
+    ],
   ),
 )
 const sessionID = SessionV2.ID.make("ses_runner_recorded")

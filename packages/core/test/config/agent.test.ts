@@ -1,10 +1,12 @@
 import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import { Effect, Layer, Schema } from "effect"
+import { Effect, Schema } from "effect"
 import { AgentV2 } from "@loongcode/core/agent"
 import { Config } from "@loongcode/core/config"
 import { ConfigAgentPlugin } from "@loongcode/core/config/plugin/agent"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { Global } from "@loongcode/core/global"
 import { PermissionV2 } from "@loongcode/core/permission"
@@ -13,7 +15,7 @@ import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
 import { agentHost, host } from "../plugin/host"
 
-const it = testEffect(Layer.mergeAll(AgentV2.locationLayer, FSUtil.defaultLayer, Global.layer))
+const it = testEffect(AppNodeBuilder.build(LayerNode.group([AgentV2.node, FSUtil.node, Global.node])))
 const decode = Schema.decodeUnknownSync(Config.Info)
 
 describe("ConfigAgentPlugin.Plugin", () => {

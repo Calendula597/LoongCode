@@ -6,9 +6,10 @@ import { Effect, Exit, Stream } from "effect"
 import type * as PlatformError from "effect/PlatformError"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { CrossSpawnSpawner } from "@loongcode/core/cross-spawn-spawner"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { testEffect } from "../lib/effect"
 
-const live = CrossSpawnSpawner.defaultLayer
+const live = LayerNode.compile(CrossSpawnSpawner.node)
 const fx = testEffect(live)
 
 function js(code: string, opts?: ChildProcess.CommandOptions) {

@@ -2,8 +2,9 @@ import { describe, expect } from "bun:test"
 import { $ } from "bun"
 import path from "path"
 import { eq } from "drizzle-orm"
-import { Effect, Layer } from "effect"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { CrossSpawnSpawner } from "@loongcode/core/cross-spawn-spawner"
+import { Effect } from "effect"
 import { Hash } from "@loongcode/core/util/hash"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { Database } from "@loongcode/core/database/database"
@@ -13,7 +14,7 @@ import { Project } from "@/project/project"
 import { tmpdirScoped } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 
-const it = testEffect(Layer.mergeAll(Project.defaultLayer, Database.defaultLayer, CrossSpawnSpawner.defaultLayer))
+const it = testEffect(LayerNode.compile(LayerNode.group([Project.node, Database.node, CrossSpawnSpawner.node])))
 
 function directories(projectID: ProjectV2.ID) {
   return Database.Service.use(({ db }) =>

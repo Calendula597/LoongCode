@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@loongcode/core": "workspace:*",
+    "@loongcode/protocol": "workspace:*",
     "drizzle-orm": "catalog:",
     "effect": "catalog:"
   },

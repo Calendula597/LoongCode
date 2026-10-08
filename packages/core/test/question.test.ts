@@ -1,13 +1,14 @@
 import { describe, expect } from "bun:test"
 import { Context, Deferred, Effect, Exit, Fiber, Layer, Scope } from "effect"
-import { Database } from "@loongcode/core/database/database"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { EventV2 } from "@loongcode/core/event"
 import { QuestionV2 } from "@loongcode/core/question"
 import { SessionV2 } from "@loongcode/core/session"
 import { testEffect } from "./lib/effect"
 
-const questions = QuestionV2.layer.pipe(Layer.provide(EventV2.defaultLayer))
-const it = testEffect(Layer.mergeAll(Database.defaultLayer, EventV2.defaultLayer, questions))
+const questions = AppNodeBuilder.build(LayerNode.group([EventV2.node, QuestionV2.node]))
+const it = testEffect(questions)
 
 const sessionID = SessionV2.ID.make("ses_question_test")
 const question: QuestionV2.Info = {

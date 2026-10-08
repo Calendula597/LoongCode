@@ -2,6 +2,8 @@ import { describe, expect } from "bun:test"
 import { Deferred, Effect, Fiber, Layer } from "effect"
 import { AgentV2 } from "@loongcode/core/agent"
 import { Database } from "@loongcode/core/database/database"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { Location } from "@loongcode/core/location"
 import { PermissionV2 } from "@loongcode/core/permission"
@@ -12,7 +14,6 @@ import { ProjectTable } from "@loongcode/core/project/sql"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SessionV2 } from "@loongcode/core/session"
 import { SessionTable } from "@loongcode/core/session/sql"
-import { SessionExecution } from "@loongcode/core/session/execution"
 import { SessionStore } from "@loongcode/core/session/store"
 import { eq } from "drizzle-orm"
 import { location } from "./fixture/location"
@@ -22,23 +23,19 @@ const current = Layer.succeed(
   Location.Service,
   Location.Service.of(location({ directory: AbsolutePath.make("/project") })),
 )
-const sessions = SessionV2.layer.pipe(
-  Layer.provide(EventV2.defaultLayer),
-  Layer.provide(Database.defaultLayer),
-  Layer.provide(SessionStore.defaultLayer),
-  Layer.provide(Project.defaultLayer),
-  Layer.provide(SessionExecution.noopLayer),
+const it = testEffect(
+  AppNodeBuilder.build(
+    LayerNode.group([
+      Database.node,
+      EventV2.node,
+      SessionStore.node,
+      PermissionSaved.node,
+      AgentV2.node,
+      PermissionV2.node,
+    ]),
+    [[Location.node, current]],
+  ),
 )
-const layer = PermissionV2.locationLayer.pipe(
-  Layer.provideMerge(Database.defaultLayer),
-  Layer.provideMerge(SessionStore.defaultLayer),
-  Layer.provideMerge(EventV2.defaultLayer),
-  Layer.provideMerge(current),
-  Layer.provideMerge(sessions),
-  Layer.provideMerge(SessionExecution.noopLayer),
-  Layer.provideMerge(PermissionSaved.defaultLayer),
-)
-const it = testEffect(layer)
 
 function setup(rules: PermissionV2.Ruleset = []) {
   return Effect.gen(function* () {

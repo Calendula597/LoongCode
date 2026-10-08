@@ -5,6 +5,8 @@ import { Config } from "@/config/config"
 import { Auth } from "@/auth"
 import { Global } from "@loongcode/core/global"
 import { FSUtil } from "@loongcode/core/fs-util"
+import { makeGlobalNode } from "@loongcode/core/effect/app-node"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Tarball } from "./tarball"
 import { Repo } from "./repo"
 
@@ -483,7 +485,11 @@ export const layer = Layer.effect(
   }),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(FetchHttpClient.layer), Layer.provide(FSUtil.defaultLayer))
+export const node = makeGlobalNode({
+  service: Service,
+  layer: layer.pipe(Layer.provide(FetchHttpClient.layer)),
+  deps: [Config.node, Auth.node, FSUtil.node],
+})
 
 // --- HTTP helpers ---
 

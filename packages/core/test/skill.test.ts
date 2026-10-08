@@ -3,6 +3,8 @@ import path from "path"
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { AgentV2 } from "@loongcode/core/agent"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SkillV2 } from "@loongcode/core/skill"
@@ -22,11 +24,7 @@ const discovery = Layer.succeed(
   }),
 )
 const it = testEffect(
-  SkillV2.layer.pipe(
-    Layer.provide(discovery),
-    Layer.provide(FSUtil.defaultLayer),
-    Layer.provideMerge(AgentV2.locationLayer),
-  ),
+  AppNodeBuilder.build(LayerNode.group([SkillV2.node, AgentV2.node]), [[SkillDiscovery.node, discovery]]),
 )
 
 function write(directory: string, name: string, description: string) {

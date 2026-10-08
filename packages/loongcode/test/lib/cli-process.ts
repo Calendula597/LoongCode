@@ -19,6 +19,8 @@
 // different return shape — see the TODO at the bottom of OpencodeCli.
 import { test, type TestOptions } from "bun:test"
 import { FSUtil } from "@loongcode/core/fs-util"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { AppProcess } from "@loongcode/core/process"
 import { Deferred, Duration, Effect, Layer, Queue, Schedule, Scope, Stream } from "effect"
 import { FetchHttpClient, HttpClient } from "effect/unstable/http"
@@ -469,7 +471,11 @@ export function withCliFixture<A, E>(
     // and hit endpoints on `loongcode.serve()` without rolling their own fetch.
   }).pipe(
     Effect.provide(
-      Layer.mergeAll(TestLLMServer.layer, FetchHttpClient.layer, FSUtil.defaultLayer, AppProcess.defaultLayer),
+      Layer.mergeAll(
+        TestLLMServer.layer,
+        FetchHttpClient.layer,
+        AppNodeBuilder.build(LayerNode.group([FSUtil.node, AppProcess.node])),
+      ),
     ),
   )
 }

@@ -1,5 +1,5 @@
 import { ButtonV2 } from "@loongcode/ui/v2/button-v2"
-import { Dialog, DialogFooter } from "@loongcode/ui/v2/dialog-v2"
+import { Dialog, DialogFooter, DialogHeader, DialogTitle } from "@loongcode/ui/v2/dialog-v2"
 import { TextInputV2 } from "@loongcode/ui/v2/text-input-v2"
 import { useDialog } from "@loongcode/ui/context/dialog"
 import { type Component, Show, createSignal, onCleanup } from "solid-js"
@@ -224,7 +224,10 @@ export const DialogSSHServer: Component<{}> = () => {
     ["connecting", "installing", "starting"].includes(deployState().status)
 
   return (
-    <Dialog title={language.t("ssh.deploy.title")} fit class="settings-v2-ssh-dialog">
+    <Dialog fit class="settings-v2-ssh-dialog">
+      <DialogHeader>
+        <DialogTitle>{language.t("ssh.deploy.title")}</DialogTitle>
+      </DialogHeader>
       <div class="flex w-full min-w-0 flex-1 flex-col gap-4 px-4">
         {/* Connection Form */}
         <div class="grid w-full grid-cols-2 gap-4">

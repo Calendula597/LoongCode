@@ -56,7 +56,7 @@ export class Service extends Context.Service<Service, Interface>()("@loongcode/M
 
 export const use = serviceUse(Service)
 
-export const layer = Layer.effect(
+const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
@@ -158,8 +158,6 @@ export const layer = Layer.effect(
   }),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(EffectFlock.defaultLayer), Layer.provide(FSUtil.defaultLayer))
-
-export const node = LayerNode.make(layer, [FSUtil.node, EffectFlock.node])
+export const node = LayerNode.make({ service: Service, layer: layer, deps: [FSUtil.node, EffectFlock.node] })
 
 export * as McpAuth from "./auth"

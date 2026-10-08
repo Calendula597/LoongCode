@@ -1,6 +1,7 @@
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { CommandV2 } from "@loongcode/core/command"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { Location } from "@loongcode/core/location"
 import { CommandPlugin } from "@loongcode/core/plugin/command"
 import { AbsolutePath } from "@loongcode/core/schema"
@@ -10,13 +11,11 @@ import { host } from "./host"
 
 const directory = AbsolutePath.make("/repo/packages/app")
 const project = AbsolutePath.make("/repo")
-const it = testEffect(
-  CommandV2.locationLayer.pipe(
-    Layer.provide(
-      Layer.succeed(Location.Service, Location.Service.of(location({ directory }, { projectDirectory: project }))),
-    ),
-  ),
+const locationLayer = Layer.succeed(
+  Location.Service,
+  Location.Service.of(location({ directory }, { projectDirectory: project })),
 )
+const it = testEffect(AppNodeBuilder.build(CommandV2.node, [[Location.node, locationLayer]]))
 
 describe("CommandPlugin.Plugin", () => {
   it.effect("registers built-in init and review commands", () =>

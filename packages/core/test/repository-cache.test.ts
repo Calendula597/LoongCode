@@ -3,12 +3,11 @@ import fs from "fs/promises"
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer } from "effect"
-import { FSUtil } from "@loongcode/core/fs-util"
-import { Git } from "@loongcode/core/git"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Global } from "@loongcode/core/global"
 import { Repository } from "@loongcode/core/repository"
 import { RepositoryCache } from "@loongcode/core/repository-cache"
-import { EffectFlock } from "@loongcode/core/util/effect-flock"
 import { git, gitRemote } from "./fixture/git"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
@@ -89,15 +88,9 @@ describe("RepositoryCache", () => {
 })
 
 function cacheLayer(root: string) {
-  const dependencies = Layer.mergeAll(
-    Global.layerWith({ state: path.join(root, "state"), repos: path.join(root, "repos") }),
-    FSUtil.defaultLayer,
-  )
-  return RepositoryCache.layer.pipe(
-    Layer.provide(EffectFlock.layer.pipe(Layer.provide(dependencies))),
-    Layer.provide(Git.defaultLayer),
-    Layer.provide(dependencies),
-  )
+  return AppNodeBuilder.build(RepositoryCache.node, [
+    [Global.node, Global.layerWith({ state: path.join(root, "state"), repos: path.join(root, "repos") })],
+  ])
 }
 
 function withRemote<A, E, R>(body: (fixture: Awaited<ReturnType<typeof gitRemote>>) => Effect.Effect<A, E, R>) {
