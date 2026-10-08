@@ -1,0 +1,10 @@
+packages/desktop/src/preload/types.ts
+packages/desktop/src/renderer/i18n/ar.ts
+packages/desktop/src/renderer/i18n/bs.ts
+packages/desktop/src/renderer/i18n/fr.ts
+packages/desktop/src/renderer/i18n/no.ts
+packages/desktop/src/renderer/i18n/pl.ts
+packages/desktop/src/renderer/i18n/uk.ts
+packages/desktop/src/renderer/i18n/zh.ts
+packages/desktop/src/renderer/i18n/zht.ts
+packages/desktop/src/renderer/index.tsx

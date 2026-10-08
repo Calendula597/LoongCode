@@ -1,6 +1,7 @@
 import { run } from "@loongcode/tui"
 import { TuiConfig } from "@loongcode/tui/config"
 import { Effect } from "effect"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { Global } from "@loongcode/core/global"
 
 export function runTui(transport: { url: string; headers: RequestInit["headers"] }) {
@@ -14,7 +15,7 @@ export function runTui(transport: { url: string; headers: RequestInit["headers"]
       async start() {},
       async dispose() {},
     },
-  }).pipe(Effect.provide(Global.defaultLayer))
+  }).pipe(Effect.provide(AppNodeBuilder.build(Global.node)))
 }
 
 const legacyDefaults: Record<string, unknown> = {

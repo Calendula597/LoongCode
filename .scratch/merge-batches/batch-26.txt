@@ -1,0 +1,15 @@
+packages/app/src/desktop-menu.ts
+packages/app/src/i18n/ar.ts
+packages/app/src/i18n/br.ts
+packages/app/src/i18n/bs.ts
+packages/app/src/i18n/da.ts
+packages/app/src/i18n/de.ts
+packages/app/src/i18n/en.ts
+packages/app/src/i18n/es.ts
+packages/app/src/i18n/fr.ts
+packages/app/src/i18n/ja.ts
+packages/app/src/i18n/ko.ts
+packages/app/src/i18n/no.ts
+packages/app/src/i18n/parity.test.ts
+packages/app/src/i18n/pl.ts
+packages/app/src/i18n/ru.ts

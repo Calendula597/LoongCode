@@ -1,0 +1,15 @@
+packages/loongcode/package.json
+packages/loongcode/script/build-node.ts
+packages/loongcode/script/build.ts
+packages/loongcode/src/account/account.ts
+packages/loongcode/src/acp/content.ts
+packages/loongcode/src/acp/directory.ts
+packages/loongcode/src/acp/permission.ts
+packages/loongcode/src/acp/service.ts
+packages/loongcode/src/acp/session.ts
+packages/loongcode/src/acp/usage.ts
+packages/loongcode/src/agent/agent.ts
+packages/loongcode/src/cli/cmd/account.ts
+packages/loongcode/src/cli/cmd/attach.ts
+packages/loongcode/src/cli/cmd/debug/file.ts
+packages/loongcode/src/cli/cmd/debug/scrap.ts

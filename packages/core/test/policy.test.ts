@@ -1,5 +1,6 @@
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { Location } from "@loongcode/core/location"
 import { Policy } from "@loongcode/core/policy"
 import { AbsolutePath } from "@loongcode/core/schema"
@@ -7,11 +8,12 @@ import { location } from "./fixture/location"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(
-  Policy.locationLayer.pipe(
-    Layer.provide(
+  AppNodeBuilder.build(Policy.node, [
+    [
+      Location.node,
       Layer.succeed(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make("test") }))),
-    ),
-  ),
+    ],
+  ]),
 )
 
 describe("Policy", () => {

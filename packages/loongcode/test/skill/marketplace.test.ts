@@ -4,6 +4,7 @@ import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstab
 import * as TestClock from "effect/testing/TestClock"
 import { gzipSync } from "node:zlib"
 import { FSUtil } from "@loongcode/core/fs-util"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Repo } from "../../src/skill/repo"
 import { SkillMarketplace } from "../../src/skill/marketplace"
 import { Config } from "../../src/config/config"
@@ -137,7 +138,7 @@ const marketplaceLayer = (
 ): Layer.Layer<SkillMarketplace.Service, never, never> =>
   Layer.provide(
     SkillMarketplace.layer,
-    Layer.mergeAll(inner, mockAuthLayer(options?.apiKey), FSUtil.defaultLayer, options?.http ?? noHttpLayer),
+    Layer.mergeAll(inner, mockAuthLayer(options?.apiKey), LayerNode.compile(FSUtil.node), options?.http ?? noHttpLayer),
   )
 
 // Stateful mock that captures updateGlobal calls

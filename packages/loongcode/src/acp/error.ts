@@ -47,6 +47,7 @@ export class UnsupportedOperationError extends Schema.TaggedErrorClass<Unsupport
 export class ServiceFailureError extends Schema.TaggedErrorClass<ServiceFailureError>()("ACPServiceFailureError", {
   safeMessage: Schema.String,
   service: Schema.optional(Schema.String),
+  errorName: Schema.optional(Schema.String),
 }) {}
 
 export type Error =
@@ -89,7 +90,13 @@ export function toRequestError(error: Error) {
     case "ACPUnsupportedOperationError":
       return RequestError.methodNotFound(error.method)
     case "ACPServiceFailureError":
-      return RequestError.internalError({ service: error.service }, error.safeMessage)
+      return RequestError.internalError(
+        {
+          ...(error.service ? { service: error.service } : {}),
+          ...(error.errorName ? { errorName: error.errorName } : {}),
+        },
+        error.safeMessage,
+      )
   }
 }
 

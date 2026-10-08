@@ -1,0 +1,3 @@
+﻿packages/desktop/src/main/wsl/sidecar.ts
+packages/desktop/src/main/wsl/startup.ts
+packages/desktop/src/preload/index.ts

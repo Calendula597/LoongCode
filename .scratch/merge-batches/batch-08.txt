@@ -1,0 +1,15 @@
+packages/loongcode/test/mcp/oauth-auto-connect.test.ts
+packages/loongcode/test/mcp/oauth-browser.test.ts
+packages/loongcode/test/permission-task.test.ts
+packages/loongcode/test/permission/next.test.ts
+packages/loongcode/test/plugin/auth-override.test.ts
+packages/loongcode/test/plugin/codex.test.ts
+packages/loongcode/test/plugin/github-copilot-models.test.ts
+packages/loongcode/test/plugin/loader-shared.test.ts
+packages/loongcode/test/plugin/trigger.test.ts
+packages/loongcode/test/plugin/workspace-adapter.test.ts
+packages/loongcode/test/plugin/xai.test.ts
+packages/loongcode/test/project/instance-bootstrap.test.ts
+packages/loongcode/test/project/instance.test.ts
+packages/loongcode/test/project/migrate-global.test.ts
+packages/loongcode/test/project/project-directory.test.ts

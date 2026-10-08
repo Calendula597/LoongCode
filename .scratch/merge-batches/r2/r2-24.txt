@@ -1,0 +1,12 @@
+﻿packages/loongcode/package.json
+packages/loongcode/src/acp/service.ts
+packages/loongcode/src/acp/session.ts
+packages/loongcode/src/acp/usage.ts
+packages/loongcode/src/agent/agent.ts
+packages/loongcode/src/cli/cmd/account.ts
+packages/loongcode/src/cli/cmd/attach.ts
+packages/loongcode/src/cli/cmd/debug/file.ts
+packages/loongcode/src/cli/cmd/debug/scrap.ts
+packages/loongcode/src/mcp/oauth-callback.ts
+packages/loongcode/src/permission/index.ts
+packages/loongcode/src/plugin/azure.ts

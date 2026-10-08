@@ -1,0 +1,15 @@
+packages/core/test/git.test.ts
+packages/core/test/instruction-context.test.ts
+packages/core/test/integration.test.ts
+packages/core/test/location-filesystem.test.ts
+packages/core/test/location-layer.test.ts
+packages/core/test/location-mutation.test.ts
+packages/core/test/location.test.ts
+packages/core/test/models.test.ts
+packages/core/test/move-session.test.ts
+packages/core/test/npm.test.ts
+packages/core/test/permission.test.ts
+packages/core/test/plugin.test.ts
+packages/core/test/plugin/command.test.ts
+packages/core/test/plugin/models-dev.test.ts
+packages/core/test/plugin/provider-alibaba.test.ts

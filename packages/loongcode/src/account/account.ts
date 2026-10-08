@@ -1,5 +1,5 @@
 import { LayerNode } from "@loongcode/core/effect/layer-node"
-import { httpClient } from "@loongcode/core/effect/layer-node-platform"
+import { httpClient } from "@loongcode/core/effect/app-node-platform"
 import { Cache, Clock, Duration, Effect, Layer, Option, Schema, SchemaGetter, Context } from "effect"
 import { serviceUse } from "@loongcode/core/effect/service-use"
 import {
@@ -186,7 +186,7 @@ export class Service extends Context.Service<Service, Interface>()("@loongcode/A
 
 export const use = serviceUse(Service)
 
-export const layer: Layer.Layer<Service, never, AccountRepo.Service | HttpClient.HttpClient> = Layer.effect(
+const layer: Layer.Layer<Service, never, AccountRepo.Service | HttpClient.HttpClient> = Layer.effect(
   Service,
   Effect.gen(function* () {
     const repo = yield* AccountRepo.Service
@@ -396,10 +396,18 @@ export const layer: Layer.Layer<Service, never, AccountRepo.Service | HttpClient
       const parsed = yield* HttpClientResponse.schemaBodyJson(DeviceAuth)(response).pipe(
         mapAccountServiceError("Failed to decode response"),
       )
+      const verification = yield* Effect.try({
+        try: () => {
+          const url = new URL(parsed.verification_uri_complete, `${normalizedServer}/`)
+          if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("expected HTTP(S)")
+          return url.href
+        },
+        catch: (cause) => new AccountServiceError({ message: "Invalid device verification URL", cause }),
+      })
       return new Login({
         code: parsed.device_code,
         user: parsed.user_code,
-        url: `${normalizedServer}${parsed.verification_uri_complete}`,
+        url: verification,
         server: normalizedServer,
         expiry: parsed.expires_in,
         interval: parsed.interval,
@@ -468,8 +476,6 @@ export const layer: Layer.Layer<Service, never, AccountRepo.Service | HttpClient
   }),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(AccountRepo.defaultLayer), Layer.provide(FetchHttpClient.layer))
-
-export const node = LayerNode.make(layer, [AccountRepo.node, httpClient])
+export const node = LayerNode.make({ service: Service, layer: layer, deps: [AccountRepo.node, httpClient] })
 
 export * as Account from "./account"

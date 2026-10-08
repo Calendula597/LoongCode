@@ -1,0 +1,15 @@
+packages/loongcode/src/tool/registry.ts
+packages/loongcode/src/tool/schema.ts
+packages/loongcode/src/worktree/index.ts
+packages/loongcode/test/account/service.test.ts
+packages/loongcode/test/acp/directory.test.ts
+packages/loongcode/test/acp/event.test.ts
+packages/loongcode/test/acp/permission.test.ts
+packages/loongcode/test/acp/service-session.test.ts
+packages/loongcode/test/acp/usage.test.ts
+packages/loongcode/test/agent/agent.test.ts
+packages/loongcode/test/agent/plan-mode-subagent-bypass.test.ts
+packages/loongcode/test/agent/plugin-agent-regression.test.ts
+packages/loongcode/test/auth/auth.test.ts
+packages/loongcode/test/cli/account.test.ts
+packages/loongcode/test/cli/effect-cmd-instance-als.test.ts

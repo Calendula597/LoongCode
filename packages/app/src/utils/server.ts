@@ -1,5 +1,7 @@
 import { createOpencodeClient } from "@loongcode/sdk/v2/client"
+import { OpenCode } from "@loongcode/client"
 import type { ServerConnection } from "@/context/server"
+import type { OpenCodeClient } from "./client-api"
 import { decode64 } from "@/utils/base64"
 
 export function authTokenFromCredentials(input: { username?: string; password: string }) {
@@ -39,3 +41,23 @@ export function createSdkForServer({
     baseUrl: server.url,
   })
 }
+
+export function createApiForServer(input: {
+  server: ServerConnection.HttpBase
+  fetch?: typeof globalThis.fetch
+}): OpenCodeClient {
+  return OpenCode.make({
+    baseUrl: input.server.url,
+    fetch: input.fetch,
+    headers: input.server.password
+      ? {
+          Authorization: `Basic ${authTokenFromCredentials({
+            username: input.server.username,
+            password: input.server.password,
+          })}`,
+        }
+      : undefined,
+  })
+}
+
+export type ServerApi = OpenCodeClient

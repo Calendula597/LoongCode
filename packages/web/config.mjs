@@ -7,6 +7,6 @@ export default {
   discord: "https://modelhub.lgdg.cc/discord",
   headerLinks: [
     { name: "app.header.home", url: "/" },
-    { name: "app.header.docs", url: "/docs/" },
+    { name: "app.header.docs", url: "/v2/docs" },
   ],
 }

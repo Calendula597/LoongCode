@@ -1,5 +1,7 @@
 import { describe, expect } from "bun:test"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { FSUtil } from "@loongcode/core/fs-util"
+
 import { Effect, Layer } from "effect"
 import path from "path"
 import { resetDatabase } from "../fixture/db"
@@ -15,7 +17,7 @@ const testStateLayer = Layer.effectDiscard(
   ),
 )
 
-const it = testEffect(Layer.mergeAll(testStateLayer, FSUtil.defaultLayer, httpApiLayer))
+const it = testEffect(Layer.mergeAll(testStateLayer, LayerNode.compile(FSUtil.node), httpApiLayer))
 const projectOptions = { config: { formatter: false, lsp: false } }
 const providerID = "test-oauth-parity"
 const oauthURL = "https://example.com/oauth"

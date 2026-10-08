@@ -1,0 +1,12 @@
+﻿packages/loongcode/test/server/httpapi-session.test.ts
+packages/loongcode/test/server/httpapi-ui.test.ts
+packages/loongcode/test/server/httpapi-workspace.test.ts
+packages/loongcode/test/server/httpapi-workspace-routing.test.ts
+packages/loongcode/test/server/project-init-git.test.ts
+packages/loongcode/test/server/session-list.test.ts
+packages/loongcode/test/server/session-messages.test.ts
+packages/loongcode/test/session/compaction.test.ts
+packages/loongcode/test/session/instruction.test.ts
+packages/loongcode/test/session/llm.test.ts
+packages/loongcode/test/session/llm-native-recorded.test.ts
+packages/loongcode/test/session/messages-pagination.test.ts

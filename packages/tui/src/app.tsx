@@ -1,9 +1,6 @@
 import { registerSpinner } from "opentui-spinner/solid"
 import { render, TimeToFirstDraw, useRenderer, useTerminalDimensions } from "@opentui/solid"
-// Register the <spinner> custom element with the Solid reconciler before any render.
-// The side-effect import alone gets tree-shaken in the compiled binary; calling the
-// registrar explicitly forces it to be retained.
-registerSpinner()
+import { registerOpencodeSpinner } from "./component/register-spinner"
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import { Deferred, Effect } from "effect"
 import { Global } from "@loongcode/core/global"
@@ -13,7 +10,7 @@ import { ClipboardProvider, useClipboard } from "./context/clipboard"
 import { ExitProvider, useExit } from "./context/exit"
 import { EpilogueProvider } from "./context/epilogue"
 import * as Selection from "./util/selection"
-import { createCliRenderer, MouseButton, type CliRenderer } from "@opentui/core"
+import { createCliRenderer, MouseButton } from "@opentui/core"
 import { RouteProvider, useRoute } from "./context/route"
 import {
   Switch,
@@ -40,11 +37,14 @@ import { SDKProvider, useSDK } from "./context/sdk"
 import { StartupLoading } from "./component/startup-loading"
 import { SyncProvider, useSync } from "./context/sync"
 import { DataProvider } from "./context/data"
+import { LocationProvider } from "./context/location"
 import { LocalProvider, useLocal } from "./context/local"
+import { PermissionProvider } from "./context/permission"
 import { DialogModel } from "./component/dialog-model"
 import { useConnected } from "./component/use-connected"
 import { DialogMcp } from "./component/dialog-mcp"
 import { DialogStatus } from "./component/dialog-status"
+import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
@@ -64,7 +64,7 @@ import { isDefaultTitle } from "./util/session"
 import { KVProvider, useKV } from "./context/kv"
 import * as Model from "./util/model"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
-import open from "open"
+import { openUrl } from "@loongcode/core/open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import { TuiConfigProvider, useTuiConfig, type TuiConfig } from "./config"
 import { createTuiApiAdapters } from "./plugin/adapters"
@@ -87,6 +87,8 @@ import * as TuiAudio from "./audio"
 import { win32DisableProcessedInput, win32FlushInputBuffer } from "./terminal-win32"
 import { destroyRenderer } from "./util/renderer"
 import { cliErrorMessage, errorFormat } from "./util/error"
+
+registerOpencodeSpinner()
 
 const appGlobalBindingCommands = [
   "session.list",
@@ -118,11 +120,13 @@ const appBindingCommands = [
   "provider.connect",
   "console.org.switch",
   "loongcode.status",
+  "opencode.debug",
   "theme.switch",
   "theme.switch_mode",
   "theme.mode.lock",
   "help.show",
   "docs.open",
+  "diff.open",
   "workspace.list",
   "app.debug",
   "app.console",
@@ -186,21 +190,23 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
   const result = yield* Effect.scoped(
     Effect.gen(function* () {
       const renderer = yield* Effect.acquireRelease(
-        Effect.tryPromise(() =>
-          createCliRenderer({
-            externalOutputMode: "passthrough",
-            targetFps: 60,
-            gatherStats: false,
-            exitOnCtrlC: false,
-            useKittyKeyboard: {},
-            autoFocus: false,
-            openConsoleOnError: false,
-            useMouse: !Flag.LOONGCODE_DISABLE_MOUSE && input.config.mouse,
-            consoleOptions: {
-              keyBindings: [{ name: "y", ctrl: true, action: "copy-selection" }],
-            },
-          }),
-        ),
+        Effect.tryPromise({
+          try: () =>
+            createCliRenderer({
+              externalOutputMode: "passthrough",
+              targetFps: 60,
+              gatherStats: false,
+              exitOnCtrlC: false,
+              useKittyKeyboard: {},
+              autoFocus: false,
+              openConsoleOnError: false,
+              useMouse: !Flag.LOONGCODE_DISABLE_MOUSE && input.config.mouse,
+              consoleOptions: {
+                keyBindings: [{ name: "y", ctrl: true, action: "copy-selection" }],
+              },
+            }),
+          catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+        }),
         (renderer) =>
           Effect.sync(() => {
             destroyRenderer(renderer)
@@ -297,32 +303,36 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                           headers={input.headers}
                                           events={input.events}
                                         >
-                                          <ProjectProvider>
-                                            <SyncProvider>
-                                              <DataProvider>
-                                                <ThemeProvider mode={mode}>
-                                                  <LocalProvider>
-                                                    <PromptStashProvider>
-                                                      <DialogProvider>
-                                                        <FrecencyProvider>
-                                                          <PromptHistoryProvider>
-                                                            <PromptRefProvider>
-                                                              <EditorContextProvider>
-                                                                <App
-                                                                  onSnapshot={input.onSnapshot}
-                                                                  pluginHost={input.pluginHost}
-                                                                />
-                                                              </EditorContextProvider>
-                                                            </PromptRefProvider>
-                                                          </PromptHistoryProvider>
-                                                        </FrecencyProvider>
-                                                      </DialogProvider>
-                                                    </PromptStashProvider>
-                                                  </LocalProvider>
-                                                </ThemeProvider>
-                                              </DataProvider>
-                                            </SyncProvider>
-                                          </ProjectProvider>
+                                          <PermissionProvider>
+                                            <ProjectProvider>
+                                              <SyncProvider>
+                                                <DataProvider>
+                                                  <ThemeProvider mode={mode}>
+                                                    <LocalProvider>
+                                                      <PromptStashProvider>
+                                                        <DialogProvider>
+                                                          <FrecencyProvider>
+                                                            <PromptHistoryProvider>
+                                                              <PromptRefProvider>
+                                                                <EditorContextProvider>
+                                                                  <LocationProvider>
+                                                                    <App
+                                                                      onSnapshot={input.onSnapshot}
+                                                                      pluginHost={input.pluginHost}
+                                                                    />
+                                                                  </LocationProvider>
+                                                                </EditorContextProvider>
+                                                              </PromptRefProvider>
+                                                            </PromptHistoryProvider>
+                                                          </FrecencyProvider>
+                                                        </DialogProvider>
+                                                      </PromptStashProvider>
+                                                    </LocalProvider>
+                                                  </ThemeProvider>
+                                                </DataProvider>
+                                              </SyncProvider>
+                                            </ProjectProvider>
+                                          </PermissionProvider>
                                         </SDKProvider>
                                       </PluginRuntimeProvider>
                                     </TuiConfigProvider>
@@ -347,8 +357,10 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
   )
   yield* Effect.sync(() => {
     win32FlushInputBuffer()
-    if (result.reason !== undefined)
+    if (result.reason !== undefined) {
       process.stderr.write((cliErrorMessage(result.reason) ?? errorFormat(result.reason)) + "\n")
+      process.exitCode = 1
+    }
     if (result.epilogue) process.stdout.write(result.epilogue + "\n")
   })
 })
@@ -456,7 +468,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         return
       }
 
-      const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
+      const title = session.title.length > 40 ? session.title.slice(0, 37) + "…" : session.title
       renderer.setTerminalTitle(`OC | ${title}`)
       return
     }
@@ -761,6 +773,15 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "System",
       },
       {
+        name: "opencode.debug",
+        title: "View debug info",
+        slashName: "debug",
+        run: () => {
+          dialog.replace(() => <DialogDebug />)
+        },
+        category: "System",
+      },
+      {
         name: "theme.switch",
         title: "Switch theme",
         slashName: "themes",
@@ -801,7 +822,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open("https://modelhub.lgdg.cc/docs").catch(() => {})
+          openUrl("https://modelhub.lgdg.cc/docs").catch(() => {})
           dialog.clear()
         },
         category: "System",
@@ -925,6 +946,16 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           dialog.clear()
         },
       },
+      {
+        name: "permission.mode",
+        title:
+          local.permission.mode === "auto" ? "Disable auto-approve permissions" : "Enable auto-approve permissions",
+        category: "System",
+        run: () => {
+          local.permission.toggle()
+          dialog.clear()
+        },
+      },
     ].map((command) => ({
       namespace: "palette",
       ...command,
@@ -1023,7 +1054,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
 
     toast.show({
       variant: "info",
-      message: `Updating to v${version}...`,
+      message: `Updating to v${version}…`,
       duration: 30000,
     })
 

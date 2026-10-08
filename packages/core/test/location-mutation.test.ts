@@ -2,7 +2,7 @@ import fs from "fs/promises"
 import path from "path"
 import { describe, expect, test } from "bun:test"
 import { Effect, Layer, Schema } from "effect"
-import { FSUtil } from "@loongcode/core/fs-util"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Location } from "@loongcode/core/location"
 import { LocationMutation } from "@loongcode/core/location-mutation"
 import { AbsolutePath } from "@loongcode/core/schema"
@@ -12,14 +12,12 @@ import { it } from "./lib/effect"
 
 function provide(directory: string) {
   return Effect.provide(
-    LocationMutation.layer.pipe(
-      Layer.provide(
-        Layer.mergeAll(
-          FSUtil.defaultLayer,
-          Layer.succeed(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make(directory) }))),
-        ),
-      ),
-    ),
+    LayerNode.compile(LocationMutation.node, [
+      [
+        Location.node,
+        Layer.succeed(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make(directory) }))),
+      ],
+    ]),
   )
 }
 

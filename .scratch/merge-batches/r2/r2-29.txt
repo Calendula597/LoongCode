@@ -1,0 +1,12 @@
+﻿packages/loongcode/test/installation/installation.test.ts
+packages/loongcode/test/lib/cli-process.ts
+packages/loongcode/test/lsp/lifecycle.test.ts
+packages/loongcode/test/mcp/auth.test.ts
+packages/loongcode/test/mcp/oauth-auto-connect.test.ts
+packages/loongcode/test/mcp/oauth-browser.test.ts
+packages/loongcode/test/permission/next.test.ts
+packages/loongcode/test/permission-task.test.ts
+packages/loongcode/test/plugin/auth-override.test.ts
+packages/loongcode/test/plugin/codex.test.ts
+packages/loongcode/test/plugin/github-copilot-models.test.ts
+packages/loongcode/test/plugin/loader-shared.test.ts

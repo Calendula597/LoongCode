@@ -3,9 +3,10 @@ import { spawn } from "child_process"
 import fs from "fs/promises"
 import path from "path"
 import os from "os"
-import { Cause, Effect, Exit, Layer } from "effect"
+import { Cause, Effect, Exit } from "effect"
 import { testEffect } from "../lib/effect"
-import { FSUtil } from "@loongcode/core/fs-util"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EffectFlock } from "@loongcode/core/util/effect-flock"
 import { Global } from "@loongcode/core/global"
 import { Hash } from "@loongcode/core/util/hash"
@@ -109,7 +110,7 @@ const testGlobal = Global.layerWith({
   log: os.tmpdir(),
 })
 
-const testLayer = EffectFlock.layer.pipe(Layer.provide(testGlobal), Layer.provide(FSUtil.defaultLayer))
+const testLayer = AppNodeBuilder.build(EffectFlock.node, [[Global.node, testGlobal]])
 
 // ---------------------------------------------------------------------------
 // Tests

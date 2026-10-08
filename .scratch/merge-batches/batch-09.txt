@@ -1,0 +1,15 @@
+packages/loongcode/test/project/project.test.ts
+packages/loongcode/test/project/vcs.test.ts
+packages/loongcode/test/project/worktree-remove.test.ts
+packages/loongcode/test/project/worktree.test.ts
+packages/loongcode/test/provider/cf-ai-gateway-e2e.test.ts
+packages/loongcode/test/provider/header-timeout.test.ts
+packages/loongcode/test/provider/provider.test.ts
+packages/loongcode/test/provider/transform.test.ts
+packages/loongcode/test/server/httpapi-authorization.test.ts
+packages/loongcode/test/server/httpapi-control-plane.test.ts
+packages/loongcode/test/server/httpapi-global.test.ts
+packages/loongcode/test/server/httpapi-instance-context.test.ts
+packages/loongcode/test/server/httpapi-promptasync-context.test.ts
+packages/loongcode/test/server/httpapi-provider.test.ts
+packages/loongcode/test/server/httpapi-query-schema-drift.test.ts

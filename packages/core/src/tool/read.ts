@@ -2,12 +2,14 @@ export * as ReadTool from "./read"
 
 import { ToolFailure } from "@loongcode/llm"
 import { Effect, Layer, Schema } from "effect"
+import { makeLocationNode } from "../effect/app-node"
 import { FileSystem } from "../filesystem"
 import { Image } from "../image"
 import { LocationMutation } from "../location-mutation"
 import { PermissionV2 } from "../permission"
 import { AbsolutePath } from "../schema"
 import { ReadToolFileSystem } from "./read-filesystem"
+import { ToolRegistry } from "./registry"
 import { Tool } from "./tool"
 import { Tools } from "./tools"
 
@@ -25,7 +27,7 @@ const LocationInput = Schema.Struct({
 const Input = LocationInput
 const Output = Schema.Union([FileSystem.Content, ReadToolFileSystem.TextPage, ReadToolFileSystem.ListPage])
 
-export const layer = Layer.effectDiscard(
+const layer = Layer.effectDiscard(
   Effect.gen(function* () {
     const tools = yield* Tools.Service
     const reader = yield* ReadToolFileSystem.Service
@@ -75,7 +77,8 @@ export const layer = Layer.effectDiscard(
                 agent: context.agent,
                 source,
               })
-              if (type === "directory") return yield* reader.list(absolute, { offset: input.offset, limit: input.limit })
+              if (type === "directory")
+                return yield* reader.list(absolute, { offset: input.offset, limit: input.limit })
               const content = yield* reader.read(absolute, resource, {
                 offset: input.offset,
                 limit: input.limit,
@@ -86,7 +89,7 @@ export const layer = Layer.effectDiscard(
                   .pipe(Effect.catchTag("Image.ResizerUnavailableError", () => Effect.succeed(content)))
               }
               if ("encoding" in content && content.encoding === "base64")
-                return yield* Effect.fail(new ReadToolFileSystem.BinaryFileError(resource))
+                return yield* Effect.fail(new ReadToolFileSystem.BinaryFileError({ resource }))
               return content
             }).pipe(
               Effect.mapError((error) => {
@@ -106,3 +109,9 @@ export const layer = Layer.effectDiscard(
       .pipe(Effect.orDie)
   }),
 )
+
+export const node = makeLocationNode({
+  name: "tool/read",
+  layer,
+  deps: [ToolRegistry.node, ReadToolFileSystem.node, LocationMutation.node, Image.node, PermissionV2.node],
+})

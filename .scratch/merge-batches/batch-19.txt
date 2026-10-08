@@ -1,0 +1,15 @@
+packages/core/test/plugin/provider-vercel.test.ts
+packages/core/test/plugin/provider-xai.test.ts
+packages/core/test/plugin/provider-zenmux.test.ts
+packages/core/test/plugin/skill.test.ts
+packages/core/test/policy.test.ts
+packages/core/test/process/process.test.ts
+packages/core/test/project-copy.test.ts
+packages/core/test/project-directories.test.ts
+packages/core/test/project.test.ts
+packages/core/test/pty/pty-session.test.ts
+packages/core/test/pty/ticket.test.ts
+packages/core/test/question.test.ts
+packages/core/test/reference-guidance.test.ts
+packages/core/test/reference.test.ts
+packages/core/test/repository-cache.test.ts

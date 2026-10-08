@@ -30,7 +30,7 @@ function rewrite(request: Request, directory?: string) {
   return next
 }
 
-export function createLgcodeClient(config?: Config & { directory?: string }) {
+export function createLoongcodeClient(config?: Config & { directory?: string }) {
   if (!config?.fetch) {
     const customFetch: any = (req: any) => {
       // @ts-ignore
@@ -57,4 +57,4 @@ export function createLgcodeClient(config?: Config & { directory?: string }) {
 }
 
 // Backward-compatible alias
-export const createOpencodeClient = createLgcodeClient
+export const createOpencodeClient = createLoongcodeClient

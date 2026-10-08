@@ -1,4 +1,14 @@
-import type { Config, OpencodeClient, Path, Project, ProviderAuthResponse, Todo } from "@loongcode/sdk/v2/client"
+import type {
+  Config,
+  McpResource,
+  McpStatus,
+  OpencodeClient,
+  Path,
+  Project,
+  ProviderAuthResponse,
+  SessionStatus,
+  Todo,
+} from "@loongcode/sdk/v2/client"
 import { showToast } from "@/utils/toast"
 import { getFilename } from "@loongcode/core/util/path"
 import { type Accessor, batch, createMemo, getOwner, onCleanup, onMount, untrack } from "solid-js"
@@ -11,51 +21,99 @@ import {
   bootstrapGlobal,
   clearProviderRev,
   loadAgentsQuery,
+  loadCommands,
   loadGlobalConfigQuery,
   loadPathQuery,
   loadProjectsQuery,
   loadProvidersQuery,
+  loadReferencesQuery,
 } from "./global-sync/bootstrap"
 import { createChildStoreManager } from "./global-sync/child-store"
-import { applyDirectoryEvent, applyGlobalEvent, cleanupDroppedSessionCaches } from "./global-sync/event-reducer"
-import { clearSessionPrefetchDirectory } from "./global-sync/session-prefetch"
-import { estimateRootSessionTotal, loadRootSessionsWithFallback } from "./global-sync/session-load"
+import { applyDirectoryEvent, applyGlobalEvent } from "./global-sync/event-reducer"
+import { estimateRootSessionTotal, loadRootSessions, loadRootSessionsV1 } from "./global-sync/session-load"
 import { trimSessions } from "./global-sync/session-trim"
 import type { ProjectMeta } from "./global-sync/types"
 import { SESSION_RECENT_LIMIT } from "./global-sync/types"
 import { formatServerError } from "@/utils/server-errors"
 import { queryOptions, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/solid-query"
+import type { SolidQueryOptions } from "@tanstack/solid-query"
 import { createRefreshQueue } from "./global-sync/queue"
 import { directoryKey } from "./global-sync/utils"
 import { PathKey } from "@/utils/path-key"
 import { createDirSyncContext } from "./directory-sync"
-import { createSimpleContext, NormalizedProviderListResponse } from "@loongcode/ui/context"
+import { createSimpleContext } from "@loongcode/ui/context"
+import { NormalizedProviderListResponse } from "@loongcode/session-ui/context"
 import { createRefCountMap } from "@/utils/refcount"
 import { useGlobal } from "./global"
 import { ServerConnection, useServer } from "./server"
 import { retry } from "@loongcode/core/util/retry"
 import type { ServerScope } from "@/utils/server-scope"
+import { createHomeSessionIndexCache } from "./global-sync/home-session-index"
 import { persisted } from "@/utils/persist"
+import type { CompatibleApi } from "@/utils/server-compat"
+import type { SessionsActiveOutput } from "@loongcode/client"
 import { toggleMcp } from "./global-sync/mcp"
+import { createServerSession, type ServerSession } from "./server-session"
 
 type GlobalStore = {
   ready: boolean
   error?: InitError
   path: Path
   project: Project[]
-  session_todo: {
-    [sessionID: string]: Todo[]
-  }
   provider: NormalizedProviderListResponse
   provider_auth: ProviderAuthResponse
   config: Config
   reload: undefined | "pending" | "complete"
 }
 
-export const loadMcpQuery = (scope: ServerScope, directory: string, sdk: OpencodeClient) =>
-  queryOptions({
+// The v2 client dropped the `mcp` namespace entirely, so MCP is read exclusively through the V1
+// SDK client, which is the only transport that still serves it. `server` is carried alongside the
+// wire `client` name because the app keys resources by it.
+export type McpResourceEntry = McpResource & { readonly server: string }
+
+type ApiQueryOptions<T, K extends readonly unknown[]> = SolidQueryOptions<T, Error, T, K> & {
+  initialData?: undefined
+  queryKey: K
+}
+
+type SessionActiveApi = {
+  readonly active: () => Promise<SessionsActiveOutput>
+}
+
+export const loadMcpQuery = (
+  scope: ServerScope,
+  directory: string,
+  sdk: OpencodeClient,
+): ApiQueryOptions<Record<string, McpStatus>, readonly [ServerScope, string, "mcp"]> =>
+  queryOptions<Record<string, McpStatus>, Error, Record<string, McpStatus>, readonly [ServerScope, string, "mcp"]>({
     queryKey: [scope, directory, "mcp"] as const,
-    queryFn: () => sdk.mcp.status().then((r) => r.data ?? {}),
+    queryFn: () => sdk.mcp.status({ directory }).then((result) => result.data ?? {}),
+  })
+
+export const loadMcpResourcesQuery = (
+  scope: ServerScope,
+  directory: string,
+  sdk: OpencodeClient,
+): ApiQueryOptions<Record<string, McpResourceEntry>, readonly [ServerScope, string, "mcpResources"]> =>
+  queryOptions<
+    Record<string, McpResourceEntry>,
+    Error,
+    Record<string, McpResourceEntry>,
+    readonly [ServerScope, string, "mcpResources"]
+  >({
+    queryKey: [scope, directory, "mcpResources"] as const,
+    queryFn: () =>
+      sdk.experimental.resource
+        .list({ directory })
+        .then((result) =>
+          Object.fromEntries(
+            Object.entries(result.data ?? {}).map(([key, resource]) => [
+              `${resource.client}:${resource.uri}`,
+              { ...resource, server: resource.client },
+            ]),
+          ),
+        ),
+    placeholderData: {},
   })
 
 export const loadLspQuery = (scope: ServerScope, directory: string, sdk: OpencodeClient) =>
@@ -64,20 +122,51 @@ export const loadLspQuery = (scope: ServerScope, directory: string, sdk: Opencod
     queryFn: () => sdk.lsp.status().then((r) => r.data ?? []),
   })
 
+export const loadActiveSessionsQuery = (
+  scope: ServerScope,
+  api: SessionActiveApi,
+): ApiQueryOptions<SessionsActiveOutput, readonly [ServerScope, "activeSessions"]> =>
+  queryOptions<SessionsActiveOutput, Error, SessionsActiveOutput, readonly [ServerScope, "activeSessions"]>({
+    queryKey: [scope, "activeSessions"] as const,
+    queryFn: () => api.active(),
+    enabled: true,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  })
+
+export function seedActiveSessionStatuses(
+  session: Pick<ServerSession, "data" | "set">,
+  active: SessionsActiveOutput | Record<string, SessionStatus>,
+) {
+  for (const sessionID of Object.keys(active)) {
+    if (session.data.session_status[sessionID] !== undefined) continue
+    const status = active[sessionID]
+    session.set("session_status", sessionID, status?.type === "running" ? { type: "busy" } : status)
+  }
+}
+
 function makeQueryOptionsApi(
   scope: ServerScope,
   serverSDK: () => OpencodeClient,
+  serverAPI: CompatibleApi,
   sdkFor: (dir: PathKey) => OpencodeClient,
+  protocol: Promise<"v1" | "v2">,
 ) {
   return {
-    globalConfig: () => loadGlobalConfigQuery(scope, serverSDK()),
-    projects: () => loadProjectsQuery(scope, serverSDK()),
+    globalConfig: () => loadGlobalConfigQuery(scope, serverSDK(), protocol),
+    projects: () => loadProjectsQuery(scope, serverAPI.project),
     providers: (directory: PathKey | null) =>
-      loadProvidersQuery(scope, directory, directory === null ? serverSDK() : sdkFor(directory)),
+      loadProvidersQuery(scope, directory, serverAPI, directory ? sdkFor(directory) : serverSDK(), protocol),
     path: (directory: PathKey | null) =>
-      loadPathQuery(scope, directory, directory === null ? serverSDK() : sdkFor(directory)),
-    agents: (directory: PathKey) => loadAgentsQuery(scope, directory, sdkFor(directory)),
+      loadPathQuery(scope, directory, directory ? sdkFor(directory) : serverSDK(), protocol),
+    agents: (directory: PathKey) => loadAgentsQuery(scope, directory, serverAPI.agents, sdkFor(directory), protocol),
+    references: (directory: PathKey) =>
+      loadReferencesQuery(scope, directory, serverAPI.references, sdkFor(directory), protocol),
     mcp: (directory: PathKey) => loadMcpQuery(scope, directory, sdkFor(directory)),
+    mcpResources: (directory: PathKey) => loadMcpResourcesQuery(scope, directory, sdkFor(directory)),
     lsp: (directory: PathKey) => loadLspQuery(scope, directory, sdkFor(directory)),
     sessions: (directory: PathKey) => ({ queryKey: [scope, directory, "loadSessions"] as const }),
   }
@@ -106,18 +195,50 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     return sdk
   }
 
-  const queryOptionsApi = makeQueryOptionsApi(serverSDK.scope, () => serverSDK.client, sdkFor)
+  const session = createServerSession(serverSDK.client, serverSDK.api.session, serverSDK.api.messages, {
+    protocol: serverSDK.protocol,
+  })
+  const queryOptionsApi = makeQueryOptionsApi(
+    serverSDK.scope,
+    () => serverSDK.client,
+    serverSDK.api,
+    sdkFor,
+    serverSDK.protocol,
+  )
 
   const [configQuery, providerQuery, pathQuery] = useQueries(() => ({
     queries: [queryOptionsApi.globalConfig(), queryOptionsApi.providers(null), queryOptionsApi.path(null)],
   }))
+  const activeSessionsQuery = useQuery(() =>
+    loadActiveSessionsQuery(serverSDK.scope, {
+      active: async () => {
+        if ((await serverSDK.protocol) === "v1") {
+          const statuses = (await serverSDK.client.session.status()).data ?? {}
+          seedActiveSessionStatuses(session, statuses)
+          for (const sessionID of Object.keys(statuses)) {
+            void session.resolve(sessionID).catch(() => undefined)
+          }
+          return Object.fromEntries(
+            Object.entries(statuses).flatMap(([sessionID, status]) =>
+              status.type === "idle" ? [] : [[sessionID, { type: "running" as const }]],
+            ),
+          )
+        }
+        const active = await serverSDK.api.session.active()
+        seedActiveSessionStatuses(session, active)
+        for (const sessionID of Object.keys(active)) {
+          void session.resolve(sessionID).catch(() => undefined)
+        }
+        return active
+      },
+    }),
+  )
 
   const [globalStore, setGlobalStore] = createStore<GlobalStore>({
     get ready() {
       return !bootstrap.isPending
     },
     project: [],
-    session_todo: {},
     provider_auth: {},
     get path() {
       const EMPTY = { state: "", config: "", worktree: "", directory: "", home: "" }
@@ -139,6 +260,11 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
   })
 
   const queryClient = useQueryClient()
+  const homeSessions = createHomeSessionIndexCache(queryClient, ServerConnection.key(serverSDK.server))
+  const refreshProviders = () =>
+    queryClient.refetchQueries({
+      predicate: (query) => query.queryKey[0] === serverSDK.scope && query.queryKey[2] === "providers",
+    })
 
   let bootedAt = 0
   let bootingRoot = false
@@ -167,6 +293,8 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     queryFn: async () => {
       await bootstrapGlobal({
         serverSDK: serverSDK.client,
+        serverAPI: serverSDK.api,
+        protocol: serverSDK.protocol,
         scope: serverSDK.scope,
         requestFailedTitle: language.t("common.requestFailed"),
         translate: language.t,
@@ -187,18 +315,19 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     return (setGlobalStore as (...args: unknown[]) => unknown)(...input)
   }) as typeof setGlobalStore
 
+  // Todos live in the shared session store; the directory reducer only needs a setter to drop them.
   const setSessionTodo = (sessionID: string, todos: Todo[] | undefined) => {
     if (!sessionID) return
     if (!todos) {
-      setGlobalStore(
-        "session_todo",
+      session.set(
+        "todo",
         produce((draft) => {
           delete draft[sessionID]
         }),
       )
       return
     }
-    setGlobalStore("session_todo", sessionID, reconcile(todos, { key: "id" }))
+    session.set("todo", sessionID, reconcile(todos, { key: "id" }))
   }
 
   const paused = () => untrack(() => globalStore.reload) !== undefined
@@ -220,17 +349,15 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
       void bootstrapInstance(directory)
     },
     onMcp: (directory, setStore) => {
-      void retry(() =>
-        sdkFor(directory)
-          .command.list()
-          .then((x) => setStore("command", x.data ?? [])),
-      ).catch((err) => {
-        showToast({
-          variant: "error",
-          title: language.t("toast.project.reloadFailed.title", { project: getFilename(directory) }),
-          description: formatServerError(err, language.t),
+      void loadCommands(directory, serverSDK.api.commands, sdkFor(directory), serverSDK.protocol)
+        .then((commands) => setStore("command", commands))
+        .catch((err) => {
+          showToast({
+            variant: "error",
+            title: language.t("toast.project.reloadFailed.title", { project: getFilename(directory) }),
+            description: formatServerError(err, language.t),
+          })
         })
-      })
     },
     onDispose: (directory) => {
       const key = directoryKey(directory)
@@ -238,7 +365,6 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
       sessionMeta.delete(key)
       sdkCache.delete(key)
       clearProviderRev(serverSDK.scope, key)
-      clearSessionPrefetchDirectory(serverSDK.scope, key)
     },
     translate: language.t,
     queryOptions: queryOptionsApi,
@@ -262,11 +388,10 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     if (meta && meta.limit >= retainedLimit) {
       const next = trimSessions(store.session, {
         limit: retainedLimit,
-        permission: store.permission,
+        permission: session.data.permission,
       })
       if (next.length !== store.session.length) {
         setStore("session", reconcile(next, { key: "id" }))
-        cleanupDroppedSessionCaches(store, setStore, next, setSessionTodo)
       }
       children.unpin(key)
       return
@@ -277,11 +402,12 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
       .fetchQuery({
         ...queryOptionsApi.sessions(key),
         queryFn: () =>
-          loadRootSessionsWithFallback({
-            directory,
-            limit,
-            list: (query) => serverSDK.client.session.list(query),
-          })
+          serverSDK.protocol
+            .then((protocol) =>
+              protocol === "v1"
+                ? loadRootSessionsV1({ client: sdkFor(directory), directory, limit })
+                : loadRootSessions({ api: serverSDK.api.session, directory, limit }),
+            )
             .then((x) => {
               const nonArchived = (x.data ?? [])
                 .filter((s) => !!s?.id)
@@ -289,11 +415,12 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
                 .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
               const limit = Math.max(store.limit, options?.limit ?? 0, sessionMeta.get(key)?.limit ?? 0)
               const childSessions = store.session.filter((s) => !!s.parentID)
-              const sessions = trimSessions([...nonArchived, ...childSessions], {
+              const next = trimSessions([...nonArchived, ...childSessions], {
                 limit,
-                permission: store.permission,
+                permission: session.data.permission,
               })
               batch(() => {
+                next.forEach(session.remember)
                 setStore(
                   "sessionTotal",
                   estimateRootSessionTotal({
@@ -302,8 +429,7 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
                     limited: x.limited,
                   }),
                 )
-                setStore("session", reconcile(sessions, { key: "id" }))
-                cleanupDroppedSessionCaches(store, setStore, sessions, setSessionTodo)
+                setStore("session", reconcile(next, { key: "id" }))
               })
               sessionMeta.set(key, { limit })
             })
@@ -351,12 +477,15 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
           provider: globalStore.provider,
         },
         sdk,
+        api: serverSDK.api,
         store: child[0],
         setStore: child[1],
         vcsCache: cache,
         loadSessions,
         translate: language.t,
         queryClient,
+        session,
+        protocol: serverSDK.protocol,
       })
     })
 
@@ -368,13 +497,41 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     return promise
   }
 
+  const indexSession = (info: Parameters<typeof session.remember>[0]) => {
+    const key = directoryKey(info.directory)
+    const existing = children.children[key]
+    if (!existing) return
+    applyDirectoryEvent({
+      event: { type: "session.created", properties: { info } },
+      directory: key,
+      store: existing[0],
+      setStore: existing[1],
+      push: queue.push,
+      retainedLimit: sessionMeta.get(key)?.limit,
+      sessionContent: false,
+      permission: session.data.permission,
+      loadLsp() {},
+    })
+  }
+
   const unsub = serverSDK.event.listen((e) => {
     const directory = e.name
     const key = directoryKey(directory)
     const event = e.details
+    const eventType: string = event.type
     const recent = bootingRoot || Date.now() - bootedAt < 1500
 
+    if (event.current) session.applyV2(event.current)
+    session.apply(event)
+    if (event.type === "session.created" || event.type === "session.updated" || event.type === "session.deleted") {
+      homeSessions.apply(event)
+    }
+    homeSessions.refresh(event.type)
+    if (eventType === "integration.connection.updated") void refreshProviders()
+
     if (directory === "global") {
+      if (eventType === "server.connected" && activeSessionsQuery.data === undefined && !activeSessionsQuery.isFetching)
+        void activeSessionsQuery.refetch()
       applyGlobalEvent({
         event,
         project: globalStore.project,
@@ -384,30 +541,72 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
         },
         setGlobalProject: setProjects,
       })
-      if (event.type === "server.connected" || event.type === "global.disposed") {
+      if (
+        eventType === "config.updated" ||
+        eventType === "catalog.updated" ||
+        eventType === "agent.updated" ||
+        eventType === "project.directories.updated"
+      )
+        bootstrap.refetch()
+      if (eventType === "server.connected" || eventType === "global.disposed") {
         if (recent) return
         for (const directory of Object.keys(children.children)) {
+          if (!children.active(directory)) continue
           queue.push(directory)
         }
       }
       return
     }
 
+    // v2 renamed the move event to `session.next.moved` and ships no fork event at all, so both
+    // are matched on the widened discriminant instead of the narrowed event union.
+    const current = event.current
+    const currentType: string | undefined = current?.type
+    const currentSessionID =
+      currentType === "session.next.moved" || currentType === "session.forked"
+        ? (current?.data as { sessionID?: string } | undefined)?.sessionID
+        : undefined
+    if (currentType === "session.next.moved" && currentSessionID) {
+      const info = session.get(currentSessionID)
+      if (info) indexSession(info)
+    }
+    if (currentType === "session.forked" && currentSessionID)
+      void session.resolve(currentSessionID, { force: true }).then(indexSession).catch(() => {})
+
     const existing = children.children[key]
     if (!existing) return
     children.mark(key)
+    if (
+      currentType === "session.next.moved" ||
+      // currentType === "session.archived" ||
+      currentType === "session.forked" ||
+      eventType === "command.updated" ||
+      eventType === "config.updated" ||
+      eventType === "agent.updated"
+    )
+      queue.push(key)
+    if (eventType === "mcp.status.changed") void queryClient.invalidateQueries(queryOptionsApi.mcp(key))
+    if (eventType === "mcp.resources.changed") void queryClient.invalidateQueries(queryOptionsApi.mcpResources(key))
     const [store, setStore] = existing
     applyDirectoryEvent({
       event,
       directory,
       store,
       setStore,
-      push: queue.push,
-      setSessionTodo,
+      push: (directory) => {
+        if (children.active(directory)) queue.push(directory)
+      },
       retainedLimit: sessionMeta.get(key)?.limit,
+      sessionContent: false,
+      permission: session.data.permission,
       vcsCache: children.vcsCache.get(key),
       loadLsp: () => {
+        if (!children.active(key)) return
         void queryClient.fetchQuery(queryOptionsApi.lsp(key))
+      },
+      loadReferences: () => {
+        if (!children.active(key)) return
+        void queryClient.fetchQuery(queryOptionsApi.references(key))
       },
     })
   })
@@ -475,9 +674,12 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
     peek: children.peek,
     disableMcp: children.disableMcp,
     queryOptions: queryOptionsApi,
+    refreshProviders,
     // bootstrap,
     updateConfig: updateConfigMutation.mutateAsync,
     project: projectApi,
+    session,
+    homeSessions,
     todo: {
       set: setSessionTodo,
     },
@@ -496,9 +698,11 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
       toggle: async (directory: string, name: string) => {
         const key = directoryKey(directory)
         const sdk = sdkFor(key)
-        const status = children.child(key, { bootstrap: false })[0].mcp[name].status
+        const status = children.child(key, { bootstrap: false })[0].mcp[name]?.status
+        if (!status) return
         await toggleMcp({
           status,
+          // v2 exposes no `mcp` namespace, so the V1 wire endpoints stay the only transport.
           connect: async () => {
             await sdk.mcp.connect({ name })
           },
@@ -510,6 +714,7 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
           },
           refresh: async () => {
             await queryClient.refetchQueries(queryOptionsApi.mcp(key))
+            await queryClient.refetchQueries(queryOptionsApi.mcpResources(key))
           },
         })
       },
@@ -520,7 +725,7 @@ export function createServerSyncContextInner(serverSDK: ServerSDK) {
 export function createServerSyncContext(serverSDK: ServerSDK) {
   const inner = createServerSyncContextInner(serverSDK)
   return Object.assign(inner, {
-    createDirSyncContext: createRefCountMap(
+    ensureDirSyncContext: createRefCountMap(
       (dir) => createDirSyncContext(dir, inner, serverSDK),
       (dir) => inner.disableMcp(dir),
       directoryKey,
@@ -542,7 +747,7 @@ export const { use: useServerSync, provider: ServerSyncProvider } = createSimple
     return createMemo<ServerSync>(() => {
       const conn = props.server?.() ?? server.current
       if (!conn) throw new Error(language.t("error.serverSDK.noServerAvailable"))
-      return global.createServerCtx(conn).sync
+      return global.ensureServerCtx(conn).sync
     })
   },
 })

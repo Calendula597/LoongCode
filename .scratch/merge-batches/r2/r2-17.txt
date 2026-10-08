@@ -1,0 +1,12 @@
+﻿packages/core/src/plugin/skill.ts
+packages/core/src/plugin/skill/customize-loongcode.md
+packages/core/src/provider.ts
+packages/core/test/command.test.ts
+packages/core/test/config/agent.test.ts
+packages/core/test/config/command.test.ts
+packages/core/test/config/config.test.ts
+packages/core/test/config/provider.test.ts
+packages/core/test/credential.test.ts
+packages/core/test/database-migration.test.ts
+packages/core/test/effect/cross-spawn-spawner.test.ts
+packages/core/test/event.test.ts

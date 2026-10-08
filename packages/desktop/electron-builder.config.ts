@@ -15,6 +15,9 @@ const signScript = path.join(rootDir, "script", "sign-windows.ps1")
 const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "loongcode-desktop.desktop")
 const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/loongcode-desktop.desktop`
 
+const metainfoFpm = (appId: string) =>
+  `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
+
 async function signWindows(configuration: { path: string }) {
   if (process.platform !== "win32") return
   if (process.env.GITHUB_ACTIONS !== "true") return
@@ -57,8 +60,17 @@ const getBase = (appId: string): Configuration => ({
       email: "loongcode@example.com",
     },
   },
-  files: ["out/**/*", "resources/**/*"],
+  files: ["out/**/*", "resources/**/*", "!resources/opencode-cli*"],
   extraResources: [
+    ...(channel === "dev"
+      ? [
+          {
+            from: "resources/",
+            to: "",
+            filter: ["opencode-cli*"],
+          },
+        ]
+      : []),
     {
       from: "native/",
       to: "native/",
@@ -128,7 +140,8 @@ function getConfig() {
         ...base,
         appId,
         productName: "Loongcode Dev",
-        rpm: { packageName: "loongcode-dev" },
+        deb: { fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "loongcode-dev", fpm: [metainfoFpm(appId)] },
       }
     }
     case "beta": {
@@ -138,7 +151,8 @@ function getConfig() {
         productName: "Loongcode Beta",
         protocols: { name: "Loongcode Beta", schemes: ["loongcode"] },
         publish: { provider: "github", owner: "Calendula597", repo: "LoongCode", channel: "latest" },
-        rpm: { packageName: "loongcode-beta" },
+        deb: { fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "loongcode-beta", fpm: [metainfoFpm(appId)] },
       }
     }
     case "prod": {
@@ -148,8 +162,8 @@ function getConfig() {
         productName: "Loongcode",
         protocols: { name: "Loongcode", schemes: ["loongcode"] },
         publish: { provider: "github", owner: "Calendula597", repo: "LoongCode", channel: "latest" },
-        deb: { fpm: [legacyDesktopEntryFpm] },
-        rpm: { packageName: "loongcode", fpm: [legacyDesktopEntryFpm] },
+        deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
+        rpm: { packageName: "loongcode", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
       }
     }
   }

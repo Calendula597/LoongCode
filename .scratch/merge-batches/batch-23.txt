@@ -1,0 +1,15 @@
+packages/app/src/components/dialog-settings.tsx
+packages/app/src/components/dialog-usage-exceeded.tsx
+packages/app/src/components/help-button.tsx
+packages/app/src/components/prompt-input.tsx
+packages/app/src/components/prompt-input/context-items.tsx
+packages/app/src/components/prompt-input/image-attachments.tsx
+packages/app/src/components/prompt-input/slash-popover.tsx
+packages/app/src/components/session-context-usage.tsx
+packages/app/src/components/session/session-context-metrics.test.ts
+packages/app/src/components/session/session-context-tab.tsx
+packages/app/src/components/session/session-header.tsx
+packages/app/src/components/settings-general.tsx
+packages/app/src/components/settings-keybinds.tsx
+packages/app/src/components/settings-v2/dialog-server-v2.tsx
+packages/app/src/components/settings-v2/dialog-settings-v2.tsx

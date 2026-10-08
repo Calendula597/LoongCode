@@ -1,7 +1,8 @@
 import { describe, expect } from "bun:test"
-import { Tool } from "@loongcode/core/public"
+import { Tool } from "@loongcode/core/tool/tool"
 import { ApplicationTools } from "@loongcode/core/tool/application-tools"
-import { PermissionV2 } from "@loongcode/core/permission"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { SessionV2 } from "@loongcode/core/session"
 import { SessionMessage } from "@loongcode/core/session/message"
 import { AgentV2 } from "@loongcode/core/agent"
@@ -9,19 +10,14 @@ import { ToolRegistry } from "@loongcode/core/tool/registry"
 import { executeTool, settleTool, toolDefinitions } from "./lib/tool"
 import { ToolOutputStore } from "@loongcode/core/tool-output-store"
 import { Tools } from "@loongcode/core/tool/tools"
-import { Deferred, Effect, Exit, Fiber, Layer, Schema, Scope } from "effect"
+import { Deferred, Effect, Exit, Fiber, Schema, Scope } from "effect"
 import { testEffect } from "./lib/effect"
 
-const permission = Layer.mock(PermissionV2.Service, {
-  assert: () => Effect.void,
-})
-const applications = ApplicationTools.layer
-const registry = ToolRegistry.layer.pipe(
-  Layer.provide(permission),
-  Layer.provide(applications),
-  Layer.provide(ToolOutputStore.defaultLayer),
+const it = testEffect(
+  AppNodeBuilder.build(LayerNode.group([ApplicationTools.node, ToolRegistry.node, ToolRegistry.toolsNode]), [
+    [ToolOutputStore.node, ToolOutputStore.nodeWithoutConfig],
+  ]),
 )
-const it = testEffect(Layer.mergeAll(applications, registry))
 
 const sessionID = SessionV2.ID.make("ses_application_tool")
 const agent = AgentV2.ID.make("build")

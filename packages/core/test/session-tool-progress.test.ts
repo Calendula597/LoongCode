@@ -1,7 +1,8 @@
 import { describe, expect } from "bun:test"
 import { asc, eq } from "drizzle-orm"
-import { DateTime, Effect, Layer, Schema } from "effect"
+import { DateTime, Effect, Schema } from "effect"
 import { Database } from "@loongcode/core/database/database"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { EventTable } from "@loongcode/core/event/sql"
 import { ModelV2 } from "@loongcode/core/model"
@@ -16,10 +17,7 @@ import { SessionProjector } from "@loongcode/core/session/projector"
 import { SessionTable, SessionMessageTable } from "@loongcode/core/session/sql"
 import { testEffect } from "./lib/effect"
 
-const database = Database.layerFromPath(":memory:")
-const events = EventV2.layer.pipe(Layer.provide(database))
-const projector = SessionProjector.layer.pipe(Layer.provide(events), Layer.provide(database))
-const it = testEffect(Layer.mergeAll(database, events, projector))
+const it = testEffect(LayerNode.compile(LayerNode.group([Database.node, EventV2.node, SessionProjector.node])))
 const timestamp = DateTime.makeUnsafe(1)
 const model = { id: ModelV2.ID.make("model"), providerID: ProviderV2.ID.make("provider") }
 

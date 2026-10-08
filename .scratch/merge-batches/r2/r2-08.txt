@@ -1,0 +1,12 @@
+﻿packages/app/AGENTS.md
+packages/app/e2e/regression/session-timeline-context-resize.spec.ts
+packages/app/e2e/smoke/session-timeline.spec.ts
+packages/app/e2e/utils/mock-server.ts
+packages/app/index.html
+packages/app/package.json
+packages/app/src/app.tsx
+packages/app/src/components/debug-bar.tsx
+packages/app/src/components/dialog-connect-provider.tsx
+packages/app/src/components/dialog-custom-provider.tsx
+packages/app/src/components/dialog-edit-project.tsx
+packages/app/src/components/dialog-manage-models.tsx

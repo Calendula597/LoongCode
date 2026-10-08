@@ -1,9 +1,9 @@
 ---
 title: Soporte ACP
-description: Utilice Loongcode en cualquier editor compatible con ACP.
+description: Utilice LoongCode en cualquier editor compatible con ACP.
 ---
 
-Loongcode admite el [Agent Client Protocol](https://agentclientprotocol.com) o (ACP), lo que le permite usarlo directamente en editores e IDE compatibles.
+LoongCode admite el [Agent Client Protocol](https://agentclientprotocol.com) o (ACP), lo que le permite usarlo directamente en editores e IDE compatibles.
 
 :::tip
 Para obtener una lista de editores y herramientas compatibles con ACP, consulte el [informe de progreso de ACP](https://zed.dev/blog/acp-progress-report#available-now).
@@ -15,9 +15,9 @@ ACP es un protocolo abierto que estandariza la comunicación entre editores de c
 
 ## Configuración
 
-Para usar Loongcode a través de ACP, configure su editor para ejecutar el comando `loongcode acp`.
+Para usar LoongCode a través de ACP, configure su editor para ejecutar el comando `loongcode acp`.
 
-El comando inicia Loongcode como un subproceso compatible con ACP que se comunica con su editor a través de JSON-RPC a través de stdio.
+El comando inicia LoongCode como un subproceso compatible con ACP que se comunica con su editor a través de JSON-RPC a través de stdio.
 
 A continuación se muestran ejemplos de editores populares que admiten ACP.
 
@@ -25,12 +25,15 @@ A continuación se muestran ejemplos de editores populares que admiten ACP.
 
 ### Zed
 
-Agregue a su configuración [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+Instale LoongCode desde el [registro ACP de Zed](https://zed.dev/docs/ai/external-agents#registry) ejecutando `zed: acp registry` en la paleta de comandos.
+
+Para usar un ejecutable personalizado de LoongCode, agréguelo a su configuración de [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
+      "type": "custom",
       "command": "loongcode",
       "args": ["acp"]
     }
@@ -51,7 +54,7 @@ También puedes vincular un atajo de teclado editando tu `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "Loongcode",
+              "name": "LoongCode",
               "command": {
                 "command": "loongcode",
                 "args": ["acp"]
@@ -74,7 +77,7 @@ Agregue a su [JetBrains IDE](https://www.jetbrains.com/) acp.json de acuerdo con
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
       "command": "/absolute/path/bin/loongcode",
       "args": ["acp"]
     }
@@ -82,7 +85,7 @@ Agregue a su [JetBrains IDE](https://www.jetbrains.com/) acp.json de acuerdo con
 }
 ```
 
-Para abrirlo, use el nuevo agente 'Loongcode' en el selector de agentes de AI Chat.
+Para abrirlo, use el nuevo agente 'LoongCode' en el selector de agentes de AI Chat.
 
 ---
 
@@ -121,7 +124,7 @@ Si necesita pasar variables de entorno:
 
 ### CodeCompanion.nvim
 
-Para usar Loongcode como agente ACP en [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), agregue lo siguiente a su configuración de Neovim:
+Para usar LoongCode como agente ACP en [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), agregue lo siguiente a su configuración de Neovim:
 
 ```lua
 require("codecompanion").setup({
@@ -136,13 +139,13 @@ require("codecompanion").setup({
 })
 ```
 
-Esta configuración configura CodeCompanion para usar Loongcode como agente ACP para el chat.
+Esta configuración configura CodeCompanion para usar LoongCode como agente ACP para el chat.
 
 Si necesita pasar variables de entorno (como `LOONGCODE_API_KEY`), consulte [Configuración de adaptadores: variables de entorno](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) en la documentación de CodeCompanion.nvim para obtener detalles completos.
 
 ## Soporte
 
-Loongcode funciona igual a través de ACP que en la terminal. Todas las funciones son compatibles:
+LoongCode funciona igual a través de ACP que en la terminal. Todas las funciones son compatibles:
 
 :::note
 Algunos comandos de barra integrados como `/undo` y `/redo` no son compatibles actualmente.
@@ -150,7 +153,7 @@ Algunos comandos de barra integrados como `/undo` y `/redo` no son compatibles a
 
 - Herramientas integradas (operaciones de archivos, comandos de terminal, etc.)
 - Herramientas personalizadas y comandos de barra
-- Servidores MCP configurados en su configuración Loongcode
+- Servidores MCP configurados en su configuración LoongCode
 - Reglas específicas del proyecto de `AGENTS.md`
 - Formateadores y linters personalizados
 - Sistema de agentes y permisos.

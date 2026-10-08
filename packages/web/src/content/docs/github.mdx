@@ -1,17 +1,17 @@
 ---
 title: GitHub
-description: Use Loongcode in GitHub issues and pull-requests.
+description: Use LoongCode in GitHub issues and pull-requests.
 ---
 
-Loongcode integrates with your GitHub workflow. Mention `/loongcode` or `/oc` in your comment, and Loongcode will execute tasks within your GitHub Actions runner.
+LoongCode integrates with your GitHub workflow. Mention `/loongcode` or `/oc` in your comment, and LoongCode will execute tasks within your GitHub Actions runner.
 
 ---
 
 ## Features
 
-- **Triage issues**: Ask Loongcode to look into an issue and explain it to you.
-- **Fix and implement**: Ask Loongcode to fix an issue or implement a feature. And it will work in a new branch and submits a PR with all the changes.
-- **Secure**: Loongcode runs inside your GitHub's runners.
+- **Triage issues**: Ask LoongCode to look into an issue and explain it to you.
+- **Fix and implement**: Ask LoongCode to fix an issue or implement a feature. And it will work in a new branch and submits a PR with all the changes.
+- **Secure**: LoongCode runs inside your GitHub's runners.
 
 ---
 
@@ -33,7 +33,7 @@ Or you can set it up manually.
 
 1. **Install the GitHub app**
 
-   Head over to [**github.com/apps/loongcode-agent**](https://github.com/apps/loongcode-agent). Make sure it's installed on the target repository.
+   Head over to [**github.com/apps/opencode-agent**](https://github.com/apps/opencode-agent). Make sure it's installed on the target repository.
 
 2. **Add the workflow**
 
@@ -57,20 +57,19 @@ Or you can set it up manually.
        permissions:
          id-token: write
        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v6
-            with:
-              fetch-depth: 1
-              persist-credentials: false
+         - name: Checkout repository
+           uses: actions/checkout@v6
+           with:
+             fetch-depth: 1
+             persist-credentials: false
 
-          - name: Run Loongcode
-           uses: Clearlove7Zz/LoongCode/github@latest
+         - name: Run LoongCode
+           uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
              model: anthropic/claude-sonnet-4-20250514
              # share: true
-             # github_token: xxxx
    ```
 
 3. **Store the API keys in secrets**
@@ -81,45 +80,56 @@ Or you can set it up manually.
 
 ## Configuration
 
-- `model`: The model to use with Loongcode. Takes the format of `provider/model`. This is **required**.
+- `model`: The model to use with LoongCode. Takes the format of `provider/model`. This is **required**.
 - `agent`: The agent to use. Must be a primary agent. Falls back to `default_agent` from config or `"build"` if not found.
-- `share`: Whether to share the Loongcode session. Defaults to **true** for public repositories.
-- `prompt`: Optional custom prompt to override the default behavior. Use this to customize how Loongcode processes requests.
-- `token`: Optional GitHub access token for performing operations such as creating comments, committing changes, and opening pull requests. By default, Loongcode uses the installation access token from the Loongcode GitHub App, so commits, comments, and pull requests appear as coming from the app.
+- `share`: Whether to share the LoongCode session. Defaults to **true** for public repositories.
+- `prompt`: Optional custom prompt to override the default behavior. Use this to customize how LoongCode processes requests.
+- `mentions`: Comma-separated list of trigger phrases, case-insensitive. Defaults to `/loongcode,/oc`.
+- `variant`: Model variant for provider-specific reasoning effort, for example `high`, `max`, or `minimal`.
+- `oidc_base_url`: Base URL for the OIDC token exchange API. Only needed when running a custom GitHub App install. Defaults to `https://api.opencode.ai`.
+- `use_github_token`: Set to `true` to use a caller-provided `GITHUB_TOKEN` instead of exchanging an OIDC token for a LoongCode App installation token. Defaults to `false`.
 
-  Alternatively, you can use the GitHub Action runner's [built-in `GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) without installing the Loongcode GitHub App. Just make sure to grant the required permissions in your workflow:
+  Use this mode to run without installing the LoongCode GitHub App. Pass the token through `env` and grant the permissions required by your workflow:
 
   ```yaml
   permissions:
-    id-token: write
     contents: write
     pull-requests: write
     issues: write
+
+  steps:
+    - uses: anomalyco/opencode/github@latest
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        model: anthropic/claude-sonnet-4-20250514
+        use_github_token: true
   ```
 
-  You can also use a [personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)(PAT) if preferred.
+  `id-token: write` is not required in this mode because OIDC exchange is skipped. To use a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) or another GitHub App token, store it as a secret and pass that secret as `GITHUB_TOKEN` instead.
 
 ---
 
 ## Supported Events
 
-Loongcode can be triggered by the following GitHub events:
+LoongCode can be triggered by the following GitHub events:
 
 | Event Type                    | Triggered By                           | Details                                                                                                           |
 | ----------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `issue_comment`               | Comment on an issue or PR              | Mention `/loongcode` or `/oc` in your comment. Loongcode reads context and can create branches, open PRs, or reply. |
-| `pull_request_review_comment` | Comment on specific code lines in a PR | Mention `/loongcode` or `/oc` while reviewing code. Loongcode receives file path, line numbers, and diff context.   |
-| `issues`                      | Issue opened or edited                 | Automatically trigger Loongcode when issues are created or modified. Requires `prompt` input.                      |
-| `pull_request`                | PR opened or updated                   | Automatically trigger Loongcode when PRs are opened, synchronized, or reopened. Useful for automated reviews.      |
-| `schedule`                    | Cron-based schedule                    | Run Loongcode on a schedule. Requires `prompt` input. Output goes to logs and PRs (no issue to comment on).        |
-| `workflow_dispatch`           | Manual trigger from GitHub UI          | Trigger Loongcode on demand via Actions tab. Requires `prompt` input. Output goes to logs and PRs.                 |
+| `issue_comment`               | Comment on an issue or PR              | Mention `/loongcode` or `/oc` in your comment. LoongCode reads context and can create branches, open PRs, or reply. |
+| `pull_request_review_comment` | Comment on specific code lines in a PR | Mention `/loongcode` or `/oc` while reviewing code. LoongCode receives file path, line numbers, and diff context.  |
+| `issues`                      | Issue opened or edited                 | Automatically trigger LoongCode when issues are created or modified. Requires `prompt` input.                     |
+| `pull_request`                | PR opened or updated                   | Automatically trigger LoongCode when PRs are opened, synchronized, or reopened. Useful for automated reviews.     |
+| `schedule`                    | Cron-based schedule                    | Run LoongCode on a schedule. Requires `prompt` input. Output goes to logs and PRs (no issue to comment on).       |
+| `workflow_dispatch`           | Manual trigger from GitHub UI          | Trigger LoongCode on demand via Actions tab. Requires `prompt` input. Output goes to logs and PRs.                |
 
 ### Schedule Example
 
-Run Loongcode on a schedule to perform automated tasks:
+Run LoongCode on a schedule to perform automated tasks:
 
 ```yaml title=".github/workflows/loongcode-scheduled.yml"
-name: Scheduled Loongcode Task
+name: Scheduled LoongCode Task
 
 on:
   schedule:
@@ -139,8 +149,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Loongcode
-        uses: Clearlove7Zz/LoongCode/github@latest
+      - name: Run LoongCode
+        uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -150,7 +160,7 @@ jobs:
             If you find issues worth addressing, open an issue to track them.
 ```
 
-For scheduled events, the `prompt` input is **required** since there's no comment to extract instructions from. Scheduled workflows run without a user context to permission-check, so the workflow must grant `contents: write` and `pull-requests: write` if you expect Loongcode to create branches or PRs.
+For scheduled events, the `prompt` input is **required** since there's no comment to extract instructions from. Scheduled workflows run without a user context to permission-check, so the workflow must grant `contents: write` and `pull-requests: write` if you expect LoongCode to create branches or PRs.
 
 ---
 
@@ -177,7 +187,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: Clearlove7Zz/LoongCode/github@latest
+      - uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -191,7 +201,7 @@ jobs:
             - Suggest improvements
 ```
 
-For `pull_request` events, if no `prompt` is provided, Loongcode defaults to reviewing the pull request.
+For `pull_request` events, if no `prompt` is provided, LoongCode defaults to reviewing the pull request.
 
 ---
 
@@ -233,7 +243,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: Clearlove7Zz/LoongCode/github@latest
+      - uses: anomalyco/opencode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -252,10 +262,10 @@ For `issues` events, the `prompt` input is **required** since there's no comment
 
 ## Custom prompts
 
-Override the default prompt to customize Loongcode's behavior for your workflow.
+Override the default prompt to customize LoongCode's behavior for your workflow.
 
 ```yaml title=".github/workflows/loongcode.yml"
-- uses: Clearlove7Zz/LoongCode/github@latest
+- uses: anomalyco/opencode/github@latest
   with:
     model: anthropic/claude-sonnet-4-5
     prompt: |
@@ -271,7 +281,7 @@ This is useful for enforcing specific review criteria, coding standards, or focu
 
 ## Examples
 
-Here are some examples of how you can use Loongcode in GitHub.
+Here are some examples of how you can use LoongCode in GitHub.
 
 - **Explain an issue**
 
@@ -281,7 +291,7 @@ Here are some examples of how you can use Loongcode in GitHub.
   /loongcode explain this issue
   ```
 
-  Loongcode will read the entire thread, including all comments, and reply with a clear explanation.
+  LoongCode will read the entire thread, including all comments, and reply with a clear explanation.
 
 - **Fix an issue**
 
@@ -291,7 +301,7 @@ Here are some examples of how you can use Loongcode in GitHub.
   /loongcode fix this
   ```
 
-  And Loongcode will create a new branch, implement the changes, and open a PR with the changes.
+  And LoongCode will create a new branch, implement the changes, and open a PR with the changes.
 
 - **Review PRs and make changes**
 
@@ -301,18 +311,18 @@ Here are some examples of how you can use Loongcode in GitHub.
   Delete the attachment from S3 when the note is removed /oc
   ```
 
-  Loongcode will implement the requested change and commit it to the same PR.
+  LoongCode will implement the requested change and commit it to the same PR.
 
 - **Review specific code lines**
 
-  Leave a comment directly on code lines in the PR's "Files" tab. Loongcode automatically detects the file, line numbers, and diff context to provide precise responses.
+  Leave a comment directly on code lines in the PR's "Files" tab. LoongCode automatically detects the file, line numbers, and diff context to provide precise responses.
 
   ```
   [Comment on specific lines in Files tab]
   /oc add error handling here
   ```
 
-  When commenting on specific lines, Loongcode receives:
+  When commenting on specific lines, LoongCode receives:
   - The exact file being reviewed
   - The specific lines of code
   - The surrounding diff context

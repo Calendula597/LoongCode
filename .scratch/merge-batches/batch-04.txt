@@ -1,0 +1,15 @@
+packages/loongcode/src/provider/provider.ts
+packages/loongcode/src/provider/transform.ts
+packages/loongcode/src/question/index.ts
+packages/loongcode/src/question/schema.ts
+packages/loongcode/src/server/event.ts
+packages/loongcode/src/server/routes/instance/httpapi/api.ts
+packages/loongcode/src/server/routes/instance/httpapi/groups/global.ts
+packages/loongcode/src/server/routes/instance/httpapi/handlers/file.ts
+packages/loongcode/src/server/routes/instance/httpapi/handlers/global.ts
+packages/loongcode/src/server/routes/instance/httpapi/handlers/provider.ts
+packages/loongcode/src/server/routes/instance/httpapi/handlers/pty.ts
+packages/loongcode/src/server/routes/instance/httpapi/server.ts
+packages/loongcode/src/server/tui-event.ts
+packages/loongcode/src/session/compaction.ts
+packages/loongcode/src/session/instruction.ts

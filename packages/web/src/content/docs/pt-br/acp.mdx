@@ -1,9 +1,9 @@
 ---
 title: Suporte ACP
-description: Use o loongcode em qualquer editor compatível com ACP.
+description: Use o opencode em qualquer editor compatível com ACP.
 ---
 
-O loongcode suporta o [Agent Client Protocol](https://agentclientprotocol.com) ou (ACP), permitindo que você o utilize diretamente em editores e IDEs compatíveis.
+O opencode suporta o [Agent Client Protocol](https://agentclientprotocol.com) ou (ACP), permitindo que você o utilize diretamente em editores e IDEs compatíveis.
 
 :::tip
 Para uma lista de editores e ferramentas que suportam ACP, confira o [relatório de progresso do ACP](https://zed.dev/blog/acp-progress-report#available-now).
@@ -17,7 +17,7 @@ O ACP é um protocolo aberto que padroniza a comunicação entre editores de có
 
 Para usar loongcode via ACP, configure seu editor para executar o comando `loongcode acp`.
 
-Este comando inicia o loongcode como um subprocesso compatível com ACP que se comunica com seu editor via JSON-RPC através do stdio.
+Este comando inicia o opencode como um subprocesso compatível com ACP que se comunica com seu editor via JSON-RPC através do stdio.
 
 Abaixo estão exemplos para editores populares que suportam ACP.
 
@@ -25,12 +25,15 @@ Abaixo estão exemplos para editores populares que suportam ACP.
 
 ### Zed
 
-Adicione à sua configuração do [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+Instale o LoongCode pelo [Registro ACP do Zed](https://zed.dev/docs/ai/external-agents#registry) executando `zed: acp registry` na Paleta de Comandos.
+
+Para usar um executável personalizado do LoongCode, adicione-o à configuração do [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
+      "type": "custom",
       "command": "loongcode",
       "args": ["acp"]
     }
@@ -51,7 +54,7 @@ Você também pode vincular um atalho de teclado editando seu `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "Loongcode",
+              "name": "LoongCode",
               "command": {
                 "command": "loongcode",
                 "args": ["acp"]
@@ -74,7 +77,7 @@ Adicione ao seu acp.json do [JetBrains IDE](https://www.jetbrains.com/) de acord
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
       "command": "/absolute/path/bin/loongcode",
       "args": ["acp"]
     }
@@ -82,7 +85,7 @@ Adicione ao seu acp.json do [JetBrains IDE](https://www.jetbrains.com/) de acord
 }
 ```
 
-Para abri-lo, use o novo agente 'loongcode' no seletor de agentes do AI Chat.
+Para abri-lo, use o novo agente 'opencode' no seletor de agentes do AI Chat.
 
 ---
 
@@ -121,7 +124,7 @@ Se você precisar passar variáveis de ambiente:
 
 ### CodeCompanion.nvim
 
-Para usar loongcode como um agente ACP no [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), adicione o seguinte à sua configuração do Neovim:
+Para usar opencode como um agente ACP no [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), adicione o seguinte à sua configuração do Neovim:
 
 ```lua
 require("codecompanion").setup({
@@ -136,13 +139,13 @@ require("codecompanion").setup({
 })
 ```
 
-Esta configuração configura o CodeCompanion para usar loongcode como o agente ACP para chat.
+Esta configuração configura o CodeCompanion para usar opencode como o agente ACP para chat.
 
 Se você precisar passar variáveis de ambiente (como `LOONGCODE_API_KEY`), consulte [Configurando Adaptadores: Variáveis de Ambiente](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) na documentação do CodeCompanion.nvim para detalhes completos.
 
 ## Suporte
 
-O loongcode funciona da mesma forma via ACP como funciona no terminal. Todos os recursos são suportados:
+O opencode funciona da mesma forma via ACP como funciona no terminal. Todos os recursos são suportados:
 
 :::note
 Alguns comandos de barra integrados, como `/undo` e `/redo`, atualmente não são suportados.
@@ -150,7 +153,7 @@ Alguns comandos de barra integrados, como `/undo` e `/redo`, atualmente não sã
 
 - Ferramentas integradas (operações de arquivo, comandos de terminal, etc.)
 - Ferramentas personalizadas e comandos de barra
-- Servidores MCP configurados na sua configuração do loongcode
+- Servidores MCP configurados na sua configuração do opencode
 - Regras específicas do projeto do `AGENTS.md`
 - Formatadores e linters personalizados
 - Sistema de agentes e permissões

@@ -1,0 +1,8 @@
+﻿packages/session-ui/src/components/file-media.tsx
+packages/session-ui/src/components/message-part.tsx
+packages/session-ui/src/components/session-diff.ts
+packages/session-ui/src/components/session-retry.tsx
+packages/session-ui/src/components/session-review.tsx
+packages/session-ui/src/components/session-turn.tsx
+packages/session-ui/src/context/data.tsx
+packages/session-ui/src/pierre/index.ts

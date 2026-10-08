@@ -4,6 +4,8 @@ import { fileURLToPath } from "url"
 import { describe, expect, test } from "bun:test"
 import { Effect, Layer } from "effect"
 import { FileMutation } from "@loongcode/core/file-mutation"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { Location } from "@loongcode/core/location"
 import { LocationMutation } from "@loongcode/core/location-mutation"
@@ -11,6 +13,7 @@ import { PermissionV2 } from "@loongcode/core/permission"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SessionV2 } from "@loongcode/core/session"
 import { ToolRegistry } from "@loongcode/core/tool/registry"
+import { ToolOutputStore } from "@loongcode/core/tool-output-store"
 import { WriteTool } from "@loongcode/core/tool/write"
 import { location } from "./fixture/location"
 import { tmpdir } from "./fixture/tmpdir"
@@ -28,7 +31,7 @@ const permission = Layer.succeed(
     assert: (input) =>
       Effect.sync(() => assertions.push(input)).pipe(
         Effect.andThen(
-          input.action === denyAction ? Effect.fail(new PermissionV2.DeniedError({ rules: [] })) : Effect.void,
+          input.action === denyAction ? Effect.fail(new PermissionV2.BlockedError({ rules: [] })) : Effect.void,
         ),
       ),
     ask: () => Effect.die("unused"),
@@ -55,25 +58,34 @@ const filesystem = Layer.effect(
         Effect.sync(() => writes.push(target)).pipe(Effect.andThen(fs.writeWithDirs(target, content, mode))),
     })
   }),
-).pipe(Layer.provide(FSUtil.defaultLayer))
+).pipe(Layer.provide(LayerNode.compile(FSUtil.node)))
 
 const withTool = <A, E, R>(directory: string, body: (registry: ToolRegistry.Interface) => Effect.Effect<A, E, R>) => {
   const activeLocation = Layer.succeed(
     Location.Service,
     Location.Service.of(location({ directory: AbsolutePath.make(directory) })),
   )
-  const resolution = LocationMutation.layer.pipe(Layer.provide(filesystem), Layer.provide(activeLocation))
-  const mutation = FileMutation.layer.pipe(Layer.provide(filesystem))
-  const registry = ToolRegistry.defaultLayer.pipe(Layer.provide(permission))
-  const write = WriteTool.layer.pipe(
-    Layer.provide(registry),
-    Layer.provide(permission),
-    Layer.provide(resolution),
-    Layer.provide(mutation),
-  )
   return Effect.gen(function* () {
     return yield* body(yield* ToolRegistry.Service)
-  }).pipe(Effect.provide(Layer.mergeAll(registry, resolution, mutation, write)))
+  }).pipe(
+    Effect.provide(
+      AppNodeBuilder.build(
+        LayerNode.group([
+          ToolRegistry.node,
+          ToolRegistry.toolsNode,
+          LocationMutation.node,
+          FileMutation.node,
+          WriteTool.node,
+        ]),
+        [
+          [FSUtil.node, filesystem],
+          [Location.node, activeLocation],
+          [PermissionV2.node, permission],
+          [ToolOutputStore.node, ToolOutputStore.nodeWithoutConfig],
+        ],
+      ),
+    ),
+  )
 }
 
 const call = (input: typeof WriteTool.Input.Type, id = "call-write") => ({
@@ -279,7 +291,7 @@ test("keeps the locked write schema, semantics docstring, and deferred UX TODOs 
 
   expect(Object.keys(schema.properties ?? {}).sort()).toEqual(["content", "path"])
   expect(source).toContain(
-    "Named project references\n * are read-oriented and deliberately are not accepted by mutation tools.",
+    "absolute external paths retain mutation capability through a separate\n * external_directory approval before edit approval.",
   )
   for (const todo of [
     "Revisit whether model-facing mutation schemas should prefer absolute `filePath` naming for trained-in compatibility after evaluating model behavior.",

@@ -1,0 +1,15 @@
+packages/loongcode/src/cli/cmd/debug/v2.ts
+packages/loongcode/src/cli/cmd/run.ts
+packages/loongcode/src/cli/cmd/run/footer.view.tsx
+packages/loongcode/src/cli/cmd/run/splash.ts
+packages/loongcode/src/cli/cmd/run/variant.shared.ts
+packages/loongcode/src/cli/cmd/web.ts
+packages/loongcode/src/cli/tui/layer.ts
+packages/loongcode/src/command/index.ts
+packages/loongcode/src/config/config.ts
+packages/loongcode/src/control-plane/workspace.ts
+packages/loongcode/src/event-v2-bridge.ts
+packages/loongcode/src/ide/index.ts
+packages/loongcode/src/installation/index.ts
+packages/loongcode/src/lsp/lsp.ts
+packages/loongcode/src/mcp/index.ts

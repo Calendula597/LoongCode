@@ -308,7 +308,7 @@ Port CC-Switch's `SkillsPage.tsx` to SolidJS (LoongCode's frontend framework).
 
 **Data fetching:** Use auto-generated SDK client:
 ```ts
-const client = createLgcodeClient()
+const client = createLoongcodeClient()
 const skills = await client.v2.skill.marketplace()  // or similar
 ```
 

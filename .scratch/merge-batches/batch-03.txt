@@ -1,0 +1,15 @@
+packages/loongcode/src/mcp/oauth-callback.ts
+packages/loongcode/src/permission/index.ts
+packages/loongcode/src/plugin/azure.ts
+packages/loongcode/src/plugin/digitalocean.ts
+packages/loongcode/src/plugin/github-copilot/models.ts
+packages/loongcode/src/plugin/index.ts
+packages/loongcode/src/plugin/openai/codex.ts
+packages/loongcode/src/plugin/snowflake-cortex.ts
+packages/loongcode/src/plugin/tui/runtime.ts
+packages/loongcode/src/plugin/xai.ts
+packages/loongcode/src/project/bootstrap.ts
+packages/loongcode/src/project/instance-store.ts
+packages/loongcode/src/project/project.ts
+packages/loongcode/src/project/vcs.ts
+packages/loongcode/src/provider/auth.ts

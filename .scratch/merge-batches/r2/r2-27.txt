@@ -1,0 +1,12 @@
+﻿packages/loongcode/src/session/status.ts
+packages/loongcode/src/session/system.ts
+packages/loongcode/src/session/todo.ts
+packages/loongcode/src/session/tools.ts
+packages/loongcode/src/share/share-next.ts
+packages/loongcode/src/skill/discovery.ts
+packages/loongcode/src/snapshot/index.ts
+packages/loongcode/src/sync/schema.ts
+packages/loongcode/test/agent/agent.test.ts
+packages/loongcode/test/agent/plan-mode-subagent-bypass.test.ts
+packages/loongcode/test/agent/plugin-agent-regression.test.ts
+packages/loongcode/test/auth/auth.test.ts

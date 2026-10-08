@@ -1,0 +1,12 @@
+﻿packages/core/test/plugin/provider-cloudflare-workers-ai.test.ts
+packages/core/test/plugin/provider-cohere.test.ts
+packages/core/test/plugin/provider-deepinfra.test.ts
+packages/core/test/plugin/provider-dynamic.test.ts
+packages/core/test/plugin/provider-gateway.test.ts
+packages/core/test/plugin/provider-github-copilot.test.ts
+packages/core/test/plugin/provider-gitlab.test.ts
+packages/core/test/plugin/provider-google-vertex.test.ts
+packages/core/test/plugin/provider-google-vertex-anthropic.test.ts
+packages/core/test/plugin/provider-nvidia.test.ts
+packages/core/test/plugin/provider-openai.test.ts
+packages/core/test/plugin/provider-openai-compatible.test.ts

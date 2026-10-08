@@ -1,0 +1,12 @@
+packages/tui/package.json
+packages/tui/src/app.tsx
+packages/tui/src/component/dialog-console-org.tsx
+packages/tui/src/component/dialog-provider.tsx
+packages/tui/src/component/error-component.tsx
+packages/tui/src/config/keybind.ts
+packages/tui/src/context/data.tsx
+packages/tui/src/feature-plugins/home/tips-view.tsx
+packages/tui/src/feature-plugins/system/diff-viewer.tsx
+packages/tui/src/routes/session/index.tsx
+packages/tui/test/app-lifecycle.test.tsx
+packages/tui/test/cli/tui/__snapshots__/inline-tool-wrap-snapshot.test.tsx.snap

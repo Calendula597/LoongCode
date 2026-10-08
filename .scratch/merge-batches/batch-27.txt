@@ -1,0 +1,15 @@
+packages/app/src/i18n/th.ts
+packages/app/src/i18n/tr.ts
+packages/app/src/i18n/uk.ts
+packages/app/src/i18n/zh.ts
+packages/app/src/i18n/zht.ts
+packages/app/src/index.css
+packages/app/src/pages/directory-layout.tsx
+packages/app/src/pages/error.tsx
+packages/app/src/pages/home.tsx
+packages/app/src/pages/layout.tsx
+packages/app/src/pages/layout/sidebar-items.tsx
+packages/app/src/pages/layout/sidebar-workspace.tsx
+packages/app/src/pages/session.tsx
+packages/app/src/pages/session/composer/session-composer-region.tsx
+packages/app/src/pages/session/composer/session-composer-state.test.ts

@@ -1,0 +1,8 @@
+﻿packages/app/src/pages/session/timeline/model.test.ts
+packages/app/src/pages/session/timeline/projection.ts
+packages/app/src/pages/session/timeline/rows.ts
+packages/app/src/pages/session/usage-exceeded-dialogs.tsx
+packages/app/src/pages/session/use-session-commands.tsx
+packages/app/src/utils/diffs.test.ts
+packages/app/src/utils/diffs.ts
+packages/app/src/wsl/dialog-add-server.tsx

@@ -234,7 +234,7 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
       lines,
       body_left + label.length,
       top + 1,
-      `loongcode run -i -s ${meta.session_id}`,
+      `loongcode --mini -s ${meta.session_id}`,
       right,
       undefined,
       TextAttributes.BOLD,

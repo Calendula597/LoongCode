@@ -1,6 +1,10 @@
 import { Schema } from "effect"
 import { HttpApi } from "effect/unstable/httpapi"
 import { EventV2 } from "@loongcode/core/event"
+import { EventManifest } from "@/event-manifest"
+import { Credential } from "@loongcode/core/credential"
+import { Integration } from "@loongcode/core/integration"
+import { SkillV2 } from "@loongcode/core/skill"
 import { InstanceDisposed } from "@/server/event"
 import { Question } from "@/question"
 import { ConfigApi } from "./groups/config"
@@ -23,14 +27,16 @@ import { TuiApi } from "./groups/tui"
 import { WorkspaceApi } from "./groups/workspace"
 import { SshDeployApi } from "./groups/ssh-deploy"
 import { Api } from "@loongcode/server/api"
+import { makeApi } from "@loongcode/protocol/api"
+import { LocationMiddleware } from "@loongcode/server/location"
+import { SessionLocationMiddleware } from "@loongcode/server/middleware/session-location"
 // GlobalEventSchema snapshots the registry after event-producing groups register their variants.
 import { GlobalApi } from "./groups/global"
 import { Authorization } from "./middleware/authorization"
 import { SchemaErrorMiddleware } from "./middleware/schema-error"
 
 const EventSchema = Schema.Union([
-  ...EventV2.registry
-    .values()
+  ...EventManifest.Latest.values()
     .map((definition) =>
       Schema.Struct({
         id: EventV2.ID,
@@ -43,6 +49,12 @@ const EventSchema = Schema.Union([
 ]).annotate({ identifier: "Event" })
 
 // SSH Deploy is added to RootHttpApi because it doesn't need workspace routing
+export const ServerApi = makeApi({
+  definitions: EventManifest.Latest.values().toArray(),
+  locationMiddleware: LocationMiddleware,
+  sessionLocationMiddleware: SessionLocationMiddleware,
+})
+
 export const RootHttpApi = HttpApi.make("loongcode-root")
   .addHttpApi(ControlApi)
   .addHttpApi(ControlPlaneApi)
@@ -73,9 +85,18 @@ export const LoongcodeHttpApi = HttpApi.make("loongcode")
   .addHttpApi(RootHttpApi)
   .addHttpApi(EventApi)
   .addHttpApi(InstanceHttpApi)
-  .addHttpApi(Api)
+  .addHttpApi(ServerApi)
   .addHttpApi(PtyConnectApi)
-  .annotate(HttpApi.AdditionalSchemas, [EventSchema, Question.Replied, Question.Rejected])
+  .annotate(HttpApi.AdditionalSchemas, [
+    EventSchema,
+    Question.Replied,
+    Question.Rejected,
+    Credential.Value,
+    Integration.Inputs,
+    Integration.Method,
+    Integration.Ref,
+    SkillV2.Source,
+  ])
 
 export type RootHttpApiType = typeof RootHttpApi
 export type InstanceHttpApiType = typeof InstanceHttpApi

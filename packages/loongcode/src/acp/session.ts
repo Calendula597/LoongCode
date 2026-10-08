@@ -1,5 +1,6 @@
 import type { McpServer } from "@agentclientprotocol/sdk"
 import type { Message, Part } from "@loongcode/sdk/v2"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { ModelV2 } from "@loongcode/core/model"
 import { Context, Effect, Layer, Ref } from "effect"
@@ -93,7 +94,7 @@ export class Service extends Context.Service<Service, Interface>()("@loongcode/A
 
 type State = Map<string, Info>
 
-export const layer = Layer.effect(
+const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const sessions = yield* Ref.make<State>(new Map())
@@ -200,7 +201,7 @@ export const layer = Layer.effect(
   }),
 )
 
-export const defaultLayer = layer
+export const node = LayerNode.make({ service: Service, layer, deps: [] })
 
 function makeSession(input: StoreInput): Info {
   return {

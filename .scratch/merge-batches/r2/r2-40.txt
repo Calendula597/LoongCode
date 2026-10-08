@@ -1,0 +1,2 @@
+﻿specs/v2/config.md
+specs/v2/provider-model.md

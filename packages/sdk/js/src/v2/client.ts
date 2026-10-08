@@ -47,7 +47,7 @@ function rewrite(request: Request, values: { directory?: string; workspace?: str
   return next
 }
 
-export function createLgcodeClient(config?: Config & { directory?: string; experimental_workspaceID?: string }) {
+export function createLoongcodeClient(config?: Config & { directory?: string; experimental_workspaceID?: string }) {
   if (!config?.fetch) {
     const customFetch: any = (req: any) => {
       // @ts-ignore
@@ -93,4 +93,4 @@ export function createLgcodeClient(config?: Config & { directory?: string; exper
 }
 
 // Backward-compatible alias
-export const createOpencodeClient = createLgcodeClient
+export const createOpencodeClient = createLoongcodeClient

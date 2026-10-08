@@ -1,0 +1,15 @@
+packages/app/src/pages/session/composer/session-permission-dock.tsx
+packages/app/src/pages/session/composer/session-question-dock.tsx
+packages/app/src/pages/session/composer/session-revert-dock.tsx
+packages/app/src/pages/session/file-tabs.tsx
+packages/app/src/pages/session/review-tab.tsx
+packages/app/src/pages/session/session-model-helpers.test.ts
+packages/app/src/pages/session/session-side-panel.tsx
+packages/app/src/pages/session/timeline/message-timeline.tsx
+packages/app/src/pages/session/timeline/model.test.ts
+packages/app/src/pages/session/timeline/projection.ts
+packages/app/src/pages/session/timeline/rows.ts
+packages/app/src/pages/session/usage-exceeded-dialogs.tsx
+packages/app/src/pages/session/use-session-commands.tsx
+packages/app/src/utils/diffs.test.ts
+packages/app/src/utils/diffs.ts

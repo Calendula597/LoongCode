@@ -1,0 +1,12 @@
+﻿packages/loongcode/test/plugin/trigger.test.ts
+packages/loongcode/test/plugin/workspace-adapter.test.ts
+packages/loongcode/test/plugin/xai.test.ts
+packages/loongcode/test/project/instance.test.ts
+packages/loongcode/test/project/instance-bootstrap.test.ts
+packages/loongcode/test/project/migrate-global.test.ts
+packages/loongcode/test/project/project.test.ts
+packages/loongcode/test/project/project-directory.test.ts
+packages/loongcode/test/project/vcs.test.ts
+packages/loongcode/test/project/worktree.test.ts
+packages/loongcode/test/project/worktree-remove.test.ts
+packages/loongcode/test/provider/cf-ai-gateway-e2e.test.ts

@@ -1,0 +1,1 @@
+﻿.loongcode/command/translate.md

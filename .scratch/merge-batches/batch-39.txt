@@ -1,0 +1,4 @@
+packages/cli/package.json
+packages/cli/script/generate.ts
+packages/cli/src/commands/handlers/serve.ts
+packages/cli/src/tui.ts

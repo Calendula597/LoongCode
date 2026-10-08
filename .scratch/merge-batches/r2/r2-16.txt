@@ -1,0 +1,12 @@
+﻿packages/core/package.json
+packages/core/src/catalog.ts
+packages/core/src/config.ts
+packages/core/src/config/plugin/agent.ts
+packages/core/src/filesystem/search.ts
+packages/core/src/filesystem/watcher.ts
+packages/core/src/instruction-context.ts
+packages/core/src/location.ts
+packages/core/src/models-dev.ts
+packages/core/src/plugin.ts
+packages/core/src/plugin/provider/cerebras.ts
+packages/core/src/plugin/provider/loongcode.ts

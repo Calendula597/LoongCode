@@ -1,0 +1,11 @@
+﻿packages/loongcode/test/session/processor-effect.test.ts
+packages/loongcode/test/session/prompt.test.ts
+packages/loongcode/test/share/share-next.test.ts
+packages/loongcode/test/skill/discovery.test.ts
+packages/loongcode/test/skill/skill.test.ts
+packages/loongcode/test/snapshot/snapshot.test.ts
+packages/loongcode/test/tool/external-directory.test.ts
+packages/loongcode/test/tool/fixtures/models-api.json
+packages/loongcode/test/tool/question.test.ts
+packages/loongcode/test/tool/registry.test.ts
+packages/loongcode/test/tool/shell.test.ts

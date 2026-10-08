@@ -1,0 +1,15 @@
+packages/loongcode/test/cli/help/__snapshots__/help-snapshots.test.ts.snap
+packages/loongcode/test/cli/run/run-process.test.ts
+packages/loongcode/test/cli/run/variant.shared.test.ts
+packages/loongcode/test/config/agent-color.test.ts
+packages/loongcode/test/config/config.test.ts
+packages/loongcode/test/control-plane/workspace.test.ts
+packages/loongcode/test/effect/instance-state.test.ts
+packages/loongcode/test/effect/runtime-flags.test.ts
+packages/loongcode/test/filesystem/filesystem.test.ts
+packages/loongcode/test/fixture/fixture.ts
+packages/loongcode/test/fixture/workspace.ts
+packages/loongcode/test/installation/installation.test.ts
+packages/loongcode/test/lib/cli-process.ts
+packages/loongcode/test/lsp/lifecycle.test.ts
+packages/loongcode/test/mcp/auth.test.ts

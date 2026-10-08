@@ -1,0 +1,9 @@
+﻿packages/core/test/plugin/provider-opencode.test.ts
+packages/core/test/plugin/provider-openrouter.test.ts
+packages/core/test/plugin/provider-perplexity.test.ts
+packages/core/test/plugin/provider-sap-ai-core.test.ts
+packages/core/test/plugin/provider-snowflake-cortex.test.ts
+packages/core/test/plugin/provider-togetherai.test.ts
+packages/core/test/plugin/provider-venice.test.ts
+packages/core/test/skill/guidance.test.ts
+packages/core/test/system-context/builtins.test.ts

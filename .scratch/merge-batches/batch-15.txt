@@ -1,0 +1,15 @@
+packages/core/test/command.test.ts
+packages/core/test/config/agent.test.ts
+packages/core/test/config/command.test.ts
+packages/core/test/config/config.test.ts
+packages/core/test/config/provider.test.ts
+packages/core/test/credential.test.ts
+packages/core/test/database-migration.test.ts
+packages/core/test/effect/cross-spawn-spawner.test.ts
+packages/core/test/event.test.ts
+packages/core/test/file-mutation.test.ts
+packages/core/test/filesystem/filesystem.test.ts
+packages/core/test/filesystem/search.test.ts
+packages/core/test/filesystem/watcher.test.ts
+packages/core/test/fixture/effect-flock-worker.ts
+packages/core/test/fixture/location.ts

@@ -13,11 +13,22 @@
       "outputs": [],
       "passThroughEnv": ["*"]
     },
+    "@loongcode/core#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@loongcode/function#test": {
+      "outputs": []
+    },
     "@loongcode/app#test": {
       "dependsOn": ["^build"],
       "outputs": []
     },
     "@loongcode/ui#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@loongcode/session-ui#test": {
       "dependsOn": ["^build"],
       "outputs": []
     }

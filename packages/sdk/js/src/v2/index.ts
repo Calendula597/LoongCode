@@ -1,7 +1,7 @@
 export * from "./client.js"
 export * from "./server.js"
 
-import { createLgcodeClient } from "./client.js"
+import { createLoongcodeClient } from "./client.js"
 import { createOpencodeServer } from "./server.js"
 import type { ServerOptions } from "./server.js"
 
@@ -12,7 +12,7 @@ export async function createOpencode(options?: ServerOptions) {
     ...options,
   })
 
-  const client = createLgcodeClient({
+  const client = createLoongcodeClient({
     baseUrl: server.url,
   })
 

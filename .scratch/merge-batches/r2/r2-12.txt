@@ -1,0 +1,12 @@
+﻿packages/app/src/context/server-sdk.test.ts
+packages/app/src/context/server-sdk.tsx
+packages/app/src/context/server-sync.tsx
+packages/app/src/context/settings.tsx
+packages/app/src/context/sync.tsx
+packages/app/src/context/tabs.tsx
+packages/app/src/i18n/ar.ts
+packages/app/src/i18n/br.ts
+packages/app/src/i18n/bs.ts
+packages/app/src/i18n/da.ts
+packages/app/src/i18n/de.ts
+packages/app/src/i18n/es.ts

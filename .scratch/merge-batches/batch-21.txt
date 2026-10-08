@@ -1,0 +1,13 @@
+packages/core/test/system-context/registry.test.ts
+packages/core/test/tool-apply-patch.test.ts
+packages/core/test/tool-bash.test.ts
+packages/core/test/tool-edit.test.ts
+packages/core/test/tool-output-store.test.ts
+packages/core/test/tool-question.test.ts
+packages/core/test/tool-read.test.ts
+packages/core/test/tool-skill.test.ts
+packages/core/test/tool-todowrite.test.ts
+packages/core/test/tool-webfetch.test.ts
+packages/core/test/tool-websearch.test.ts
+packages/core/test/tool-write.test.ts
+packages/core/test/util/effect-flock.test.ts

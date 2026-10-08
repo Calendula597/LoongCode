@@ -1,12 +1,13 @@
-import type { McpStatus } from "@loongcode/sdk/v2/client"
+import type { McpServer } from "@loongcode/client/promise"
 
 export async function toggleMcp(input: {
-  status: McpStatus["status"]
+  status: McpServer["status"]["status"]
   connect: () => Promise<void>
   disconnect: () => Promise<void>
   authenticate: () => Promise<void>
   refresh: () => Promise<void>
 }) {
+  if (input.status === "pending") return
   await {
     connected: input.disconnect,
     needs_auth: input.authenticate,

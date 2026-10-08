@@ -1,9 +1,9 @@
 ---
 title: ACP サポート
-description: ACP 互換エディターで Loongcode を使用します。
+description: ACP 互換エディターで LoongCode を使用します。
 ---
 
-Loongcode は [Agent Client Protocol](https://agentclientprotocol.com) または (ACP) をサポートしているため、互換性のあるエディターや IDE で直接使用できます。
+LoongCode は [Agent Client Protocol](https://agentclientprotocol.com) または (ACP) をサポートしているため、互換性のあるエディターや IDE で直接使用できます。
 
 :::tip
 ACP をサポートするエディターとツールのリストについては、[ACP progress report](https://zed.dev/blog/acp-progress-report#available-now) を参照してください。
@@ -14,9 +14,9 @@ ACP は、コードエディターと AI コーディングエージェント間
 
 ## 設定
 
-ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを実行するようにエディタを設定します。
+ACP 経由で LoongCode を使用するには、`loongcode acp` コマンドを実行するようにエディタを設定します。
 
-このコマンドは、stdio 経由で JSON-RPC 経由でエディターと通信する ACP 互換のサブプロセスとして Loongcode を開始します。
+このコマンドは、stdio 経由で JSON-RPC 経由でエディターと通信する ACP 互換のサブプロセスとして LoongCode を開始します。
 
 以下は、ACP をサポートする一般的なエディタの例です。
 
@@ -24,12 +24,15 @@ ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを�
 
 ### Zed
 
-[Zed](https://zed.dev) 構成 (`~/.config/zed/settings.json`) に追加します。
+コマンドパレットで `zed: acp registry` を実行し、[Zed ACP レジストリ](https://zed.dev/docs/ai/external-agents#registry)から LoongCode をインストールします。
+
+代わりにカスタムの LoongCode 実行ファイルを使用する場合は、[Zed](https://zed.dev) の設定 (`~/.config/zed/settings.json`) に追加します。
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
+      "type": "custom",
       "command": "loongcode",
       "args": ["acp"]
     }
@@ -50,7 +53,7 @@ ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを�
         {
           "agent": {
             "custom": {
-              "name": "Loongcode",
+              "name": "LoongCode",
               "command": {
                 "command": "loongcode",
                 "args": ["acp"]
@@ -73,7 +76,7 @@ ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを�
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
       "command": "/absolute/path/bin/loongcode",
       "args": ["acp"]
     }
@@ -81,7 +84,7 @@ ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを�
 }
 ```
 
-これを開くには、AI Chat エージェントセレクターで新しい「Loongcode」エージェントを使用します。
+これを開くには、AI Chat エージェントセレクターで新しい「LoongCode」エージェントを使用します。
 
 ---
 
@@ -120,7 +123,7 @@ ACP 経由で Loongcode を使用するには、`loongcode acp` コマンドを�
 
 ### CodeCompanion.nvim
 
-[CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim) で Loongcode を ACP エージェントとして使用するには、以下を Neovim 構成に追加します。
+[CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim) で LoongCode を ACP エージェントとして使用するには、以下を Neovim 構成に追加します。
 
 ```lua
 require("codecompanion").setup({
@@ -135,13 +138,13 @@ require("codecompanion").setup({
 })
 ```
 
-この構成は、Loongcode をチャットの ACP エージェントとして使用するように CodeCompanion をセットアップします。
+この構成は、LoongCode をチャットの ACP エージェントとして使用するように CodeCompanion をセットアップします。
 
 環境変数 (`LOONGCODE_API_KEY` など) を渡す必要がある場合、詳細については、CodeCompanion.nvim ドキュメントの「[アダプターの構成: 環境変数](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key)」を参照してください。
 
 ## サポート
 
-Loongcode は、ACP 経由でもターミナル内で動作するのと同じように動作します。すべての機能がサポートされています。
+LoongCode は、ACP 経由でもターミナル内で動作するのと同じように動作します。すべての機能がサポートされています。
 
 :::note
 `/undo` や `/redo` などの一部の組み込みスラッシュコマンドは現在サポートされていません。
@@ -149,7 +152,7 @@ Loongcode は、ACP 経由でもターミナル内で動作するのと同じよ
 
 - 組み込みツール (ファイル操作、ターミナルコマンドなど)
 - カスタムツールとスラッシュコマンド
-- Loongcode 設定で構成された MCP サーバー
+- LoongCode 設定で構成された MCP サーバー
 - `AGENTS.md` のプロジェクト固有のルール
 - カスタムフォーマッタとリンター
 - エージェントと権限システム

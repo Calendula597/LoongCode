@@ -1,7 +1,9 @@
 import { describe, expect } from "bun:test"
 import { asc } from "drizzle-orm"
-import { Effect, Layer } from "effect"
+import { Effect } from "effect"
 import { Database } from "@loongcode/core/database/database"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { EventV2 } from "@loongcode/core/event"
 import { Project } from "@loongcode/core/project"
 import { ProjectTable } from "@loongcode/core/project/sql"
@@ -11,10 +13,7 @@ import { SessionTable, TodoTable } from "@loongcode/core/session/sql"
 import { SessionTodo } from "@loongcode/core/session/todo"
 import { testEffect } from "./lib/effect"
 
-const database = Database.layerFromPath(":memory:")
-const events = EventV2.layer.pipe(Layer.provide(database))
-const todos = SessionTodo.layer.pipe(Layer.provide(database), Layer.provide(events))
-const it = testEffect(Layer.mergeAll(database, events, todos))
+const it = testEffect(AppNodeBuilder.build(LayerNode.group([Database.node, EventV2.node, SessionTodo.node])))
 const sessionID = SessionV2.ID.make("ses_todo_test")
 
 const setup = Effect.gen(function* () {

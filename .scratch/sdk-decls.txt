@@ -1,0 +1,1 @@
+﻿9224	export class OpencodeClient extends HeyApiClient {

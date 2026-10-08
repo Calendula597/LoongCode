@@ -1,0 +1,11 @@
+packages/protocol/src/groups/command.ts
+packages/protocol/src/groups/credential.ts
+packages/protocol/src/groups/fs.ts
+packages/protocol/src/groups/integration.ts
+packages/protocol/src/groups/message.ts
+packages/protocol/src/groups/model.ts
+packages/protocol/src/groups/project-copy.ts
+packages/protocol/src/groups/provider.ts
+packages/protocol/src/groups/pty.ts
+packages/protocol/src/groups/reference.ts
+packages/protocol/src/groups/skill.ts

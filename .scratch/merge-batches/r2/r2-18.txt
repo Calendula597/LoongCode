@@ -1,0 +1,12 @@
+﻿packages/core/test/file-mutation.test.ts
+packages/core/test/filesystem/filesystem.test.ts
+packages/core/test/filesystem/search.test.ts
+packages/core/test/filesystem/watcher.test.ts
+packages/core/test/fixture/effect-flock-worker.ts
+packages/core/test/fixture/location.ts
+packages/core/test/plugin/provider-amazon-bedrock.test.ts
+packages/core/test/plugin/provider-anthropic.test.ts
+packages/core/test/plugin/provider-azure.test.ts
+packages/core/test/plugin/provider-azure-cognitive-services.test.ts
+packages/core/test/plugin/provider-cerebras.test.ts
+packages/core/test/plugin/provider-cloudflare-ai-gateway.test.ts

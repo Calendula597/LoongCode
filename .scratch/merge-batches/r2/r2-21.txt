@@ -1,0 +1,12 @@
+﻿packages/desktop/electron-builder.config.test.ts
+packages/desktop/electron-builder.config.ts
+packages/desktop/package.json
+packages/desktop/scripts/prebuild.ts
+packages/desktop/scripts/predev.ts
+packages/desktop/scripts/utils.ts
+packages/desktop/src/main/index.ts
+packages/desktop/src/main/ipc.ts
+packages/desktop/src/main/server.ts
+packages/desktop/src/main/windows.ts
+packages/desktop/src/main/wsl/ipc.ts
+packages/desktop/src/main/wsl/servers.ts

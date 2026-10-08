@@ -1,6 +1,6 @@
 import * as InstanceState from "@/effect/instance-state"
 import { FileSystem } from "@loongcode/core/filesystem"
-import { LocationServiceMap } from "@loongcode/core/location-layer"
+import { LocationServiceMap, locationServiceMapLayer } from "@loongcode/core/location-services"
 import { Ripgrep } from "@loongcode/core/ripgrep"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { Location } from "@loongcode/core/location"
@@ -14,7 +14,7 @@ import { InstanceHttpApi } from "../api"
 export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handlers) =>
   Effect.gen(function* () {
     const ripgrep = yield* Ripgrep.Service
-    const locations = yield* LocationServiceMap
+    const locations = yield* LocationServiceMap.Service
 
     const filesystem = Effect.fnUntraced(function* <A, E, R>(effect: Effect.Effect<A, E, R>) {
       return yield* effect.pipe(
@@ -136,4 +136,4 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
       .handle("content", content)
       .handle("status", status)
   }),
-).pipe(Layer.provide(LocationServiceMap.layer))
+).pipe(Layer.provide(locationServiceMapLayer))

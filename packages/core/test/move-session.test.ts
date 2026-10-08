@@ -3,52 +3,35 @@ import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
 import { eq } from "drizzle-orm"
-import { Effect, Layer } from "effect"
+import { Effect } from "effect"
 import { MoveSession } from "@loongcode/core/control-plane/move-session"
 import { Database } from "@loongcode/core/database/database"
-import { FSUtil } from "@loongcode/core/fs-util"
-import { Git } from "@loongcode/core/git"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { EventV2 } from "@loongcode/core/event"
 import { Project } from "@loongcode/core/project"
 import { ProjectTable } from "@loongcode/core/project/sql"
 import { ProjectDirectories } from "@loongcode/core/project/directories"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { SessionV2 } from "@loongcode/core/session"
-import { SessionExecution } from "@loongcode/core/session/execution"
 import { SessionProjector } from "@loongcode/core/session/projector"
 import { SessionTable } from "@loongcode/core/session/sql"
 import { SessionStore } from "@loongcode/core/session/store"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
-const database = Database.layerFromPath(":memory:")
-const events = EventV2.layer.pipe(Layer.provide(database))
-const directories = ProjectDirectories.layer.pipe(Layer.provide(database), Layer.provide(events))
-const projector = SessionProjector.layer.pipe(Layer.provide(database), Layer.provide(events))
-const project = Project.layer.pipe(
-  Layer.provide(database),
-  Layer.provide(FSUtil.defaultLayer),
-  Layer.provide(Git.defaultLayer),
-  Layer.provide(directories),
-)
-const store = SessionStore.layer.pipe(Layer.provide(database))
-const sessions = SessionV2.layer.pipe(
-  Layer.provide(database),
-  Layer.provide(events),
-  Layer.provide(project),
-  Layer.provide(store),
-  Layer.provide(SessionExecution.noopLayer),
-)
-const layer = MoveSession.layer.pipe(
-  Layer.provide(database),
-  Layer.provide(FSUtil.defaultLayer),
-  Layer.provide(Git.defaultLayer),
-  Layer.provide(events),
-  Layer.provide(project),
-  Layer.provide(sessions),
-)
 const it = testEffect(
-  Layer.mergeAll(layer, database, events, directories, project, projector, store, SessionExecution.noopLayer, sessions),
+  AppNodeBuilder.build(
+    LayerNode.group([
+      MoveSession.node,
+      Database.node,
+      EventV2.node,
+      ProjectDirectories.node,
+      Project.node,
+      SessionProjector.node,
+      SessionStore.node,
+    ]),
+  ),
 )
 
 function abs(input: string) {

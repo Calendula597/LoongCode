@@ -1,5 +1,6 @@
 import { describe, expect } from "bun:test"
 import type { McpServer } from "@agentclientprotocol/sdk"
+import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Effect } from "effect"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { ModelV2 } from "@loongcode/core/model"
@@ -7,7 +8,7 @@ import * as ACPError from "@/acp/error"
 import * as ACPSession from "@/acp/session"
 import { testEffect } from "../lib/effect"
 
-const sessionTest = testEffect(ACPSession.defaultLayer)
+const sessionTest = testEffect(LayerNode.compile(ACPSession.node))
 
 const model = (providerID: string, modelID: string): ACPSession.SelectedModel => ({
   providerID: ProviderV2.ID.make(providerID),

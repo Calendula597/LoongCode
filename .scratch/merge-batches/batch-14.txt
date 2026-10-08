@@ -1,0 +1,15 @@
+packages/core/src/session/event.ts
+packages/core/src/session/message.ts
+packages/core/src/session/run-coordinator.ts
+packages/core/src/session/runner/index.ts
+packages/core/src/session/runner/llm.ts
+packages/core/src/session/runner/model.ts
+packages/core/src/tool/apply-patch.ts
+packages/core/src/tool/edit.ts
+packages/core/src/tool/read.ts
+packages/core/src/tool/skill.ts
+packages/core/src/tool/webfetch.ts
+packages/core/test/agent.test.ts
+packages/core/test/application-tools.test.ts
+packages/core/test/background-job.test.ts
+packages/core/test/catalog.test.ts

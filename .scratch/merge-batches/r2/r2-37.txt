@@ -1,0 +1,2 @@
+﻿packages/tui/src/feature-plugins/home/tips-view.tsx
+packages/tui/test/cli/tui/__snapshots__/inline-tool-wrap-snapshot.test.tsx.snap

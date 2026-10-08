@@ -1,0 +1,15 @@
+packages/app/src/components/settings-v2/general.tsx
+packages/app/src/components/settings-v2/servers.tsx
+packages/app/src/components/terminal.tsx
+packages/app/src/components/titlebar-session-events.ts
+packages/app/src/components/titlebar.tsx
+packages/app/src/components/windows-app-menu.tsx
+packages/app/src/context/directory-sync.ts
+packages/app/src/context/file.tsx
+packages/app/src/context/global-sync/bootstrap.test.ts
+packages/app/src/context/global-sync/bootstrap.ts
+packages/app/src/context/global-sync/child-store.test.ts
+packages/app/src/context/global-sync/child-store.ts
+packages/app/src/context/global-sync/event-reducer.ts
+packages/app/src/context/global-sync/mcp.ts
+packages/app/src/context/global-sync/session-cache.test.ts

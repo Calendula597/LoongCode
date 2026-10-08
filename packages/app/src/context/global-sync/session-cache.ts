@@ -7,6 +7,7 @@ import type {
   SnapshotFileDiff,
   Todo,
 } from "@loongcode/sdk/v2/client"
+import type { SessionMessageInfo } from "@loongcode/client/promise"
 
 export const SESSION_CACHE_LIMIT = 40
 
@@ -15,6 +16,7 @@ type SessionCache = {
   session_diff: Record<string, SnapshotFileDiff[] | undefined>
   todo: Record<string, Todo[] | undefined>
   message: Record<string, Message[] | undefined>
+  session_message: Record<string, SessionMessageInfo[] | undefined>
   part: Record<string, Part[] | undefined>
   permission: Record<string, PermissionRequest[] | undefined>
   question: Record<string, QuestionRequest[] | undefined>
@@ -37,6 +39,7 @@ export function dropSessionCaches(store: SessionCache, sessionIDs: Iterable<stri
   for (const sessionID of stale) {
     delete store.message[sessionID]
     delete store.todo[sessionID]
+    delete store.session_message[sessionID]
     delete store.session_diff[sessionID]
     delete store.session_status[sessionID]
     delete store.permission[sessionID]

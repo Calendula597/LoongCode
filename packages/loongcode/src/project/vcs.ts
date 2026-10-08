@@ -6,6 +6,7 @@ import { Watcher } from "@loongcode/core/filesystem/watcher"
 import { Git } from "@/git"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { EventV2 } from "@loongcode/core/event"
+import { VcsEvent } from "@loongcode/schema/vcs-event"
 import path from "path"
 
 // git reports paths relative to the worktree root, but consumers (file tree,
@@ -245,14 +246,7 @@ const track = Effect.fnUntraced(function* (
 export const Mode = Schema.Literals(["git", "branch"])
 export type Mode = Schema.Schema.Type<typeof Mode>
 
-export const Event = {
-  BranchUpdated: EventV2.define({
-    type: "vcs.branch.updated",
-    schema: {
-      branch: Schema.optional(Schema.String),
-    },
-  }),
-}
+export const Event = VcsEvent
 
 export const Info = Schema.Struct({
   branch: Schema.optional(Schema.String),
@@ -312,7 +306,7 @@ interface State {
 
 export class Service extends Context.Service<Service, Interface>()("@loongcode/Vcs") {}
 
-export const layer: Layer.Layer<Service, never, Git.Service | EventV2Bridge.Service> = Layer.effect(
+const layer: Layer.Layer<Service, never, Git.Service | EventV2Bridge.Service> = Layer.effect(
   Service,
   Effect.gen(function* () {
     const git = yield* Git.Service
@@ -451,8 +445,6 @@ export const layer: Layer.Layer<Service, never, Git.Service | EventV2Bridge.Serv
   }),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(Git.defaultLayer), Layer.provide(EventV2Bridge.defaultLayer))
-
-export const node = LayerNode.make(layer, [Git.node, EventV2Bridge.node])
+export const node = LayerNode.make({ service: Service, layer: layer, deps: [Git.node, EventV2Bridge.node] })
 
 export * as Vcs from "./vcs"

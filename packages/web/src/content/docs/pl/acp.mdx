@@ -1,11 +1,11 @@
 ---
 title: ACP
-description: Używanie Loongcode z protokołem Agent Client Protocol (ACP).
+description: Używanie LoongCode z protokołem Agent Client Protocol (ACP).
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-Loongcode obsługuje [Agent Client Protocol](https://agentclientprotocol.com) (ACP), który umożliwia korzystanie z Loongcode bezpośrednio w edytorach i środowiskach IDE.
+LoongCode obsługuje [Agent Client Protocol](https://agentclientprotocol.com) (ACP), który umożliwia korzystanie z LoongCode bezpośrednio w edytorach i środowiskach IDE.
 
 :::tip
 Listę edytorów i narzędzi obsługujących ACP znajdziesz w [raporcie postępu ACP](https://zed.dev/blog/acp-progress-report#available-now).
@@ -17,9 +17,9 @@ ACP to otwarty standard, który ujednolica komunikację między edytorami kodu a
 
 ## Konfiguracja
 
-Aby używać Loongcode przez ACP, skonfiguruj swój edytor tak, aby uruchamiał polecenie `loongcode acp`.
+Aby używać LoongCode przez ACP, skonfiguruj swój edytor tak, aby uruchamiał polecenie `loongcode acp`.
 
-Uruchamia to Loongcode jako podproces zgodny z ACP, który komunikuje się z edytorem za pomocą JSON-RPC przez stdio.
+Uruchamia to LoongCode jako podproces zgodny z ACP, który komunikuje się z edytorem za pomocą JSON-RPC przez stdio.
 
 Poniżej znajdują się przykłady dla edytorów obsługujących ACP.
 
@@ -27,12 +27,15 @@ Poniżej znajdują się przykłady dla edytorów obsługujących ACP.
 
 ### Zed
 
-Dodaj do konfiguracji [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+Zainstaluj LoongCode z [rejestru ACP Zed](https://zed.dev/docs/ai/external-agents#registry), uruchamiając `zed: acp registry` w palecie poleceń.
+
+Aby zamiast tego użyć niestandardowego pliku wykonywalnego LoongCode, dodaj go do konfiguracji [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
+      "type": "custom",
       "command": "loongcode",
       "args": ["acp"]
     }
@@ -53,7 +56,7 @@ Możesz także przypisać skrót klawiszowy, edytując `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "Loongcode",
+              "name": "LoongCode",
               "command": {
                 "command": "loongcode",
                 "args": ["acp"]
@@ -76,7 +79,7 @@ Dodaj do swojego [JetBrains IDE](https://www.jetbrains.com/) plik `acp.json` zgo
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
       "command": "/absolute/path/bin/loongcode",
       "args": ["acp"]
     }
@@ -84,7 +87,7 @@ Dodaj do swojego [JetBrains IDE](https://www.jetbrains.com/) plik `acp.json` zgo
 }
 ```
 
-Następnie wybierz „Loongcode” w selektorze agentów AI Chat.
+Następnie wybierz „LoongCode” w selektorze agentów AI Chat.
 
 ---
 
@@ -123,7 +126,7 @@ Jeśli potrzebujesz przekazać klucz API:
 
 ### CodeCompanion.nvim
 
-Aby używać Loongcode jako agenta ACP w [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), dodaj następującą konfigurację do Neovim:
+Aby używać LoongCode jako agenta ACP w [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), dodaj następującą konfigurację do Neovim:
 
 ```lua
 require("codecompanion").setup({
@@ -138,13 +141,13 @@ require("codecompanion").setup({
 })
 ```
 
-Ta konfiguracja sprawia, że CodeCompanion używa Loongcode jako agenta ACP do czatu.
+Ta konfiguracja sprawia, że CodeCompanion używa LoongCode jako agenta ACP do czatu.
 
 Jeśli wymagany jest `LOONGCODE_API_KEY`, zapoznaj się z sekcją [Konfigurowanie adapterów: Zmienne środowiskowe](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) w dokumentacji CodeCompanion.nvim, aby uzyskać szczegółowe informacje.
 
 ## Wsparcie
 
-Loongcode działa przez ACP tak samo, jak w terminalu. Obsługiwane są wszystkie główne funkcje:
+LoongCode działa przez ACP tak samo, jak w terminalu. Obsługiwane są wszystkie główne funkcje:
 
 :::note
 Niektóre polecenia z ukośnikiem, takie jak `/undo` i `/redo`, nie są obecnie obsługiwane przez ACP.
@@ -152,7 +155,7 @@ Niektóre polecenia z ukośnikiem, takie jak `/undo` i `/redo`, nie są obecnie 
 
 - Narzędzia wbudowane (operacje na plikach, terminal itp.)
 - Niestandardowe narzędzia i polecenia z ukośnikiem
-- Serwery MCP zdefiniowane w konfiguracji Loongcode
+- Serwery MCP zdefiniowane w konfiguracji LoongCode
 - Zasady projektu z `AGENTS.md`
 - Niestandardowe formatery i lintery
 - Agenci systemowi i uprawnienia

@@ -1,0 +1,3 @@
+packages/sdk/js/package.json
+packages/sdk/js/src/v2/gen/sdk.gen.ts
+packages/sdk/openapi.json

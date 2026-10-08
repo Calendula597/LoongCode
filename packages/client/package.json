@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@loongcode/client",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./effect": "./src/effect.ts"
+  },
+  "scripts": {
+    "generate": "bun run script/build.ts",
+    "check:generated": "bun run generate && git diff --exit-code -- src/generated src/generated-effect",
+    "test": "bun test --timeout 5000",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@loongcode/schema": "workspace:*",
+    "@loongcode/protocol": "workspace:*"
+  },
+  "peerDependencies": {
+    "effect": "4.0.0-beta.83"
+  },
+  "peerDependenciesMeta": {
+    "effect": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@loongcode/core": "workspace:*",
+    "@loongcode/httpapi-codegen": "workspace:*",
+    "@loongcode/server": "workspace:*",
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "effect": "catalog:"
+  }
+}

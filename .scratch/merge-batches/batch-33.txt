@@ -1,0 +1,7 @@
+packages/ui/src/i18n/ru.ts
+packages/ui/src/i18n/th.ts
+packages/ui/src/i18n/tr.ts
+packages/ui/src/i18n/zh.ts
+packages/ui/src/i18n/zht.ts
+packages/ui/src/v2/components/wordmark-v2.tsx
+packages/ui/vite.config.ts

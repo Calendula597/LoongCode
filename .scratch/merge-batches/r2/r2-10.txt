@@ -1,0 +1,12 @@
+﻿packages/app/src/components/session/session-header.tsx
+packages/app/src/components/session-context-usage.tsx
+packages/app/src/components/settings-general.tsx
+packages/app/src/components/settings-keybinds.tsx
+packages/app/src/components/settings-v2/dialog-server-v2.tsx
+packages/app/src/components/settings-v2/dialog-settings-v2.tsx
+packages/app/src/context/directory-sync.ts
+packages/app/src/context/file.tsx
+packages/app/src/context/global-sync/bootstrap.test.ts
+packages/app/src/context/global-sync/bootstrap.ts
+packages/app/src/context/global-sync/child-store.test.ts
+packages/app/src/context/global-sync/child-store.ts

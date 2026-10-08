@@ -1,0 +1,15 @@
+packages/core/test/ripgrep.test.ts
+packages/core/test/session-create.test.ts
+packages/core/test/session-projector.test.ts
+packages/core/test/session-prompt.test.ts
+packages/core/test/session-run-coordinator.test.ts
+packages/core/test/session-runner-model.test.ts
+packages/core/test/session-runner-recorded.test.ts
+packages/core/test/session-runner-tool-registry.test.ts
+packages/core/test/session-runner.test.ts
+packages/core/test/session-todo.test.ts
+packages/core/test/session-tool-progress.test.ts
+packages/core/test/skill-discovery.test.ts
+packages/core/test/skill.test.ts
+packages/core/test/skill/guidance.test.ts
+packages/core/test/system-context/builtins.test.ts

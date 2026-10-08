@@ -1,0 +1,1 @@
+packages/effect-sqlite-node/package.json

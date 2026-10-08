@@ -1,9 +1,9 @@
 ---
 title: ACP Desteği
-description: loongcode'u ACP uyumlu herhangi bir editörde kullanın.
+description: opencode'u ACP uyumlu herhangi bir editörde kullanın.
 ---
 
-loongcode, [Agent Client Protocol](https://agentclientprotocol.com) veya (ACP) dosyalarını destekleyerek onu doğrudan uyumlu editörlerde ve IDE'lerde kullanmanızı sağlar.
+opencode, [Agent Client Protocol](https://agentclientprotocol.com) veya (ACP) dosyalarını destekleyerek onu doğrudan uyumlu editörlerde ve IDE'lerde kullanmanızı sağlar.
 
 :::tip
 ACP'yi destekleyen editörlerin ve araçların listesi için [ACP progress report](https://zed.dev/blog/acp-progress-report#available-now)'e bakın.
@@ -17,7 +17,7 @@ ACP, kod editörleri ile AI kodlama ajanları arasındaki iletişimi standartla�
 
 loongcode'u ACP aracılığıyla kullanmak için düzenleyicinizi `loongcode acp` komutunu çalıştıracak şekilde yapılandırın.
 
-Komut, loongcode'u, editörünüzle stdio aracılığıyla JSON-RPC üzerinden iletişim kuran ACP uyumlu bir alt süreç olarak başlatır.
+Komut, opencode'u, editörünüzle stdio aracılığıyla JSON-RPC üzerinden iletişim kuran ACP uyumlu bir alt süreç olarak başlatır.
 
 Aşağıda ACP'yi destekleyen popüler düzenleyicilere ilişkin örnekler verilmiştir.
 
@@ -25,12 +25,15 @@ Aşağıda ACP'yi destekleyen popüler düzenleyicilere ilişkin örnekler veril
 
 ### Zed
 
-[Zed](https://zed.dev) yapılandırmanıza (`~/.config/zed/settings.json`) ekleyin:
+Komut Paleti’nde `zed: acp registry` komutunu çalıştırarak LoongCode’u [Zed ACP Kayıt Defteri](https://zed.dev/docs/ai/external-agents#registry) üzerinden yükleyin.
+
+Bunun yerine özel bir LoongCode çalıştırılabilir dosyası kullanmak için [Zed](https://zed.dev) yapılandırmanıza (`~/.config/zed/settings.json`) ekleyin:
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
+      "type": "custom",
       "command": "loongcode",
       "args": ["acp"]
     }
@@ -51,7 +54,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
         {
           "agent": {
             "custom": {
-              "name": "Loongcode",
+              "name": "LoongCode",
               "command": {
                 "command": "loongcode",
                 "args": ["acp"]
@@ -74,7 +77,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Loongcode": {
+    "LoongCode": {
       "command": "/absolute/path/bin/loongcode",
       "args": ["acp"]
     }
@@ -82,7 +85,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 }
 ```
 
-Açmak için AI Chat agent seçicisindeki yeni 'Loongcode' ajanını kullanın.
+Açmak için AI Chat agent seçicisindeki yeni 'LoongCode' ajanını kullanın.
 
 ---
 
@@ -121,7 +124,7 @@ Ortam değişkenlerini iletmeniz gerekiyor:
 
 ### CodeCompanion.nvim
 
-loongcode'u [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim)'de ACP ajanı olarak kullanmak için Neovim yapılandırmanıza aşağıdakileri ekleyin:
+opencode'u [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim)'de ACP ajanı olarak kullanmak için Neovim yapılandırmanıza aşağıdakileri ekleyin:
 
 ```lua
 require("codecompanion").setup({
@@ -136,13 +139,13 @@ require("codecompanion").setup({
 })
 ```
 
-Bu yapılandırma, CodeCompanion'ı loongcode'u sohbet için ACP ajanı olarak kullanacak şekilde ayarlar.
+Bu yapılandırma, CodeCompanion'ı opencode'u sohbet için ACP ajanı olarak kullanacak şekilde ayarlar.
 
 Ortam değişkenlerini (`LOONGCODE_API_KEY` gibi) iletmeniz gerekiyorsa, tüm ayrıntılar için CodeCompanion.nvim belgelerindeki [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key)'ye bakın.
 
 ## Destek
 
-loongcode, terminalde olduğu gibi ACP aracılığıyla aynı şekilde çalışır. Tüm özellikler desteklenir:
+opencode, terminalde olduğu gibi ACP aracılığıyla aynı şekilde çalışır. Tüm özellikler desteklenir:
 
 :::note
 `/undo` ve `/redo` gibi bazı yerleşik slash komutları şu anda desteklenmemektedir.
@@ -150,7 +153,7 @@ loongcode, terminalde olduğu gibi ACP aracılığıyla aynı şekilde çalış�
 
 - Yerleşik araçlar (dosya işlemleri, terminal komutları vb.)
 - Özel araçlar ve slash komutları
-- loongcode yapılandırmanızda yapılandırılmış MCP sunucuları
+- opencode yapılandırmanızda yapılandırılmış MCP sunucuları
 - `AGENTS.md`'dan projeye özel kurallar
 - Özel biçimlendiriciler ve linter'lar
 - Aracılar ve izin sistemi

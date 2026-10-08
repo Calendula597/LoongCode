@@ -53,6 +53,7 @@ export type WslJob =
   | { kind: "distros"; startedAt: number }
   | { kind: "install-wsl"; startedAt: number }
   | { kind: "install-distro"; distro: string; startedAt: number }
+  | { kind: "probe-addable"; distros: string[]; startedAt: number }
   | { kind: "probe-distro"; distro: string; startedAt: number }
   | { kind: "probe-loongcode"; distro: string; startedAt: number }
   | { kind: "install-loongcode"; distro: string; startedAt: number }
@@ -77,8 +78,7 @@ export type WslServersPlatform = {
   refreshDistros(): Promise<void>
   installWsl(): Promise<void>
   installDistro(name: string): Promise<void>
-  probeDistro(name: string): Promise<void>
-  probeOpencode(name: string): Promise<void>
+  probeAddable(distros: string[]): Promise<void>
   installOpencode(name: string): Promise<void>
   openTerminal(name: string): Promise<void>
   addServer(distro: string): Promise<WslServerConfig>

@@ -37,8 +37,9 @@ describe("websearch provider", () => {
     expect(selectWebSearchProvider(SESSION_ID, { exa: false, parallel: true })).toBe("parallel")
   })
 
-  test("is only enabled for loongcode or explicit websearch provider flags", () => {
+  test("is enabled for LoongCode providers or explicit websearch provider flags", () => {
     expect(webSearchEnabled(ProviderV2.ID.loongcode, { exa: false, parallel: false })).toBe(true)
+    expect(webSearchEnabled(ProviderV2.ID.make("loongcode-go"), { exa: false, parallel: false })).toBe(true)
     expect(webSearchEnabled(ProviderV2.ID.openai, { exa: false, parallel: false })).toBe(false)
     expect(webSearchEnabled(ProviderV2.ID.openai, { exa: true, parallel: false })).toBe(true)
     expect(webSearchEnabled(ProviderV2.ID.openai, { exa: false, parallel: true })).toBe(true)

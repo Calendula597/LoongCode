@@ -2,31 +2,15 @@ import { describe, expect } from "bun:test"
 import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
-import { Effect, Layer, Schema } from "effect"
+import { Effect, Schema } from "effect"
+import { AppNodeBuilder } from "@loongcode/core/effect/app-node-builder"
 import { ProjectV2 } from "@loongcode/core/project"
-import { Database } from "@loongcode/core/database/database"
-import { FSUtil } from "@loongcode/core/fs-util"
-import { Git } from "@loongcode/core/git"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { Hash } from "@loongcode/core/util/hash"
-import { ProjectDirectories } from "@loongcode/core/project/directories"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
-const databaseLayer = Database.layerFromPath(":memory:")
-const directoriesLayer = ProjectDirectories.layer.pipe(Layer.provide(databaseLayer))
-const it = testEffect(
-  Layer.mergeAll(
-    ProjectV2.layer.pipe(
-      Layer.provide(FSUtil.defaultLayer),
-      Layer.provide(Git.defaultLayer),
-      Layer.provide(directoriesLayer),
-      Layer.provide(databaseLayer),
-    ),
-    databaseLayer,
-    directoriesLayer,
-  ),
-)
+const it = testEffect(AppNodeBuilder.build(ProjectV2.node))
 
 function remoteID(remote: string) {
   return ProjectV2.ID.make(Hash.fast(`git-remote:${remote}`))

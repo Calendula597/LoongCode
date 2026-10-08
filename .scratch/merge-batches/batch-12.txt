@@ -1,0 +1,4 @@
+packages/loongcode/test/tool/skill.test.ts
+packages/loongcode/test/tool/task.test.ts
+packages/loongcode/test/tool/truncation.test.ts
+packages/loongcode/test/tool/websearch.test.ts
