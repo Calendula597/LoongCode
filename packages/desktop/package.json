@@ -4,6 +4,11 @@
   "version": "0.0.66",
   "type": "module",
   "license": "MIT",
+  "homepage": "https://opencode.ai",
+  "author": {
+    "name": "OpenCode",
+    "email": "hello@opencode.ai"
+  },
   "scripts": {
     "typecheck": "tsgo -b",
     "predev": "bun ./scripts/predev.ts",
@@ -30,9 +35,9 @@
   },
   "devDependencies": {
     "@actions/artifact": "4.0.0",
+    "@lydell/node-pty": "catalog:",
     "@loongcode/app": "workspace:*",
     "@loongcode/ui": "workspace:*",
-    "@lydell/node-pty": "catalog:",
     "@sentry/solid": "catalog:",
     "@sentry/vite-plugin": "catalog:",
     "@solid-primitives/i18n": "2.2.1",

@@ -43,6 +43,8 @@ already-loaded config until then.
 | Global config                 | `~/.config/loongcode/loongcode.json` (NOT `~/.loongcode/`)                                                                   |
 | Project agents                | `.loongcode/agent/<name>.md` or `.loongcode/agents/<name>.md`                                                               |
 | Global agents                 | `~/.config/loongcode/agent(s)/<name>.md`                                                                                   |
+| Project commands              | `.loongcode/command/<name>.md` or `.loongcode/commands/<name>.md`                                                           |
+| Global commands               | `~/.config/loongcode/command(s)/<name>.md`                                                                                 |
 | Project skills                | `.loongcode/skill(s)/<name>/SKILL.md`                                                                                      |
 | Global skills                 | `~/.config/loongcode/skill(s)/<name>/SKILL.md`                                                                             |
 | External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md`                                                    |
@@ -96,7 +98,7 @@ Every field is optional.
   },
 
   "command": {
-    "deploy": { "description": "...", "prompt": "..." }
+    "deploy": { "description": "...", "template": "..." }
   },
 
   "provider": {
@@ -151,6 +153,7 @@ Shape notes worth being explicit about:
 - `skills` is an object with `paths` and/or `urls`, not an array.
 - `references` is an object keyed by alias. Each value is a local path, Git repository, or string shorthand.
 - `agent` is an object keyed by agent name, not an array.
+- `command` is an object keyed by command name, not an array.
 - `plugin` is an array of strings or `[name, options]` tuples, not an object.
 - `mcp[name].command` is an array of strings, never a single string. `type` is required.
 - `permission` is either a string action or an object keyed by tool name.
@@ -276,6 +279,31 @@ file, `disable: true` in frontmatter.
 loongcode ships with `build`, `plan`, `general`, `explore`. Hidden internal agents:
 `compaction`, `title`, `summary`. To override a built-in's fields, define the
 same key in `agent: { <name>: { ... } }`.
+
+## Commands
+
+loongcode's command loader scans for `**/*.md` inside command directories. The
+file is named after the command, and lives directly inside the `command` folder:
+
+```
+.loongcode/command/deploy.md
+```
+
+Frontmatter:
+
+```markdown
+---
+description: One sentence describing what the command does.
+agent: build
+model: anthropic/claude-sonnet-4-6
+---
+
+(command body in markdown: the prompt loongcode runs, with $ARGUMENTS for the user's input)
+```
+
+- `template` is the command body — everything below the frontmatter — and is required: it is the prompt loongcode runs when the command is invoked. Do not also put a `template:` key in the frontmatter.
+- `$ARGUMENTS` is replaced with everything the user typed after the command; `$1`, `$2`, … pull individual positional arguments.
+- Optional: `description`, `agent`, `model`, `variant`, `subtask`.
 
 ## Plugins
 
@@ -415,8 +443,8 @@ When a user's config is broken and loongcode won't start, these env vars help:
   exact shape, or the field is not covered in this skill, fetch
   `https://modelhub.lgdg.cc/config.json` and read the schema rather than guessing.
 - Preserve `$schema` and any existing fields the user did not ask to change.
-- For agent, skill, and plugin definitions, prefer creating new files in the
-  correct location over inlining everything in `loongcode.json`.
+- For agent, command, skill, and plugin definitions, prefer creating new files
+  in the correct location over inlining everything in `loongcode.json`.
 - If the user's existing config is malformed, point them at the env-var escape
   hatches above so they can edit from inside loongcode without breaking their
   session.

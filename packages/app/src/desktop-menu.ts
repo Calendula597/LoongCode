@@ -213,7 +213,7 @@ export const DESKTOP_MENU: DesktopMenu[] = [
     label: "View",
     labelKey: "desktopMenu.view",
     items: [
-      {
+{
         type: "item",
         label: "Toggle Sidebar",
         labelKey: "desktopMenu.view.toggleSidebar",

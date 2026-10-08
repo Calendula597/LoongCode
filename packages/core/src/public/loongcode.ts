@@ -5,7 +5,6 @@ import { Catalog } from "../catalog"
 import { Database } from "../database/database"
 import { EventV2 } from "../event"
 import { LocationServiceMap } from "../location-layer"
-import { PluginBoot } from "../plugin/boot"
 import { ProjectV2 } from "../project"
 import { SessionV2 } from "../session"
 import * as SessionExecutionLocal from "../session/execution/local"
@@ -41,7 +40,6 @@ const SessionModelValidationLayer = Layer.effect(
     return SessionModelValidation.of({
       validate: Effect.fn("Loongcode.sessions.validateModel")(function* (input) {
         yield* Effect.gen(function* () {
-          yield* (yield* PluginBoot.Service).wait()
           const catalog = yield* Catalog.Service
           const model = (yield* catalog.model.available()).find(
             (model) => model.providerID === input.model.providerID && model.id === input.model.id,
@@ -66,7 +64,6 @@ const SessionModelValidationLayer = Layer.effect(
     })
   }),
 )
-
 const SessionsLayer = Layer.merge(
   SessionV2.layer.pipe(
     Layer.provide(SessionProjector.layer),
@@ -98,7 +95,7 @@ export const layer = Layer.effect(
           }),
         get: sessions.get,
         list: sessions.list,
-        switchModel: Effect.fn("Loongcode.sessions.switchModel")(function* (input) {
+switchModel: Effect.fn("Loongcode.sessions.switchModel")(function* (input) {
           const session = yield* sessions.get(input.sessionID)
           yield* validation.validate({ ...input, location: session.location })
           yield* sessions.switchModel(input)

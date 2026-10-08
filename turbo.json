@@ -8,16 +8,24 @@
       "dependsOn": [],
       "outputs": ["dist/**"]
     },
-    "loongcode#test": {
+    "opencode#test": {
       "dependsOn": ["^build"],
       "outputs": [],
       "passThroughEnv": ["*"]
+    },
+    "@loongcode/core#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
     },
     "@loongcode/app#test": {
       "dependsOn": ["^build"],
       "outputs": []
     },
     "@loongcode/ui#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@loongcode/session-ui#test": {
       "dependsOn": ["^build"],
       "outputs": []
     }

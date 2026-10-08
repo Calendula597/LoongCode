@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js"
 import type { PermissionRequest } from "@loongcode/sdk/v2"
 import { Button } from "@loongcode/ui/button"
-import { DockPrompt } from "@loongcode/ui/dock-prompt"
+import { DockPrompt } from "@loongcode/session-ui/dock-prompt"
 import { Icon } from "@loongcode/ui/icon"
 import { useLanguage } from "@/context/language"
 

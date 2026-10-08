@@ -1,7 +1,7 @@
 import { Message, Model, Part, Session, SessionStatus, SnapshotFileDiff, UserMessage } from "@loongcode/sdk/v2"
-import { SessionTurn } from "@loongcode/ui/session-turn"
-import { SessionReview } from "@loongcode/ui/session-review"
-import { DataProvider } from "@loongcode/ui/context"
+import { SessionTurn } from "@loongcode/session-ui/session-turn"
+import { SessionReview } from "@loongcode/session-ui/session-review"
+import { DataProvider } from "@loongcode/session-ui/context"
 import { FileComponentProvider } from "@loongcode/ui/context/file"
 import { WorkerPoolProvider } from "@loongcode/ui/context/worker-pool"
 import { createAsync, query, useParams } from "@solidjs/router"
@@ -17,15 +17,15 @@ import { DateTime } from "luxon"
 import { createStore } from "solid-js/store"
 import NotFound from "../[...404]"
 import { Tabs } from "@loongcode/ui/tabs"
-import { MessageNav } from "@loongcode/ui/message-nav"
-import { FileSSR } from "@loongcode/ui/file-ssr"
+import { MessageNav } from "@loongcode/session-ui/message-nav"
+import { FileSSR } from "@loongcode/session-ui/file-ssr"
 import { clientOnly } from "@solidjs/start"
 import { Meta, Title } from "@solidjs/meta"
 import { Base64 } from "js-base64"
 import { getRequestEvent } from "solid-js/web"
 
 const ClientOnlyWorkerPoolProvider = clientOnly(() =>
-  import("@loongcode/ui/pierre/worker").then((m) => ({
+  import("@loongcode/session-ui/pierre/worker").then((m) => ({
     default: (props: { children: any }) => (
       <WorkerPoolProvider pools={m.getWorkerPools()}>{props.children}</WorkerPoolProvider>
     ),

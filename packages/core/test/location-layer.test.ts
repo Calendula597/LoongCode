@@ -1,14 +1,20 @@
 import fs from "fs/promises"
 import path from "path"
 import { describe, expect } from "bun:test"
-import { Effect, Equal, Hash, Layer, Schema } from "effect"
+import { DateTime, Effect, Equal, Hash, Layer, Schema } from "effect"
 import { Tool } from "@loongcode/core/public"
+import { define } from "@loongcode/plugin/v2/effect"
+import { AgentV2 } from "@loongcode/core/agent"
 import { Catalog } from "@loongcode/core/catalog"
 import { LocationServiceMap } from "@loongcode/core/location-layer"
 import { Location } from "@loongcode/core/location"
-import { PluginBoot } from "@loongcode/core/plugin/boot"
+import { PluginV2 } from "@loongcode/core/plugin"
+import { ModelV2 } from "@loongcode/core/model"
+import { ProjectV2 } from "@loongcode/core/project"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { AbsolutePath } from "@loongcode/core/schema"
+import { SessionV2 } from "@loongcode/core/session"
+import { SessionRunnerModel } from "@loongcode/core/session/runner/model"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 import { toolDefinitions } from "./lib/tool"
@@ -34,8 +40,7 @@ const it = testEffect(
         Layer.mergeAll(
           Project.defaultLayer,
           EventV2.defaultLayer,
-          Credential.defaultLayer,
-          Credential.layer.pipe(Layer.provide(Database.layerFromPath(":memory:").pipe(Layer.fresh))),
+          Credential.defaultLayer.pipe(Layer.fresh),
           Npm.defaultLayer,
           ModelsDev.defaultLayer,
           FSUtil.defaultLayer,
@@ -47,14 +52,28 @@ const it = testEffect(
 )
 
 describe("LocationServiceMap", () => {
-  it.effect("compares equivalent location refs by value", () =>
-    Effect.sync(() => {
-      const directory = AbsolutePath.make("/project")
-      expect(Equal.equals(Location.Ref.make({ directory }), Location.Ref.make({ directory }))).toBe(true)
-      expect(Hash.hash(Location.Ref.make({ directory }))).toBe(
-        Hash.hash(Location.Ref.make({ directory, workspaceID: undefined })),
-      )
-    }),
+  it.live("reuses cached services for constructed and decoded location refs", () =>
+    Effect.acquireRelease(
+      Effect.promise(() => tmpdir()),
+      (dir) => Effect.promise(() => dir[Symbol.asyncDispose]()),
+    ).pipe(
+      Effect.flatMap((dir) =>
+        Effect.scoped(
+          Effect.gen(function* () {
+            const locations = yield* LocationServiceMap
+            const directory = AbsolutePath.make(dir.path)
+            const constructed = Location.Ref.make({ directory })
+            const decoded = Schema.decodeUnknownSync(Location.Ref)({ directory })
+
+            expect(constructed).toEqual({ directory, workspaceID: undefined })
+            expect(decoded).toEqual(constructed)
+            expect(Equal.equals(constructed, decoded)).toBe(true)
+            expect(Hash.hash(constructed)).toBe(Hash.hash(decoded))
+            expect(yield* locations.contextEffect(constructed)).toBe(yield* locations.contextEffect(decoded))
+          }),
+        ),
+      ),
+    ),
   )
 
   it.live("isolates location state while sharing location policy with catalog", () =>
@@ -83,11 +102,9 @@ describe("LocationServiceMap", () => {
 
           const update = (directory: string) =>
             Effect.gen(function* () {
-              yield* PluginBoot.Service.use((boot) => boot.wait())
               yield* Reference.Service
               const catalog = yield* Catalog.Service
-              const transform = yield* catalog.transform()
-              yield* transform((editor) => editor.provider.update(ProviderV2.ID.make("test"), () => {}))
+              yield* catalog.transform((editor) => editor.provider.update(ProviderV2.ID.make("test"), () => {}))
               return {
                 providers: yield* catalog.provider.all(),
                 tools: yield* toolDefinitions(yield* ToolRegistry.Service),
@@ -132,6 +149,90 @@ describe("LocationServiceMap", () => {
             "write",
           ])
         }),
+      ),
+    ),
+  )
+
+  it.live("rejects an unavailable selected model during location model resolution", () =>
+    Effect.acquireRelease(
+      Effect.promise(() => tmpdir()),
+      (dir) => Effect.promise(() => dir[Symbol.asyncDispose]()),
+    ).pipe(
+      Effect.flatMap((dir) =>
+        Effect.gen(function* () {
+          const location = Location.Ref.make({ directory: AbsolutePath.make(dir.path) })
+          yield* Effect.promise(() =>
+            fs.writeFile(
+              path.join(dir.path, "opencode.json"),
+              JSON.stringify({
+                providers: {
+                  unavailable: {
+                    name: "Unavailable",
+                    api: { type: "native", settings: {} },
+                    models: { chat: { disabled: true } },
+                  },
+                },
+              }),
+            ),
+          )
+          const failure = yield* SessionRunnerModel.Service.use((models) =>
+            models.resolve(
+              SessionV2.Info.make({
+                id: SessionV2.ID.make("ses_unavailable_model"),
+                projectID: ProjectV2.ID.global,
+                title: "test",
+                model: {
+                  id: ModelV2.ID.make("chat"),
+                  providerID: ProviderV2.ID.make("unavailable"),
+                },
+                cost: 0,
+                tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+                time: { created: DateTime.makeUnsafe(0), updated: DateTime.makeUnsafe(0) },
+                location,
+              }),
+            ),
+          ).pipe(Effect.provide(LocationServiceMap.get(location)), Effect.flip)
+
+          expect(failure).toMatchObject({
+            _tag: "SessionRunnerModel.ModelUnavailableError",
+            providerID: "unavailable",
+            modelID: "chat",
+          })
+        }),
+      ),
+    ),
+  )
+
+  it.live("installs public plugins into a location", () =>
+    Effect.acquireRelease(
+      Effect.promise(() => tmpdir()),
+      (dir) => Effect.promise(() => dir[Symbol.asyncDispose]()),
+    ).pipe(
+      Effect.flatMap((dir) =>
+        Effect.gen(function* () {
+          const plugins = yield* PluginV2.Service
+          const reviewer = define({
+            id: "reviewer",
+            effect: (ctx) =>
+              ctx.agent
+                .transform((agent) => {
+                  agent.update("reviewer", (item) => {
+                    item.description = "Reviews code"
+                    item.mode = "subagent"
+                  })
+                })
+                .pipe(Effect.asVoid),
+          })
+          yield* plugins.add(PluginV2.ID.make(reviewer.id), reviewer.effect)
+
+          expect(yield* (yield* AgentV2.Service).get(AgentV2.ID.make("reviewer"))).toMatchObject({
+            description: "Reviews code",
+            mode: "subagent",
+          })
+        }).pipe(
+          Effect.scoped,
+          Effect.provide(LocationServiceMap.get(Location.Ref.make({ directory: AbsolutePath.make(dir.path) }))),
+        ),
       ),
     ),
   )

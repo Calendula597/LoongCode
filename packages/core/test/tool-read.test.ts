@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect } from "bun:test"
 import path from "path"
-import { Effect, Exit, Layer } from "effect"
+import { Effect, Exit, Layer, PlatformError } from "effect"
 import { Config } from "@loongcode/core/config"
 import { ConfigAttachments } from "@loongcode/core/config/attachments"
 import { FileSystem } from "@loongcode/core/filesystem"
 import { FSUtil } from "@loongcode/core/fs-util"
 import { Location } from "@loongcode/core/location"
+import { LocationMutation } from "@loongcode/core/location-mutation"
 import { Image } from "@loongcode/core/image"
 import { PermissionV2 } from "@loongcode/core/permission"
 import { SessionV2 } from "@loongcode/core/session"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { Global } from "@loongcode/core/global"
-import { LocationMutation } from "@loongcode/core/location-mutation"
 import { location } from "./fixture/location"
 import { ToolRegistry } from "@loongcode/core/tool/registry"
 import { ReadTool } from "@loongcode/core/tool/read"
@@ -20,6 +20,8 @@ import { testEffect } from "./lib/effect"
 import { toolIdentity, executeTool, settleTool, toolDefinitions } from "./lib/tool"
 
 const assertions: PermissionV2.AssertInput[] = []
+const missingPath = "__missing_read_target__.txt"
+const missingAbsolutePath = path.join(process.cwd(), missingPath)
 const readCalls: {
   input: AbsolutePath
   page: ReadToolFileSystem.PageInput
@@ -34,15 +36,19 @@ let readResult: FileSystem.Content | ReadToolFileSystem.TextPage = {
   encoding: "utf8",
   mime: "text/plain",
 }
-let readFailure: unknown
+let readFailure: ReadToolFileSystem.ReadError | undefined
 let configEntries: Config.Entry[] = []
 const reader = Layer.succeed(
   ReadToolFileSystem.Service,
   ReadToolFileSystem.Service.of({
-    inspect: () => (resolveFailure === undefined ? Effect.succeed(resolvedType) : Effect.die(resolveFailure)),
+    inspect: (input) => {
+      if (input === missingAbsolutePath)
+        return Effect.fail(new ReadToolFileSystem.PathKindError({ resource: input, expected: "a file or directory" }))
+      return resolveFailure === undefined ? Effect.succeed(resolvedType) : Effect.die(resolveFailure)
+    },
     read: (input, _resource, page = {}) => {
       readCalls.push({ input, page })
-      if (readFailure !== undefined) return Effect.die(readFailure)
+      if (readFailure !== undefined) return Effect.fail(readFailure)
       return Effect.succeed(readResult)
     },
     list: (_path, input = {}) =>
@@ -72,7 +78,24 @@ const config = Layer.succeed(Config.Service, Config.Service.of({ entries: () => 
 const image = Image.layer.pipe(Layer.provide(config))
 const testFileSystem = Layer.effect(
   FSUtil.Service,
-  FSUtil.Service.use((fs) => Effect.succeed(FSUtil.Service.of({ ...fs, realPath: (path) => Effect.succeed(path) }))),
+  FSUtil.Service.use((fs) =>
+    Effect.succeed(
+      FSUtil.Service.of({
+        ...fs,
+        realPath: (path) =>
+          path === missingAbsolutePath
+            ? Effect.fail(
+                PlatformError.systemError({
+                  _tag: "NotFound",
+                  module: "FileSystem",
+                  method: "realPath",
+                  pathOrDescriptor: path,
+                }),
+              )
+            : Effect.succeed(path),
+      }),
+    ),
+  ),
 ).pipe(Layer.provide(FSUtil.defaultLayer))
 const infrastructure = Layer.mergeAll(
   testFileSystem,
@@ -173,7 +196,12 @@ describe("ReadTool", () => {
         },
       })
       expect(assertions).toMatchObject([{ sessionID, action: "read", resources: ["README.md"], save: ["*"] }])
-      expect(readCalls).toEqual([{ input: AbsolutePath.make(`${process.cwd()}/README.md`), page: {} }])
+      expect(readCalls).toEqual([
+        {
+          input: AbsolutePath.make(path.join(process.cwd(), "README.md")),
+          page: { offset: undefined, limit: undefined },
+        },
+      ])
     }),
   )
 
@@ -202,7 +230,12 @@ describe("ReadTool", () => {
           { type: "file", uri: `data:image/png;base64,${png}`, mime: "image/png", name: "pixel.png" },
         ],
       })
-      expect(readCalls).toEqual([{ input: AbsolutePath.make(`${process.cwd()}/pixel.png`), page: {} }])
+      expect(readCalls).toEqual([
+        {
+          input: AbsolutePath.make(path.join(process.cwd(), "pixel.png")),
+          page: { offset: undefined, limit: undefined },
+        },
+      ])
 
       const settled = yield* settleTool(registry, {
         sessionID,
@@ -440,9 +473,32 @@ describe("ReadTool", () => {
     }),
   )
 
+  it.effect("returns expected filesystem failures to the model", () =>
+    Effect.gen(function* () {
+      readFailure = new ReadToolFileSystem.BinaryFileError({ resource: "archive.dat" })
+      const registry = yield* ToolRegistry.Service
+
+      expect(
+        yield* executeTool(registry, {
+          sessionID,
+          ...toolIdentity,
+          call: {
+            type: "tool-call",
+            id: "call-binary",
+            name: "read",
+            input: { path: "archive.dat", offset: 2, limit: 1 },
+          },
+        }),
+      ).toEqual({ type: "error", value: "Cannot read binary file: archive.dat" })
+      expect(readCalls).toEqual([
+        { input: AbsolutePath.make(path.join(process.cwd(), "archive.dat")), page: { offset: 2, limit: 1 } },
+      ])
+    }),
+  )
+
   it.effect("preserves unexpected filesystem defects", () =>
     Effect.gen(function* () {
-      readFailure = new ReadToolFileSystem.BinaryFileError("archive.dat")
+      resolveFailure = new Error("unexpected")
       const registry = yield* ToolRegistry.Service
 
       expect(
@@ -450,18 +506,10 @@ describe("ReadTool", () => {
           yield* executeTool(registry, {
             sessionID,
             ...toolIdentity,
-            call: {
-              type: "tool-call",
-              id: "call-binary",
-              name: "read",
-              input: { path: "archive.dat", offset: 2, limit: 1 },
-            },
+            call: { type: "tool-call", id: "call-defect", name: "read", input: { path: "README.md" } },
           }).pipe(Effect.exit),
         ),
       ).toBe(true)
-      expect(readCalls).toEqual([
-        { input: AbsolutePath.make(`${process.cwd()}/archive.dat`), page: { offset: 2, limit: 1 } },
-      ])
     }),
   )
 
@@ -477,6 +525,22 @@ describe("ReadTool", () => {
           call: { type: "tool-call", id: "call-read", name: "read", input: { path: "README.md" } },
         }),
       ).toEqual({ type: "error", value: "Unable to read README.md" })
+      expect(readCalls).toEqual([])
+    }),
+  )
+
+  it.effect("returns missing paths as model-visible tool failures", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+
+      expect(
+        yield* executeTool(registry, {
+          sessionID,
+          ...toolIdentity,
+          call: { type: "tool-call", id: "call-missing-path", name: "read", input: { path: missingPath } },
+        }),
+      ).toEqual({ type: "error", value: `Unable to read ${missingPath}` })
+      expect(assertions).toEqual([])
       expect(readCalls).toEqual([])
     }),
   )
@@ -567,7 +631,7 @@ describe("ReadTool", () => {
         value: { type: "text-page", content: "hello", mime: "text/plain", offset: 2, truncated: true, next: 3 },
       })
       expect(readCalls).toEqual([
-        { input: AbsolutePath.make(`${process.cwd()}/large.txt`), page: { offset: 2, limit: 1 } },
+        { input: AbsolutePath.make(path.join(process.cwd(), "large.txt")), page: { offset: 2, limit: 1 } },
       ])
     }),
   )

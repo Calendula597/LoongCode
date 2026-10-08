@@ -4,42 +4,29 @@ import { Effect, Layer } from "effect"
 import { Catalog } from "@loongcode/core/catalog"
 import { Integration } from "@loongcode/core/integration"
 import { Credential } from "@loongcode/core/credential"
-import { Database } from "@loongcode/core/database/database"
 import { EventV2 } from "@loongcode/core/event"
 import { Flag } from "@loongcode/core/flag/flag"
 import { Location } from "@loongcode/core/location"
 import { ModelsDev } from "@loongcode/core/models-dev"
-import { PluginV2 } from "@loongcode/core/plugin"
 import { ModelsDevPlugin } from "@loongcode/core/plugin/models-dev"
 import { Policy } from "@loongcode/core/policy"
 import { AbsolutePath } from "@loongcode/core/schema"
 import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
+import { catalogHost, host, integrationHost } from "./host"
 
 const events = EventV2.defaultLayer
 const locationLayer = Layer.succeed(
   Location.Service,
   Location.Service.of(location({ directory: AbsolutePath.make(import.meta.dir) })),
 )
-const plugins = PluginV2.layer.pipe(Layer.provide(events))
 const policy = Policy.layer.pipe(Layer.provide(locationLayer))
-const connections = Credential.layer.pipe(
-  Layer.fresh,
-  Layer.provide(Database.layerFromPath(":memory:").pipe(Layer.fresh)),
-  Layer.provide(events),
-)
+const connections = Credential.defaultLayer.pipe(Layer.fresh)
 const integrations = Integration.locationLayer.pipe(Layer.provide(events), Layer.provide(connections))
 const catalog = Catalog.layer.pipe(
-  Layer.provide(Layer.mergeAll(events, locationLayer, plugins, policy, connections, integrations)),
+  Layer.provide(Layer.mergeAll(events, locationLayer, policy, connections, integrations)),
 )
-const layer = Layer.mergeAll(
-  catalog.pipe(Layer.provide(connections)),
-  integrations,
-  connections,
-  events,
-  locationLayer,
-  plugins,
-)
+const layer = Layer.mergeAll(catalog.pipe(Layer.provide(connections)), integrations, connections, events, locationLayer)
 const it = testEffect(layer)
 
 describe("ModelsDevPlugin", () => {
@@ -56,8 +43,14 @@ describe("ModelsDevPlugin", () => {
       }),
       () =>
         Effect.gen(function* () {
-          yield* ModelsDevPlugin.effect
           const integrations = yield* Integration.Service
+          const catalog = yield* Catalog.Service
+          yield* ModelsDevPlugin.effect(
+            host({
+              catalog: catalogHost(catalog),
+              integration: integrationHost(integrations),
+            }),
+          )
           expect(yield* integrations.list()).toEqual([
             new Integration.Info({
               id: Integration.ID.make("acme"),

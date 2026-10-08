@@ -50,7 +50,7 @@ export const layer = Layer.effectDiscard(
           },
           execute: (input, context) => {
             return Effect.gen(function* () {
-              const source = {
+const source = {
                 type: "tool" as const,
                 messageID: context.assistantMessageID,
                 callID: context.toolCallID,
@@ -86,7 +86,7 @@ export const layer = Layer.effectDiscard(
                   .pipe(Effect.catchTag("Image.ResizerUnavailableError", () => Effect.succeed(content)))
               }
               if ("encoding" in content && content.encoding === "base64")
-                return yield* Effect.fail(new ReadToolFileSystem.BinaryFileError(resource))
+                return yield* Effect.fail(new ReadToolFileSystem.BinaryFileError({ resource }))
               return content
             }).pipe(
               Effect.mapError((error) => {

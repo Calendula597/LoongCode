@@ -28,9 +28,9 @@ import { AbsolutePath, type DeepMutable } from "@loongcode/core/schema"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { ModelV2 } from "@loongcode/core/model"
 import { LocationServiceMap } from "@loongcode/core/location-layer"
-import { PluginBoot } from "@loongcode/core/plugin/boot"
 import { Reference } from "@loongcode/core/reference"
 import { Location } from "@loongcode/core/location"
+import { PluginV2 } from "@loongcode/core/plugin"
 
 export const Info = Schema.Struct({
   name: Schema.String,
@@ -99,10 +99,12 @@ export const layer = Layer.effect(
       Effect.fn("Agent.state")(function* (ctx) {
         const cfg = yield* config.get()
         const skillDirs = yield* skill.dirs()
-        const referenceDirs = yield* Effect.gen(function* () {
-          yield* (yield* PluginBoot.Service).wait()
-          return (yield* (yield* Reference.Service).list()).map((reference) => reference.path)
-        }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
+        const referenceDirs = Object.keys(cfg.references ?? cfg.reference ?? {}).length
+          ? yield* Effect.gen(function* () {
+              yield* (yield* PluginV2.Service).wait(PluginV2.ID.make("core/config-reference"))
+              return (yield* (yield* Reference.Service).list()).map((reference) => reference.path)
+            }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
+          : []
         const whitelistedDirs = [
           Truncate.GLOB,
           path.join(Global.Path.tmp, "*"),

@@ -1,6 +1,6 @@
 import { parseCommentNote, readCommentMetadata } from "@/utils/comment-note"
 import { AssistantMessage, Part, SessionStatus, SnapshotFileDiff, UserMessage } from "@loongcode/sdk/v2"
-import { groupParts, PartGroup, renderable } from "@loongcode/ui/message-part"
+import { groupParts, PartGroup, renderable } from "@loongcode/session-ui/message-part"
 import { Data, Equal } from "effect"
 
 export type SummaryDiff = SnapshotFileDiff & { file: string }

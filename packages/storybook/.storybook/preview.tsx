@@ -1,4 +1,5 @@
 import "@loongcode/ui/styles/tailwind"
+import "@loongcode/session-ui/styles"
 import "@loongcode/ui/v2/styles/tailwind.css"
 
 import { createEffect, onCleanup, onMount } from "solid-js"

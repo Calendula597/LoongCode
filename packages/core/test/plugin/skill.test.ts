@@ -6,6 +6,7 @@ import { SkillPlugin } from "@loongcode/core/plugin/skill"
 import { SkillV2 } from "@loongcode/core/skill"
 import { SkillDiscovery } from "@loongcode/core/skill/discovery"
 import { testEffect } from "../lib/effect"
+import { host } from "./host"
 
 const it = testEffect(
   SkillV2.layer.pipe(
@@ -19,7 +20,7 @@ describe("SkillPlugin.Plugin", () => {
   it.effect("registers the built-in customize-loongcode skill", () =>
     Effect.gen(function* () {
       const skill = yield* SkillV2.Service
-      yield* SkillPlugin.Plugin.effect.pipe(Effect.provideService(SkillV2.Service, skill))
+      yield* SkillPlugin.Plugin.effect(host({ skill: { ...skill, reload: skill.reload } }))
 
       expect(yield* skill.list()).toContainEqual(
         expect.objectContaining({

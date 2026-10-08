@@ -2,7 +2,7 @@ import { For, Show, createMemo, onCleanup, onMount, type Component } from "solid
 import { createStore } from "solid-js/store"
 import { useMutation } from "@tanstack/solid-query"
 import { Button } from "@loongcode/ui/button"
-import { DockPrompt } from "@loongcode/ui/dock-prompt"
+import { DockPrompt } from "@loongcode/session-ui/dock-prompt"
 import { Icon } from "@loongcode/ui/icon"
 import { showToast } from "@/utils/toast"
 import type { QuestionAnswer, QuestionRequest } from "@loongcode/sdk/v2"

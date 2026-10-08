@@ -15,7 +15,7 @@ import type {
   Todo,
   VcsInfo,
 } from "@loongcode/sdk/v2/client"
-import { NormalizedProviderListResponse } from "@loongcode/ui/context"
+import { NormalizedProviderListResponse } from "@loongcode/session-ui/context"
 import type { Accessor } from "solid-js"
 import type { SetStoreFunction, Store } from "solid-js/store"
 
