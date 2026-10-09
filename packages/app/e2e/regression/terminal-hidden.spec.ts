@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { mockOpenCodeServer } from "../utils/mock-server"
+import { mockLoongcodeServer } from "../utils/mock-server"
 import { expectSessionTitle } from "../utils/waits"
 
 const directory = "C:/OpenCode/HiddenTerminalRegression"
@@ -7,9 +7,9 @@ const projectID = "proj_hidden_terminal_regression"
 const sessionID = "ses_hidden_terminal_regression"
 const title = "Hidden terminal regression"
 
-test("unmounts the terminal renderer while the pane is hidden", async ({ page }) => {
+test("unmounts the terminal panel while it is hidden", async ({ page }) => {
   await page.setViewportSize({ width: 1400, height: 900 })
-  await mockOpenCodeServer(page, {
+  await mockLoongcodeServer(page, {
     directory,
     project: {
       id: projectID,
@@ -64,13 +64,14 @@ test("unmounts the terminal renderer while the pane is hidden", async ({ page })
   await expect(page.locator('[data-component="terminal"]')).toBeVisible()
 
   await page.keyboard.press("Control+Backquote")
-  await expect(panel).toHaveAttribute("aria-hidden", "true")
+  await expect(panel).toHaveCount(0)
   await expect(page.locator('[data-component="terminal"]')).toHaveCount(0)
 
   await page.setViewportSize({ width: 1200, height: 700 })
   await expect(page.locator('[data-component="terminal"]')).toHaveCount(0)
 
   await page.keyboard.press("Control+Backquote")
+  await expect(panel).toBeVisible()
   await expect(page.locator('[data-component="terminal"]')).toBeVisible()
 })
 

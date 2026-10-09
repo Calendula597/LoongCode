@@ -1,6 +1,6 @@
 import { base64Encode } from "@loongcode/core/util/encode"
 import { expect, test, type Page } from "@playwright/test"
-import { mockOpenCodeServer } from "../utils/mock-server"
+import { mockLoongcodeServer } from "../utils/mock-server"
 import { expectSessionTitle } from "../utils/waits"
 
 const directory = "C:/OpenCode/TodoDockNavigation"
@@ -28,7 +28,7 @@ test("animates todo lifecycle without replaying it across session tabs", async (
   const events: EventPayload[] = []
   const todos: Record<string, typeof activeTodos> = { [sourceID]: [], [otherID]: [] }
 
-  await mockOpenCodeServer(page, {
+  await mockLoongcodeServer(page, {
     directory,
     project: {
       id: projectID,
@@ -145,7 +145,7 @@ async function configurePage(page: Page) {
         }),
       )
       localStorage.setItem(
-        "opencode.global.dat:tabs",
+        "opencode.window.browser.dat:tabs",
         JSON.stringify(sessionIDs.map((sessionId) => ({ type: "session", server, dirBase64, sessionId }))),
       )
     },

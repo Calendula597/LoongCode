@@ -45,6 +45,7 @@ export class Service extends ConfigService.Service<Service>()("@loongcode/Runtim
   experimentalLspTool: enabledByExperimental("LOONGCODE_EXPERIMENTAL_LSP_TOOL"),
   experimentalOxfmt: enabledByExperimental("LOONGCODE_EXPERIMENTAL_OXFMT"),
   experimentalPlanMode: enabledByExperimental("LOONGCODE_EXPERIMENTAL_PLAN_MODE"),
+  experimentalCodeMode: enabledByExperimental("LOONGCODE_EXPERIMENTAL_CODE_MODE"),
   experimentalEventSystem: enabledByExperimental("LOONGCODE_EXPERIMENTAL_EVENT_SYSTEM"),
   experimentalWorkspaces: enabledByExperimental("LOONGCODE_EXPERIMENTAL_WORKSPACES"),
   experimentalIconDiscovery: enabledByExperimental("LOONGCODE_EXPERIMENTAL_ICON_DISCOVERY"),

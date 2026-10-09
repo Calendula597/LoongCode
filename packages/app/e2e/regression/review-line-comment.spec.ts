@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 import { base64Encode } from "@loongcode/core/util/encode"
-import { mockOpenCodeServer } from "../utils/mock-server"
+import { mockLoongcodeServer } from "../utils/mock-server"
 import { expectAppVisible, expectSessionTitle } from "../utils/waits"
 
 const directory = "C:/OpenCode/ReviewLineCommentRegression"
@@ -83,7 +83,7 @@ test("stages a submitted line comment in the prompt context", async ({ page }) =
 
 async function openReview(page: Page) {
   await page.setViewportSize({ width: 700, height: 900 })
-  await mockOpenCodeServer(page, {
+  await mockLoongcodeServer(page, {
     directory,
     project: {
       id: "proj_review_line_comment_regression",

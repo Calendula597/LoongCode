@@ -241,6 +241,44 @@ test("uses zero cost when Copilot reports a zero billing batch size", async () =
   expect(JSON.stringify(model)).not.toContain("null")
 })
 
+test("records Copilot advertised responses endpoint for non-GPT model IDs", async () => {
+  globalThis.fetch = mock(() =>
+    Promise.resolve(
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              model_picker_enabled: true,
+              id: "mai-code-1-flash-picker",
+              name: "MAI-Code-1-Flash",
+              version: "mai-code-1-flash-picker",
+              supported_endpoints: ["/responses"],
+              capabilities: {
+                family: "oswe-vscode-modelD",
+                limits: {
+                  max_context_window_tokens: 256000,
+                  max_output_tokens: 128000,
+                  max_prompt_tokens: 128000,
+                },
+                supports: {
+                  streaming: true,
+                  structured_outputs: true,
+                  tool_calls: true,
+                },
+              },
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+    ),
+  ) as unknown as typeof fetch
+
+  const model = (await CopilotModels.get("https://api.githubcopilot.com")).models["mai-code-1-flash-picker"]
+
+  expect("endpoint" in model.api ? model.api.endpoint : undefined).toBe("responses")
+})
+
 test("clears existing variants so refreshed models calculate provider-specific variants", async () => {
   globalThis.fetch = mock(() =>
     Promise.resolve(

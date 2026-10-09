@@ -210,7 +210,7 @@ it.live("remove switches to another org when the active account is removed", () 
 
     yield* Account.use.remove(second).pipe(Effect.provide(live(client)))
 
-    const active = yield* AccountRepo.Service.use((r) => r.active())
+    const active = yield* AccountRepo.use.active()
     expect(Option.getOrThrow(active)).toEqual(
       expect.objectContaining({
         id: first,
