@@ -21,6 +21,7 @@ await Bun.build({
   external: ["jsonc-parser", "@lydell/node-pty", "cpu-features"],
   define: {
     LOONGCODE_MODELS_DEV: generated.modelsData,
+    LOONGCODE_VERSION: `'${Script.version}'`,
     LOONGCODE_CHANNEL: `'${Script.channel}'`,
   },
   files: {

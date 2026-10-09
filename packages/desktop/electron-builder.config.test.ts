@@ -56,3 +56,36 @@ test("keeps a hidden prod launcher for old Linux pins", async () => {
   expect(desktop).toContain("StartupWMClass=ai.loongcode.desktop")
   expect(desktop).toContain("NoDisplay=true")
 })
+
+test("bundles the CLI outside the dev app archive", async () => {
+  const previous = process.env.LOONGCODE_CHANNEL
+  process.env.LOONGCODE_CHANNEL = "dev"
+  const module = await import("./electron-builder.config.ts?cli-resource")
+  const config = module.default as Configuration
+  if (previous === undefined) delete process.env.LOONGCODE_CHANNEL
+  else process.env.LOONGCODE_CHANNEL = previous
+
+  expect(config.files).toContain("!resources/opencode-cli*")
+  expect(config.extraResources).toContainEqual({
+    from: "resources/",
+    to: "",
+    filter: ["opencode-cli*"],
+  })
+})
+
+for (const channel of ["beta", "prod"] as const) {
+  test(`does not bundle the CLI in ${channel} builds`, async () => {
+    const previous = process.env.LOONGCODE_CHANNEL
+    process.env.LOONGCODE_CHANNEL = channel
+    const module = await import(`./electron-builder.config.ts?no-cli-resource=${channel}`)
+    const config = module.default as Configuration
+    if (previous === undefined) delete process.env.LOONGCODE_CHANNEL
+    else process.env.LOONGCODE_CHANNEL = previous
+
+    expect(config.extraResources).not.toContainEqual({
+      from: "resources/",
+      to: "",
+      filter: ["opencode-cli*"],
+    })
+  })
+}

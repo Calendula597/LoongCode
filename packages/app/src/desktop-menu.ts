@@ -1,8 +1,6 @@
-import type { Dictionary } from "@/context/language"
+import type { DesktopNativeKey } from "./i18n/desktop-native"
 
 export type DesktopMenuPlatform = "macos" | "windows"
-
-export type DesktopMenuLabelKey = keyof Dictionary
 
 export type DesktopMenuAction =
   | "app.checkForUpdates"
@@ -48,8 +46,7 @@ export type DesktopMenuRole =
 
 export type DesktopMenuItem = {
   type: "item"
-  label?: string
-  labelKey?: DesktopMenuLabelKey
+  labelKey?: DesktopNativeKey
   command?: string
   action?: DesktopMenuAction
   role?: DesktopMenuRole
@@ -68,8 +65,7 @@ export type DesktopMenuEntry = DesktopMenuItem | DesktopMenuSeparator
 
 export type DesktopMenu = {
   id: string
-  label: string
-  labelKey?: DesktopMenuLabelKey
+  labelKey: DesktopNativeKey
   role?: DesktopMenuRole
   items?: DesktopMenuEntry[]
   platforms?: DesktopMenuPlatform[]
@@ -78,27 +74,20 @@ export type DesktopMenu = {
 export const DESKTOP_MENU: DesktopMenu[] = [
   {
     id: "app",
-    label: "Loongcode",
+    labelKey: "desktop.menu.app",
     platforms: ["macos"],
     items: [
       { type: "item", role: "about" },
       {
         type: "item",
-        label: "Check for Updates...",
-        labelKey: "desktopMenu.app.checkForUpdates",
+        labelKey: "desktop.menu.checkForUpdates",
         action: "app.checkForUpdates",
         enabled: "updater",
       },
-      {
-        type: "item",
-        label: "Settings",
-        labelKey: "desktopMenu.app.settings",
-        command: "settings.open",
-        accelerator: { macos: "Cmd+," },
-      },
-      { type: "item", label: "Reload Webview", labelKey: "desktopMenu.app.reloadWebview", action: "view.reload" },
-      { type: "item", label: "Restart", labelKey: "desktopMenu.app.restart", action: "app.relaunch" },
-      { type: "item", label: "Export Logs...", labelKey: "desktopMenu.app.exportLogs", command: "logs.export" },
+      { type: "item", labelKey: "desktop.menu.settings", command: "settings.open", accelerator: { macos: "Cmd+," } },
+      { type: "item", labelKey: "desktop.menu.reloadWebview", action: "view.reload" },
+      { type: "item", labelKey: "desktop.menu.restart", action: "app.relaunch" },
+      { type: "item", labelKey: "desktop.menu.exportLogs", command: "logs.export" },
       { type: "separator" },
       { type: "item", role: "hide" },
       { type: "item", role: "hideOthers" },
@@ -109,65 +98,51 @@ export const DESKTOP_MENU: DesktopMenu[] = [
   },
   {
     id: "file",
-    label: "File",
-    labelKey: "desktopMenu.file",
+    labelKey: "desktop.menu.file",
     items: [
       {
         type: "item",
-        label: "New Session",
-        labelKey: "desktopMenu.file.newSession",
+        labelKey: "desktop.menu.newSession",
         command: "session.new",
         accelerator: { macos: "Shift+Cmd+S" },
       },
       {
         type: "item",
-        label: "Open Project...",
-        labelKey: "desktopMenu.file.openProject",
+        labelKey: "desktop.menu.openProject",
         command: "project.open",
         accelerator: { macos: "Cmd+O" },
       },
       {
         type: "item",
-        label: "Settings",
-        labelKey: "desktopMenu.file.settings",
+        labelKey: "desktop.menu.settings",
         command: "settings.open",
         accelerator: { windows: "Ctrl+," },
         platforms: ["windows"],
       },
       {
         type: "item",
-        label: "New Window",
-        labelKey: "desktopMenu.file.newWindow",
+        labelKey: "desktop.menu.newWindow",
         action: "window.new",
         accelerator: { macos: "Cmd+Shift+N", windows: "Ctrl+Shift+N" },
       },
       { type: "separator" },
-      {
-        type: "item",
-        label: "Close Window",
-        labelKey: "desktopMenu.file.closeWindow",
-        action: "window.close",
-        role: "close",
-      },
+      { type: "item", labelKey: "desktop.menu.closeWindow", action: "window.close", role: "close" },
     ],
   },
   {
     id: "edit",
-    label: "Edit",
-    labelKey: "desktopMenu.edit",
+    labelKey: "desktop.menu.edit",
     items: [
       {
         type: "item",
-        label: "Undo",
-        labelKey: "desktopMenu.edit.undo",
+        labelKey: "desktop.menu.undo",
         action: "edit.undo",
         role: "undo",
         accelerator: { windows: "Ctrl+Z" },
       },
       {
         type: "item",
-        label: "Redo",
-        labelKey: "desktopMenu.edit.redo",
+        labelKey: "desktop.menu.redo",
         action: "edit.redo",
         role: "redo",
         accelerator: { windows: "Ctrl+Y" },
@@ -175,33 +150,29 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       { type: "separator" },
       {
         type: "item",
-        label: "Cut",
-        labelKey: "desktopMenu.edit.cut",
+        labelKey: "desktop.menu.cut",
         action: "edit.cut",
         role: "cut",
         accelerator: { windows: "Ctrl+X" },
       },
       {
         type: "item",
-        label: "Copy",
-        labelKey: "desktopMenu.edit.copy",
+        labelKey: "desktop.menu.copy",
         action: "edit.copy",
         role: "copy",
         accelerator: { windows: "Ctrl+C" },
       },
       {
         type: "item",
-        label: "Paste",
-        labelKey: "desktopMenu.edit.paste",
+        labelKey: "desktop.menu.paste",
         action: "edit.paste",
         role: "paste",
         accelerator: { windows: "Ctrl+V" },
       },
-      { type: "item", label: "Delete", labelKey: "desktopMenu.edit.delete", action: "edit.delete" },
+      { type: "item", labelKey: "desktop.menu.delete", action: "edit.delete" },
       {
         type: "item",
-        label: "Select All",
-        labelKey: "desktopMenu.edit.selectAll",
+        labelKey: "desktop.menu.selectAll",
         action: "edit.selectAll",
         role: "selectAll",
         accelerator: { windows: "Ctrl+A" },
@@ -210,59 +181,42 @@ export const DESKTOP_MENU: DesktopMenu[] = [
   },
   {
     id: "view",
-    label: "View",
-    labelKey: "desktopMenu.view",
+    labelKey: "desktop.menu.view",
     items: [
-{
-        type: "item",
-        label: "Toggle Sidebar",
-        labelKey: "desktopMenu.view.toggleSidebar",
-        command: "sidebar.toggle",
-        accelerator: { macos: "Cmd+B" },
-      },
+      { type: "item", labelKey: "desktop.menu.toggleSidebar", command: "sidebar.toggle" },
       {
         type: "item",
-        label: "Toggle Terminal",
-        labelKey: "desktopMenu.view.toggleTerminal",
+        labelKey: "desktop.menu.toggleTerminal",
         command: "terminal.toggle",
         accelerator: { macos: "Ctrl+`" },
       },
-      {
-        type: "item",
-        label: "Toggle File Tree",
-        labelKey: "desktopMenu.view.toggleFileTree",
-        command: "fileTree.toggle",
-      },
+      { type: "item", labelKey: "desktop.menu.toggleFileTree", command: "fileTree.toggle" },
       { type: "separator" },
-      { type: "item", label: "Reload", labelKey: "desktopMenu.view.reload", action: "view.reload", role: "reload" },
+      { type: "item", labelKey: "desktop.menu.reload", action: "view.reload", role: "reload" },
       {
         type: "item",
-        label: "Toggle Developer Tools",
-        labelKey: "desktopMenu.view.toggleDevTools",
+        labelKey: "desktop.menu.toggleDeveloperTools",
         action: "view.toggleDevTools",
         role: "toggleDevTools",
       },
       { type: "separator" },
       {
         type: "item",
-        label: "Actual Size",
-        labelKey: "desktopMenu.view.actualSize",
+        labelKey: "desktop.menu.actualSize",
         action: "view.resetZoom",
         role: "resetZoom",
         accelerator: { windows: "Ctrl+0" },
       },
       {
         type: "item",
-        label: "Zoom In",
-        labelKey: "desktopMenu.view.zoomIn",
+        labelKey: "desktop.menu.zoomIn",
         action: "view.zoomIn",
         role: "zoomIn",
         accelerator: { windows: "Ctrl++" },
       },
       {
         type: "item",
-        label: "Zoom Out",
-        labelKey: "desktopMenu.view.zoomOut",
+        labelKey: "desktop.menu.zoomOut",
         action: "view.zoomOut",
         role: "zoomOut",
         accelerator: { windows: "Ctrl+-" },
@@ -270,8 +224,7 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       { type: "separator" },
       {
         type: "item",
-        label: "Toggle Full Screen",
-        labelKey: "desktopMenu.view.toggleFullScreen",
+        labelKey: "desktop.menu.toggleFullScreen",
         action: "view.toggleFullscreen",
         role: "togglefullscreen",
       },
@@ -279,50 +232,33 @@ export const DESKTOP_MENU: DesktopMenu[] = [
   },
   {
     id: "go",
-    label: "Go",
-    labelKey: "desktopMenu.go",
+    labelKey: "desktop.menu.go",
     items: [
-      {
-        type: "item",
-        label: "Back",
-        labelKey: "desktopMenu.go.back",
-        command: "common.goBack",
-        accelerator: { macos: "Cmd+[" },
-      },
-      {
-        type: "item",
-        label: "Forward",
-        labelKey: "desktopMenu.go.forward",
-        command: "common.goForward",
-        accelerator: { macos: "Cmd+]" },
-      },
+      { type: "item", labelKey: "desktop.menu.back", command: "common.goBack", accelerator: { macos: "Cmd+[" } },
+      { type: "item", labelKey: "desktop.menu.forward", command: "common.goForward", accelerator: { macos: "Cmd+]" } },
       { type: "separator" },
       {
         type: "item",
-        label: "Previous Session",
-        labelKey: "desktopMenu.go.previousSession",
+        labelKey: "desktop.menu.previousSession",
         command: "session.previous",
         accelerator: { macos: "Option+Up" },
       },
       {
         type: "item",
-        label: "Next Session",
-        labelKey: "desktopMenu.go.nextSession",
+        labelKey: "desktop.menu.nextSession",
         command: "session.next",
         accelerator: { macos: "Option+Down" },
       },
       { type: "separator" },
       {
         type: "item",
-        label: "Previous Project",
-        labelKey: "desktopMenu.go.previousProject",
+        labelKey: "desktop.menu.previousProject",
         command: "project.previous",
         accelerator: { macos: "Cmd+Option+Up" },
       },
       {
         type: "item",
-        label: "Next Project",
-        labelKey: "desktopMenu.go.nextProject",
+        labelKey: "desktop.menu.nextProject",
         command: "project.next",
         accelerator: { macos: "Cmd+Option+Down" },
       },
@@ -330,50 +266,31 @@ export const DESKTOP_MENU: DesktopMenu[] = [
   },
   {
     id: "window",
-    label: "Window",
-    labelKey: "desktopMenu.window",
+    labelKey: "desktop.menu.window",
     role: "windowMenu",
     items: [
-      { type: "item", label: "Minimize", labelKey: "desktopMenu.window.minimize", action: "window.minimize" },
-      {
-        type: "item",
-        label: "Maximize",
-        labelKey: "desktopMenu.window.maximize",
-        action: "window.toggleMaximize",
-      },
+      { type: "item", labelKey: "desktop.menu.minimize", action: "window.minimize" },
+      { type: "item", labelKey: "desktop.menu.maximize", action: "window.toggleMaximize" },
       { type: "separator" },
-      { type: "item", label: "Close Window", labelKey: "desktopMenu.window.closeWindow", action: "window.close" },
+      { type: "item", labelKey: "desktop.menu.closeWindow", action: "window.close" },
     ],
   },
   {
     id: "help",
-    label: "Help",
-    labelKey: "desktopMenu.help",
+    labelKey: "desktop.menu.help",
     items: [
-      {
-        type: "item",
-        label: "Loongcode Documentation",
-        labelKey: "desktopMenu.help.documentation",
-        href: "https://modelhub.lgdg.cc/docs",
-      },
-      {
-        type: "item",
-        label: "Support Forum",
-        labelKey: "desktopMenu.help.supportForum",
-        href: "https://discord.com/invite/loongcode",
-      },
-      { type: "item", label: "Export Logs...", labelKey: "desktopMenu.help.exportLogs", command: "logs.export" },
+      { type: "item", labelKey: "desktop.menu.documentation", href: "https://modelhub.lgdg.cc/docs" },
+      { type: "item", labelKey: "desktop.menu.supportForum", href: "https://discord.com/invite/loongcode" },
+      { type: "item", labelKey: "desktop.menu.exportLogs", command: "logs.export" },
       { type: "separator" },
       {
         type: "item",
-        label: "Share Feedback",
-        labelKey: "desktopMenu.help.shareFeedback",
+        labelKey: "desktop.menu.shareFeedback",
         href: "https://github.com/Clearlove7Zz/LoongCode/issues/new?template=feature_request.yml",
       },
       {
         type: "item",
-        label: "Report a Bug",
-        labelKey: "desktopMenu.help.reportBug",
+        labelKey: "desktop.menu.reportBug",
         href: "https://github.com/Clearlove7Zz/LoongCode/issues/new?template=bug_report.yml",
       },
     ],

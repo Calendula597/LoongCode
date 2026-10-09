@@ -20,7 +20,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@loongcode/core/provider"
 import { ModelV2 } from "@loongcode/core/model"
 import { MCP } from "@/mcp"
-import type { Tool as MCPToolDef } from "@modelcontextprotocol/client"
+import type { Tool as MCPToolDef } from "@modelcontextprotocol/sdk/types.js"
 
 const configLayer = TestConfig.layer({
   directories: () => InstanceState.directory.pipe(Effect.map((dir) => [path.join(dir, ".loongcode")])),

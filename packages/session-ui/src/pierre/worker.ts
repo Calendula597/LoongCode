@@ -1,5 +1,8 @@
 import { WorkerPoolManager } from "@pierre/diffs/worker"
 import ShikiWorkerUrl from "@pierre/diffs/worker/worker.js?worker&url"
+import { registerLoongcodeTheme } from "@loongcode/ui/context/marked-theme-register"
+
+registerLoongcodeTheme()
 
 export type WorkerPoolStyle = "unified" | "split"
 
