@@ -3,11 +3,10 @@ import { getFilename } from "@loongcode/core/util/path"
 import type { FilePart } from "@loongcode/sdk/v2"
 
 export function attached(part: FilePart) {
-  return part.url.startsWith("data:")
+  return part.url.startsWith("data:") && !inline(part)
 }
 
 export function inline(part: FilePart) {
-  if (attached(part)) return false
   return part.source?.text?.start !== undefined && part.source?.text?.end !== undefined
 }
 

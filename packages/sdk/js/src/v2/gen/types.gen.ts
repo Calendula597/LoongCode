@@ -1935,6 +1935,7 @@ export type Config = {
   model?: string
   small_model?: string
   default_agent?: string
+  subagent_depth?: number
   username?: string
   mode?: {
     build?: AgentConfig
@@ -9177,6 +9178,7 @@ export type McpAuthStartResponse = McpAuthStartResponses[keyof McpAuthStartRespo
 export type McpAuthCallbackData = {
   body?: {
     code: string
+    iss?: string
   }
   path: {
     name: string
