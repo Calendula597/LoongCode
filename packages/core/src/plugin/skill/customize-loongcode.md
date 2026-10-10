@@ -40,7 +40,7 @@ already-loaded config until then.
 | Scope                         | Path                                                                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Project config                | `./loongcode.json`, `./loongcode.jsonc`, or `.loongcode/loongcode.json` (loongcode walks up from the cwd to the worktree root) |
-| Global config                 | `~/.config/loongcode/loongcode.json` (NOT `~/.loongcode/`)                                                                   |
+| Global config                 | `~/.config/loongcode/loongcode.json` or `~/.config/loongcode/loongcode.jsonc` (NOT `~/.loongcode/`)                            |
 | Project agents                | `.loongcode/agent/<name>.md` or `.loongcode/agents/<name>.md`                                                               |
 | Global agents                 | `~/.config/loongcode/agent(s)/<name>.md`                                                                                   |
 | Project commands              | `.loongcode/command/<name>.md` or `.loongcode/commands/<name>.md`                                                           |

@@ -1,0 +1,4 @@
+{
+  "$schema": "https://modelhub.lgdg.cc/config.json",
+  "model": "anthropic/claude-sonnet"
+}

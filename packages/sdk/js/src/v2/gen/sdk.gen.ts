@@ -1389,7 +1389,7 @@ export class Global extends HeyApiClient {
   /**
    * Upgrade loongcode
    *
-   * Upgrade loongcode to the specified version or latest if not specified.
+   * Upgrade loongcode to the specified version.
    */
   public upgrade<ThrowOnError extends boolean = false>(
     parameters?: {

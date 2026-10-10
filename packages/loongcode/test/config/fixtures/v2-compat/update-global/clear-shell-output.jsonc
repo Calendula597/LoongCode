@@ -1,0 +1,5 @@
+{
+  "$schema": "https://modelhub.lgdg.cc/config.json",
+  "model": { "providerID": "example", "model": "demo" },
+  "snapshots": false,
+}

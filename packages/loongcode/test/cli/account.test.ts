@@ -4,8 +4,8 @@ import stripAnsi from "strip-ansi"
 import { defaultConsoleUrl, formatAccountLabel, formatOrgLine } from "../../src/cli/cmd/account"
 
 describe("console account display", () => {
-  test("uses console.modelhub.lgdg.cc as the default login URL", () => {
-    expect(defaultConsoleUrl).toBe("https://console.modelhub.lgdg.cc")
+  test("uses modelhub.lgdg.cc/console as the default login URL", () => {
+    expect(defaultConsoleUrl).toBe("https://modelhub.lgdg.cc/console")
   })
 
   test("includes the account url in account labels", () => {

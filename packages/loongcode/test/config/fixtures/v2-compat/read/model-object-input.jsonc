@@ -1,0 +1,4 @@
+{
+  "$schema": "https://modelhub.lgdg.cc/config.json",
+  "model": { "providerID": "anthropic", "model": "claude-sonnet", "variant": "fast" },
+}
