@@ -149,7 +149,7 @@ describe("installation", () => {
         () => jsonResponse({ versions: { stable: "2.0.0" } }),
         (cmd, args) => {
           // getBrewFormula: return core formula (no tap)
-          if (cmd === "brew" && args.includes("--formula") && args.includes("Clearlove7Zz/tap/loongcode")) return ""
+          if (cmd === "brew" && args.includes("--formula") && args.includes("Calendula597/tap/loongcode")) return ""
           if (cmd === "brew" && args.includes("--formula") && args.includes("loongcode")) return "loongcode"
           return ""
         },
@@ -168,7 +168,7 @@ describe("installation", () => {
       testLayer(
         () => jsonResponse({}), // HTTP not used for tap formula
         (cmd, args) => {
-          if (cmd === "brew" && args.includes("Clearlove7Zz/tap/loongcode") && args.includes("--formula")) return "loongcode"
+          if (cmd === "brew" && args.includes("Calendula597/tap/loongcode") && args.includes("--formula")) return "loongcode"
           if (cmd === "brew" && args.includes("--json=v2")) return brewInfoJson
           return ""
         },

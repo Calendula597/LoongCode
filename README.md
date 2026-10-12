@@ -28,7 +28,7 @@ curl -fsSL https://modelhub.lgdg.cc/install | bash
 npm i -g loongcode@latest        # or bun/pnpm/yarn
 scoop install loongcode             # Windows
 choco install loongcode             # Windows
-brew install Clearlove7Zz/tap/loongcode # macOS and Linux (recommended, always up to date)
+brew install Calendula597/tap/loongcode # macOS and Linux (recommended, always up to date)
 brew install loongcode              # macOS and Linux (official brew formula, updated less)
 sudo pacman -S loongcode            # Arch Linux (Stable)
 paru -S loongcode-bin               # Arch Linux (Latest from AUR)
