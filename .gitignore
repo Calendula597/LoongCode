@@ -43,3 +43,4 @@ tsconfig.tsbuildinfo
 # Local handover & session artifacts (do not commit; HANDOVER.md contains plaintext secrets)
 HANDOVER.md
 ghcr5.log
+.scratch/
