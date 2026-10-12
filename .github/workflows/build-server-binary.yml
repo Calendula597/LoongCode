@@ -38,10 +38,20 @@ jobs:
         run: |
           # build.ts 在 LOONGCODE_RELEASE=1 时会自己 gh release upload，
           # 需要 release 先存在，所以在 build 之前创建。
-          gh release create "v${{ steps.version.outputs.version }}" \
-            --title "v${{ steps.version.outputs.version }}" \
-            --notes "LoongCode v${{ steps.version.outputs.version }} — server binary builds (Linux x64/arm64)" \
-            --repo "$GH_REPO" || true
+          # 版本说明优先取随仓库提交的 .github/release-notes/v<version>.md，
+          # 没有时回退到单行占位说明。
+          NOTES=".github/release-notes/v${{ steps.version.outputs.version }}.md"
+          if [ -f "$NOTES" ]; then
+            gh release create "v${{ steps.version.outputs.version }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --notes-file "$NOTES" \
+              --repo "$GH_REPO" || true
+          else
+            gh release create "v${{ steps.version.outputs.version }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --notes "LoongCode v${{ steps.version.outputs.version }} — server binary builds (Linux x64/arm64)" \
+              --repo "$GH_REPO" || true
+          fi
 
       - name: Build all binaries
         env:
