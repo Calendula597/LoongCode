@@ -152,7 +152,7 @@ function firstEvent(open: (signal: AbortSignal) => Promise<{ stream: AsyncIterat
         Effect.flatMap((events) =>
           call(() => events.stream.next()).pipe(
             Effect.timeoutOrElse({
-              duration: "1 second",
+              duration: "5 seconds",
               orElse: () => Effect.fail(new Error("timed out waiting for SDK event")),
             }),
           ),

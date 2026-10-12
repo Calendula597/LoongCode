@@ -2,7 +2,7 @@
 
 ## Sources
 
-- PR #12283: https://github.com/Clearlove7Zz/LoongCode/pull/12283
+- PR #12283: https://github.com/Calendula597/LoongCode/pull/12283
 
 ## Do Not Translate (Locale Additions)
 

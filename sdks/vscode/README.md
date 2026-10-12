@@ -15,7 +15,7 @@ This extension requires the [loongcode CLI](https://modelhub.lgdg.cc) to be inst
 
 ## Support
 
-This is an early release. If you encounter issues or have feedback, please create an issue at https://github.com/Clearlove7Zz/LoongCode/issues.
+This is an early release. If you encounter issues or have feedback, please create an issue at https://github.com/Calendula597/LoongCode/issues.
 
 ## Development
 

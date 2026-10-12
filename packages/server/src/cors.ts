@@ -1,6 +1,7 @@
 import { Context } from "effect"
 
-const opencodeOrigin = /^https:\/\/([a-z0-9-]+\.)*loongcode\.ai$/
+// fork frontends are served from both the legacy loongcode.ai domain and lgdg.cc (e.g. app.modelhub.lgdg.cc)
+const opencodeOrigin = /^https:\/\/([a-z0-9-]+\.)*(loongcode\.ai|lgdg\.cc)$/
 
 export type CorsOptions = { readonly cors?: ReadonlyArray<string> }
 

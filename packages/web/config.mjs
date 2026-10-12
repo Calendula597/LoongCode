@@ -3,7 +3,7 @@ export default {
   console: "https://modelhub.lgdg.cc/auth",
   email: "help@anoma.ly",
   socialCard: "https://social-cards.sst.dev",
-  github: "https://github.com/Clearlove7Zz/LoongCode",
+  github: "https://github.com/Calendula597/LoongCode",
   discord: "https://modelhub.lgdg.cc/discord",
   headerLinks: [
     { name: "app.header.home", url: "/" },

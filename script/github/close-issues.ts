@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-const repo = "Clearlove7Zz/LoongCode"
+const repo = "Calendula597/LoongCode"
 const days = 60
 const msg = `To stay organized issues are automatically closed after ${days} days of no activity. If the issue is still relevant please open a new one.`
 

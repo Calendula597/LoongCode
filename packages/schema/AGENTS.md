@@ -17,6 +17,7 @@
 - Retained V1 contracts should live under a dedicated `src/v1/` subtree once the V1 isolation PR runs. New/current code must not depend on that subtree.
 - V1 coexistence is temporary. Keep compatibility entrypoints only where migration requires them, and delete the V1 subtree when the legacy runtime is retired.
 - `@loongcode/protocol` and `@loongcode/sdk-next` are current `/api/...` surfaces.
+- Transition note: `sdk-next` has not yet absorbed the legacy `@loongcode/sdk`; App/TUI still depend on the legacy SDK. Treat `sdk-next` as the next-generation facade, not the surface current clients consume.
 
 ## Events
 

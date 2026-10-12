@@ -255,7 +255,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         }
 
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://api.github.com/repos/Clearlove7Zz/LoongCode/releases/latest").pipe(
+          HttpClientRequest.get("https://api.github.com/repos/Calendula597/LoongCode/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )

@@ -38,7 +38,7 @@ Windows 桌面版  ──HTTP/WebSocket──▶  Linux 服务器 (loongcode ser
 
 | 项 | 值 |
 |---|---|
-| 仓库 | `https://github.com/Clearlove7Zz/LoongCode`，分支 `dev` |
+| 仓库 | `https://github.com/Calendula597/LoongCode`，分支 `dev` |
 | 服务器地址（示例） | `10.18.23.241`（Ubuntu 24.04 + bun 1.3.14） |
 | 部署目录 | `/root/loongcode` |
 | CLI 入口 | `/usr/local/bin/loongcode`（软链到 bin 脚本） |
@@ -85,7 +85,7 @@ Releases 里有各架构 Linux 二进制（`loongcode-linux-x64.tar.gz`、`loong
 
 ```bash
 # 1. 下载二进制（x64 服务器；arm64 换成 loongcode-linux-arm64.tar.gz）
-curl -L https://github.com/Clearlove7Zz/LoongCode/releases/latest/download/loongcode-linux-x64.tar.gz | tar xz
+curl -L https://github.com/Calendula597/LoongCode/releases/latest/download/loongcode-linux-x64.tar.gz | tar xz
 sudo mv loongcode /usr/local/bin/
 
 # 2. 运行时依赖：ripgrep（server 会调用 rg 做代码搜索）
@@ -105,7 +105,7 @@ loongcode --version
 >
 > **也可以用一键安装脚本**（自动检测平台、装 ripgrep、配 PATH）：
 > ```bash
-> curl -fsSL https://github.com/Clearlove7Zz/LoongCode/raw/dev/install | bash
+> curl -fsSL https://github.com/Calendula597/LoongCode/raw/dev/install | bash
 > ```
 > 脚本装到 `~/.loongcode/bin/loongcode`，并自动写入 shell 的 PATH。
 
@@ -123,7 +123,7 @@ loongcode --version
 
 ```bash
 # 在 Linux 构建机上
-git clone -b dev https://github.com/Clearlove7Zz/LoongCode.git
+git clone -b dev https://github.com/Calendula597/LoongCode.git
 cd Loongcode
 bun install
 ./packages/loongcode/script/build.ts --single
@@ -142,7 +142,7 @@ ssh root@10.18.23.241 'chmod +x /usr/local/bin/loongcode && apt install -y ripgr
 
 以上 4 种是**服务器端**装法。你本机（Windows/Mac）要装的是**桌面版客户端**——同样是 Release 里现成的安装包，下载双击装即可：```bash
 # 在 Linux 构建机上
-git clone -b dev https://github.com/Clearlove7Zz/LoongCode.git
+git clone -b dev https://github.com/Calendula597/LoongCode.git
 cd Loongcode
 bun install
 ./packages/loongcode/script/build.ts --single
@@ -170,7 +170,7 @@ ssh root@10.18.23.241 'chmod +x /usr/local/bin/loongcode && apt install -y ripgr
 | macOS Intel | 暂无预编译包，用 `build-desktop-mac-x64` 或源码 | — |
 | Linux | `loongcode-desktop-linux-x64.tar.gz` / `.deb` / `.rpm` | 按发行版选 |
 
-下载页：https://github.com/Clearlove7Zz/LoongCode/releases/latest
+下载页：https://github.com/Calendula597/LoongCode/releases/latest
 
 > 桌面版产物由 4 个 `build-desktop-*` 工作流产出并自动发到 Release。若 Release 里还没有桌面包（比如某次只触发了 server 构建），到 Actions 页面手动触发对应的 `build-desktop-*` 工作流，填同样的版本号 `0.0.1`，跑完自动补传。详见 [附：触发发版](#附触发发版)。
 >
@@ -198,7 +198,7 @@ bun --version          # 确认 1.3.14
 
 # 2. 拉 dev 分支到 /root/loongcode
 cd /root
-git clone -b dev https://github.com/Clearlove7Zz/LoongCode.git loongcode
+git clone -b dev https://github.com/Calendula597/LoongCode.git loongcode
 cd /root/loongcode
 
 # 3. 装依赖（约 4000+ 包）
@@ -515,7 +515,7 @@ ssh -N -o ServerAliveInterval=30 -L 4096:127.0.0.1:4096 root@10.18.23.241
 
 ```bash
 # 触发（gh 已登录时），或去 Actions 页面手动 Run workflow
-gh workflow run build-server-binary.yml --repo Clearlove7Zz/LoongCode -f version=0.0.1
+gh workflow run build-server-binary.yml --repo Calendula597/LoongCode -f version=0.0.1
 ```
 
 环境变量：`LOONGCODE_VERSION`（版本号）+ `LOONGCODE_RELEASE=1`（触发上传）+ `GH_REPO` + `GH_TOKEN`（自带）。
@@ -526,7 +526,7 @@ gh workflow run build-server-binary.yml --repo Clearlove7Zz/LoongCode -f version
 
 ```bash
 # 例：触发 Windows 桌面构建（版本随 package.json）
-gh workflow run build-desktop-windows.yml --repo Clearlove7Zz/LoongCode -f channel=prod
+gh workflow run build-desktop-windows.yml --repo Calendula597/LoongCode -f channel=prod
 ```
 
 4 个平台可同时触发，互不冲突（产物文件名不同，传同一个 Release）。
@@ -544,7 +544,7 @@ gh workflow run build-desktop-windows.yml --repo Clearlove7Zz/LoongCode -f chann
 ### 发版前的代码修复（已在本分支完成，不用再动）
 
 - ✅ `packages/loongcode/Dockerfile`：`lgcode→loongcode` 路径已修（`publish.yml` 发 Docker 镜像时才用到）
-- ✅ `install` 脚本：`APP=loongcode`、仓库地址 `Clearlove7Zz/LoongCode`、安装目录 `~/.loongcode` 已修
+- ✅ `install` 脚本：`APP=loongcode`、仓库地址 `Calendula597/LoongCode`、安装目录 `~/.loongcode` 已修
 - ✅ `packages/loongcode/script/build.ts`：产物名 `loongcode-*` / 二进制 `loongcode`（原本就对）
 - ✅ `build-server-binary.yml` 用 `ubuntu-24.04` runner（非 blacksmith，fork 能跑）
 - ✅ 4 个 `build-desktop-*.yml` 加了 `version` 输入 + Upload to Release 步骤

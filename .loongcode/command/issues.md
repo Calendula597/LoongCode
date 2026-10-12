@@ -3,7 +3,7 @@ description: "find issue(s) on github"
 model: loongcode/claude-haiku-4-5
 ---
 
-Search through existing issues in Clearlove7Zz/LoongCode using the gh cli to find issues matching this query:
+Search through existing issues in Calendula597/LoongCode using the gh cli to find issues matching this query:
 
 $ARGUMENTS
 

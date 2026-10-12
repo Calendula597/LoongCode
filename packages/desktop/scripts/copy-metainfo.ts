@@ -31,13 +31,13 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
   <content_rating type="oars-1.1" />
 
-  <url type="bugtracker">https://github.com/Clearlove7Zz/LoongCode/issues</url>
+  <url type="bugtracker">https://github.com/Calendula597/LoongCode/issues</url>
   <url type="homepage">https://modelhub.lgdg.cc</url>
-  <url type="vcs-browser">https://github.com/Clearlove7Zz/LoongCode</url>
+  <url type="vcs-browser">https://github.com/Calendula597/LoongCode</url>
 
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/Clearlove7Zz/LoongCode/b75d4d1c5ec449585d515c756fc81f080a157a9a/packages/web/src/assets/lander/screenshot.png</image>
+      <image>https://raw.githubusercontent.com/Calendula597/LoongCode/b75d4d1c5ec449585d515c756fc81f080a157a9a/packages/web/src/assets/lander/screenshot.png</image>
     </screenshot>
   </screenshots>
 </component>

@@ -105,7 +105,7 @@ for (const item of targets) {
         name: `@loongcode/${name}`,
         version: Script.version,
         license: "MIT",
-        repository: { type: "git", url: "git+https://github.com/Clearlove7Zz/LoongCode.git" },
+        repository: { type: "git", url: "git+https://github.com/Calendula597/LoongCode.git" },
         os: [item.os],
         cpu: [item.arch],
       },

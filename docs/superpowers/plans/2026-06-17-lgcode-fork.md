@@ -164,7 +164,7 @@ Modify `package.json`:
 - `"@loongcode-ai/plugin": "workspace:*"` → `"@loongcode/plugin": "workspace:*"`
 - `"@loongcode-ai/script": "workspace:*"` → `"@loongcode/script": "workspace:*"`
 - `"@loongcode-ai/sdk": "workspace:*"` → `"@loongcode/sdk": "workspace:*"`
-- `"url": "https://github.com/Clearlove7Zz/LoongCode"` → remove
+- `"url": "https://github.com/Calendula597/LoongCode"` → remove
 
 - [ ] **Step 2: Update `packages/loongcode/package.json`**
 

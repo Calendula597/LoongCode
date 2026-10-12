@@ -2,8 +2,8 @@
 
 ## Sources
 
-- PR #9821: https://github.com/Clearlove7Zz/LoongCode/pull/9821
-- PR #13160: https://github.com/Clearlove7Zz/LoongCode/pull/13160
+- PR #9821: https://github.com/Calendula597/LoongCode/pull/9821
+- PR #13160: https://github.com/Calendula597/LoongCode/pull/13160
 
 ## Do Not Translate (Locale Additions)
 

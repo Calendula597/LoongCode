@@ -1,12 +1,12 @@
 <p align="center">
   <a href="https://modelhub.lgdg.cc">
-    <img src="https://raw.githubusercontent.com/Clearlove7Zz/LoongCode/dev/packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
+    <img src="https://raw.githubusercontent.com/Calendula597/LoongCode/dev/packages/console/app/src/asset/logo-ornate-light.png" alt="Loongcode logo">
   </a>
 </p>
 <p align="center">AI-powered development tool by Loongcode.</p>
 <p align="center">
   <a href="https://www.npmjs.com/package/loongcode"><img alt="npm" src="https://img.shields.io/npm/v/loongcode?style=flat-square" /></a>
-  <a href="https://github.com/Clearlove7Zz/LoongCode/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Clearlove7Zz/LoongCode?style=flat-square" /></a>
+  <a href="https://github.com/Calendula597/LoongCode/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Calendula597/LoongCode?style=flat-square" /></a>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@ brew install loongcode              # macOS and Linux (official brew formula, up
 sudo pacman -S loongcode            # Arch Linux (Stable)
 paru -S loongcode-bin               # Arch Linux (Latest from AUR)
 mise use -g loongcode               # Any OS
-nix run nixpkgs#loongcode           # or github:Clearlove7Zz/LoongCode for latest dev branch
+nix run nixpkgs#loongcode           # or github:Calendula597/LoongCode for latest dev branch
 ```
 
 > [!TIP]
@@ -41,7 +41,7 @@ nix run nixpkgs#loongcode           # or github:Clearlove7Zz/LoongCode for lates
 
 ### Desktop App (BETA)
 
-Loongcode is also available as a desktop application. Download directly from the [releases page](https://github.com/Clearlove7Zz/LoongCode/releases) or [modelhub.lgdg.cc/download](https://modelhub.lgdg.cc/download).
+Loongcode is also available as a desktop application. Download directly from the [releases page](https://github.com/Calendula597/LoongCode/releases) or [modelhub.lgdg.cc/download](https://modelhub.lgdg.cc/download).
 
 | Platform              | Download                           |
 | --------------------- | ---------------------------------- |

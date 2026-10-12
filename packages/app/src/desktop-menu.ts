@@ -286,12 +286,12 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       {
         type: "item",
         labelKey: "desktop.menu.shareFeedback",
-        href: "https://github.com/Clearlove7Zz/LoongCode/issues/new?template=feature_request.yml",
+        href: "https://github.com/Calendula597/LoongCode/issues/new?template=feature_request.yml",
       },
       {
         type: "item",
         labelKey: "desktop.menu.reportBug",
-        href: "https://github.com/Clearlove7Zz/LoongCode/issues/new?template=bug_report.yml",
+        href: "https://github.com/Calendula597/LoongCode/issues/new?template=bug_report.yml",
       },
     ],
   },

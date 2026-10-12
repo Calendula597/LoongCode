@@ -38,13 +38,13 @@ import { McpBrowser } from "./browser"
 const DEFAULT_TIMEOUT = 30_000
 const CLIENT_OPTIONS = {
   capabilities: {
-    // https://github.com/Clearlove7Zz/LoongCode/issues/11948
+    // https://github.com/Calendula597/LoongCode/issues/11948
     // sampling: {},
-    // https://github.com/Clearlove7Zz/LoongCode/issues/23066
+    // https://github.com/Calendula597/LoongCode/issues/23066
     // elicitation: {},
-    // https://github.com/Clearlove7Zz/LoongCode/issues/2308
+    // https://github.com/Calendula597/LoongCode/issues/2308
     roots: {},
-    // https://github.com/Clearlove7Zz/LoongCode/issues/28567
+    // https://github.com/Calendula597/LoongCode/issues/28567
     // tasks: {},
   },
 } satisfies ClientOptions

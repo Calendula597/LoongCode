@@ -86,7 +86,7 @@ Both will be available as selectable models under the `LGDG_ModelHub` provider. 
 | `@loongcode-ai/*` | `@loongcode/*` | Workspace package names |
 | `loongcode-ai` | `loongcode` | Published npm package scope/name |
 | `modelhub.lgdg.cc` / `https://modelhub.lgdg.cc/*` | `https://modelhub.lgdg.cc` | Model cluster base URL; other non-API `modelhub.lgdg.cc` URLs are removed |
-| `https://github.com/Clearlove7Zz/LoongCode` | temporarily removed | Repository references are removed until the private repo is made public |
+| `https://github.com/Calendula597/LoongCode` | temporarily removed | Repository references are removed until the private repo is made public |
 | `~/.loongcode` | `~/.loongcode` | User configuration directory |
 
 ### Environment variables

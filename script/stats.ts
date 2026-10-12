@@ -73,7 +73,7 @@ async function fetchReleases(): Promise<Release[]> {
   const per = 100
 
   while (true) {
-    const url = `https://api.github.com/repos/Clearlove7Zz/LoongCode/releases?page=${page}&per_page=${per}`
+    const url = `https://api.github.com/repos/Calendula597/LoongCode/releases?page=${page}&per_page=${per}`
 
     const response = await fetch(url)
     if (!response.ok) {
@@ -188,7 +188,7 @@ async function save(githubTotal: number, npmDownloads: number) {
   )
 }
 
-console.log("Fetching GitHub releases for Clearlove7Zz/LoongCode...\n")
+console.log("Fetching GitHub releases for Calendula597/LoongCode...\n")
 
 const releases = await fetchReleases()
 console.log(`\nFetched ${releases.length} releases total\n`)

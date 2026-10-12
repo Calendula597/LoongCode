@@ -281,7 +281,7 @@ export default function () {
                             <div class="flex gap-3 items-center">
                               <IconButton
                                 as={"a"}
-                                href="https://github.com/Clearlove7Zz/LoongCode.git"
+                                href="https://github.com/Calendula597/LoongCode.git"
                                 target="_blank"
                                 icon="github"
                                 variant="ghost"

@@ -54,7 +54,7 @@ const getBase = (appId: string): Configuration => ({
   // https://www.electron.build/docs/linux/
   extraMetadata: {
     desktopName: `${appId}.desktop`,
-    homepage: "https://github.com/Clearlove7Zz/LoongCode",
+    homepage: "https://github.com/Calendula597/LoongCode",
     author: {
       name: "Loongcode",
       email: "loongcode@example.com",

@@ -25,7 +25,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "opencode.openTerminal",
+        "command": "loongcode.openTerminal",
         "title": "Open opencode",
         "icon": {
           "light": "images/button-dark.svg",
@@ -33,7 +33,7 @@
         }
       },
       {
-        "command": "opencode.openNewTerminal",
+        "command": "loongcode.openNewTerminal",
         "title": "Open opencode in new tab",
         "icon": {
           "light": "images/button-dark.svg",
@@ -41,21 +41,21 @@
         }
       },
       {
-        "command": "opencode.addFilepathToTerminal",
+        "command": "loongcode.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "opencode.openNewTerminal",
+          "command": "loongcode.openNewTerminal",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "opencode.openTerminal",
+        "command": "loongcode.openTerminal",
         "title": "Run opencode",
         "key": "cmd+escape",
         "mac": "cmd+escape",
@@ -63,7 +63,7 @@
         "linux": "ctrl+escape"
       },
       {
-        "command": "opencode.openNewTerminal",
+        "command": "loongcode.openNewTerminal",
         "title": "Run opencode",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
@@ -71,7 +71,7 @@
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "opencode.addFilepathToTerminal",
+        "command": "loongcode.addFilepathToTerminal",
         "title": "opencode: Insert At-Mentioned",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
