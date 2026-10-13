@@ -33,6 +33,9 @@ jobs:
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "将使用版本: $v"
 
+      - name: Install deps
+        run: bun install --linker hoisted
+
       - name: Build
         run: bun run build
         working-directory: packages/desktop

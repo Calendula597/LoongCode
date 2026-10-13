@@ -32,6 +32,11 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
+      - name: Install deps
+        # 与 build-server-binary 一致用 hoisted linker；desktop 构建依赖 bun install 落盘
+        # （Bun 在 CI 下不做自动安装，ssh2 等依赖必须显式安装）
+        run: bun install --linker hoisted
+
       - name: Build
         run: bun run build
         working-directory: packages/desktop

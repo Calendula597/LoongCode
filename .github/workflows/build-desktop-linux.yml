@@ -32,6 +32,9 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
+      - name: Install deps
+        run: bun install --linker hoisted
+
       - name: Install Linux deps
         run: |
           sudo apt-get update
