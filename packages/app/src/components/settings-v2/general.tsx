@@ -9,6 +9,7 @@ import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import { useUpdaterAction } from "../updater-action"
 import { useSettings } from "@/context/settings"
+import { useServerSync } from "@/context/server-sync"
 import { ExternalLink } from "../external-link"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
@@ -292,6 +293,17 @@ export const SettingsGeneralV2: Component<{
     { initialValue: false },
   )
 
+  const serverSync = useServerSync()
+
+  // Master switch: memory is on when the config section exists and at least one of the
+  // write/read paths is active. Toggling sets both flags together; other memory fields
+  // (models, pruning limits) survive the deep-merge on the server.
+  const memoryEnabled = createMemo(() => {
+    const memory = serverSync().data.config.memory
+    if (!memory) return false
+    return (memory.generate_memories ?? true) || (memory.use_memories ?? true)
+  })
+
   const onPinchZoomChange = (checked: boolean) => {
     setPinchZoom(checked)
     const update = platform.setPinchZoomEnabled?.(checked)
@@ -332,6 +344,20 @@ export const SettingsGeneralV2: Component<{
         <PermissionScopeSetting controller={permissionScope} />
 
         <ShellSetting controller={shell} />
+
+        <SettingsRowV2
+          title={language.t("settings.general.row.memory.title")}
+          description={language.t("settings.general.row.memory.description")}
+        >
+          <div data-action="settings-memory-enabled">
+            <Switch
+              checked={memoryEnabled()}
+              onChange={(checked) =>
+                serverSync().updateConfig({ memory: { generate_memories: checked, use_memories: checked } })
+              }
+            />
+          </div>
+        </SettingsRowV2>
 
         <SettingsRowV2
           title={language.t("settings.general.row.reasoningSummaries.title")}

@@ -2,7 +2,7 @@
   "name": "@loongcode/web",
   "type": "module",
   "license": "MIT",
-  "version": "0.0.68",
+  "version": "0.0.69",
   "scripts": {
     "dev": "astro dev",
     "dev:remote": "VITE_API_URL=https://api.modelhub.lgdg.cc astro dev",

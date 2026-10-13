@@ -10,12 +10,14 @@ import { ConfigCommandV1 } from "./command"
 import { ConfigFormatterV1 } from "./formatter"
 import { ConfigLayoutV1 } from "./layout"
 import { ConfigLSPV1 } from "./lsp"
+import { ConfigMemoryV1 } from "./memory"
 import { ConfigMCPV1 } from "./mcp"
 import { ConfigPermissionV1 } from "./permission"
 import { ConfigPluginV1 } from "./plugin"
 import { ConfigProviderV1 } from "./provider"
 import { ConfigServerV1 } from "./server"
 import { ConfigSkillsV1 } from "./skills"
+import { ConfigTDAIV1 } from "./tdai"
 
 export type Layout = ConfigLayoutV1.Layout
 
@@ -200,6 +202,10 @@ export const Info = Schema.Struct({
       }),
     }),
   ),
+  memory: Schema.optional(ConfigMemoryV1.Info).annotate({
+    description:
+      "Persistent memory configuration. Absence disables memory entirely; generate_memories/use_memories toggle the write and read paths independently without deleting data.",
+  }),
   experimental: Schema.optional(
     Schema.Struct({
       disable_paste_summary: Schema.optional(Schema.Boolean),
@@ -218,6 +224,10 @@ export const Info = Schema.Struct({
       }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
+      }),
+      tdai: Schema.optional(ConfigTDAIV1.Info).annotate({
+        description:
+          "Experimental TDAI MemoryProxy connection with header-overlay identities. Absence disables the feature entirely.",
       }),
     }),
   ),

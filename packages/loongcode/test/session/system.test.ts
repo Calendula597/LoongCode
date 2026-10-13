@@ -8,6 +8,7 @@ import { Permission } from "../../src/permission"
 import type { Provider } from "../../src/provider/provider"
 import { SystemPrompt } from "../../src/session/system"
 import { MCP } from "../../src/mcp"
+import { MemoryPrompt } from "../../src/memory/prompt"
 import { testEffect } from "../lib/effect"
 
 const skills: Skill.Info[] = [
@@ -63,6 +64,7 @@ const it = testEffect(
           ]),
       }),
     ],
+    [MemoryPrompt.node, Layer.mock(MemoryPrompt.Service, { summary: () => Effect.succeed(undefined) })],
     [
       Skill.node,
       Layer.succeed(

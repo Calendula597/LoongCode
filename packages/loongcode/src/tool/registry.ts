@@ -16,6 +16,14 @@ import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
 import { SkillTool } from "./skill"
+import { MemoryInspectTool } from "./memory-inspect"
+import { MemoryReadTool } from "./memory-read"
+import { MemorySearchTool } from "./memory-search"
+import { MemoryListTool } from "./memory-list"
+import { MemoryAddNoteTool } from "./memory-add-note"
+import { MemoryResetTool } from "./memory-reset"
+import { Memory } from "@/memory"
+import { MemoryStore } from "@loongcode/core/memory/store"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@loongcode/plugin"
@@ -114,6 +122,12 @@ const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const memoryInspect = yield* MemoryInspectTool
+    const memoryRead = yield* MemoryReadTool
+    const memorySearch = yield* MemorySearchTool
+    const memoryList = yield* MemoryListTool
+    const memoryAddNote = yield* MemoryAddNoteTool
+    const memoryReset = yield* MemoryResetTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -203,8 +217,12 @@ const layer = Layer.effect(
           }
         }
 
-        yield* config.get()
+        const configInfo = yield* config.get()
         const questionEnabled = ["app", "cli", "desktop"].includes(flags.client) || flags.enableQuestionTool
+        // Read-side gating (specs/memory/builtin-memory-pipeline.md): `use_memories: false`
+        // removes every memory tool from the model's toolset, including inspect/reset.
+        // The background write path stays controlled by `generate_memories` alone.
+        const memoryToolsEnabled = configInfo.memory !== undefined && (configInfo.memory.use_memories ?? true)
 
         const tool = yield* Effect.all({
           invalid: Tool.init(invalid),
@@ -224,6 +242,12 @@ const layer = Layer.effect(
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
           ...(codeModeTool ? { execute: Tool.init(codeModeTool) } : {}),
+          memoryInspect: Tool.init(memoryInspect),
+          memoryRead: Tool.init(memoryRead),
+          memorySearch: Tool.init(memorySearch),
+          memoryList: Tool.init(memoryList),
+          memoryAddNote: Tool.init(memoryAddNote),
+          memoryReset: Tool.init(memoryReset),
         })
 
         return {
@@ -244,6 +268,16 @@ const layer = Layer.effect(
             tool.skill,
             tool.patch,
             ...(tool.execute ? [tool.execute] : []),
+            ...(memoryToolsEnabled
+              ? [
+                  tool.memoryInspect,
+                  tool.memoryReset,
+                  tool.memoryRead,
+                  tool.memorySearch,
+                  tool.memoryList,
+                  tool.memoryAddNote,
+                ]
+              : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
           ],
@@ -449,6 +483,8 @@ export const node = LayerNode.make({
     MCP.node,
     Database.node,
     Ripgrep.node,
+    Memory.node,
+    MemoryStore.node,
   ],
 })
 

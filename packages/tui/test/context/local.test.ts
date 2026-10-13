@@ -8,6 +8,13 @@ test("parses model IDs containing slashes", () => {
   })
 })
 
+test("keeps the TDAI identity in the provider id", () => {
+  expect(parseModel("tdai/Agent Developer/deepseek-v4-flash")).toEqual({
+    providerID: "tdai/Agent Developer",
+    modelID: "deepseek-v4-flash",
+  })
+})
+
 test("moves a model to the front, deduplicates, and limits recents", () => {
   const recent = Array.from({ length: 12 }, (_, index) => ({
     providerID: "provider",

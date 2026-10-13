@@ -43,6 +43,8 @@ import { SessionV2 } from "@loongcode/core/session"
 import { SessionExecution } from "@loongcode/core/session/execution"
 import { Skill } from "../../src/skill"
 import { SystemPrompt } from "../../src/session/system"
+import { Memory } from "../../src/memory"
+import { MemoryStore } from "@loongcode/core/memory/store"
 import { Shell } from "@loongcode/core/shell"
 import { Snapshot } from "../../src/snapshot"
 import { ToolRegistry } from "@/tool/registry"
@@ -206,6 +208,8 @@ const promptRoot = LayerNode.group([
   SystemPrompt.node,
   CrossSpawnSpawner.node,
   RuntimeFlags.node,
+  Memory.node,
+  MemoryStore.node,
 ])
 
 function makePrompt(input?: { mcpInstructions?: MCP.ServerInstructions[]; processor?: "blocking" }) {

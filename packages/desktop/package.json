@@ -1,7 +1,7 @@
 {
   "name": "@loongcode/desktop",
   "private": true,
-  "version": "0.0.68",
+  "version": "0.0.69",
   "type": "module",
   "license": "MIT",
   "homepage": "https://modelhub.lgdg.cc",

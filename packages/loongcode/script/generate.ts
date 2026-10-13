@@ -7,8 +7,6 @@ const dir = path.resolve(__dirname, "..")
 
 process.chdir(dir)
 
-const modelsUrl = process.env.LOONGCODE_MODELS_URL || "https://models.dev"
-export const modelsData = process.env.MODELS_DEV_API_JSON
-  ? await Bun.file(process.env.MODELS_DEV_API_JSON).text()
-  : await fetch(`${modelsUrl}/api.json`).then((x) => x.text())
-console.log("Loaded models.dev snapshot")
+// Vendored models.dev snapshot at the repo root; refresh it by hand.
+export const modelsData = await Bun.file(path.resolve(dir, "../../api.json")).text()
+console.log("Loaded models.dev snapshot from api.json")

@@ -10,6 +10,7 @@ import { SettingsProvidersV2 } from "./providers"
 import { SettingsModelsV2 } from "./models"
 import "./settings-v2.css"
 import { SettingsServersV2 } from "./servers"
+import { SettingsTDAIV2 } from "./tdai"
 import { SkillMarketplace } from "../skill-marketplace"
 import { useDialog } from "@loongcode/ui/context/dialog"
 import { useLayout } from "@/context/layout"
@@ -88,6 +89,10 @@ export const DialogSettings: Component<{
                       <Icon name="models" />
                       {language.t("settings.models.title")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="tdai">
+                      <Icon name="sparkles" />
+                      {language.t("settings.tdai.title")}
+                    </TabsV2.Trigger>
                   </div>
                 </div>
               </div>
@@ -112,6 +117,9 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="models" class="settings-v2-panel">
           <SettingsModelsV2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="tdai" class="settings-v2-panel">
+          <SettingsTDAIV2 />
         </TabsV2.Content>
         <TabsV2.Content value="skills" class="settings-v2-panel">
           <SkillMarketplace />

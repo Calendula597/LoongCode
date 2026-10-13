@@ -23,6 +23,7 @@ import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/
 import { EffectFlock } from "@loongcode/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
 import { ConfigV1 } from "@loongcode/core/v1/config/config"
+import { ConfigTDAIV1 } from "@loongcode/core/v1/config/tdai"
 import { RemoteAuthError } from "@loongcode/core/v1/config/error"
 import { ConfigPermissionV1 } from "@loongcode/core/v1/config/permission"
 import { ConfigPluginV1 } from "@loongcode/core/v1/config/plugin"
@@ -658,6 +659,43 @@ const layer = Layer.effect(
       yield* InstanceState.invalidateAll(state)
     })
 
+    function withTDAIDeletions(existing: Info, patch: Info): Info {
+      const existingTdai = existing.experimental?.tdai
+      const patchTdai = patch.experimental?.tdai
+      if (!isRecord(existingTdai) || !isRecord(patchTdai)) return patch
+
+      const existingAgents = existingTdai.agents
+      const patchAgents = patchTdai.agents
+      const deletedAgents =
+        isRecord(existingAgents) && isRecord(patchAgents)
+          ? Object.fromEntries(
+              Object.keys(existingAgents)
+                .filter((key) => !(key in patchAgents))
+                .map((key) => [key, undefined]),
+            )
+          : {}
+
+      const nextTdai: ConfigTDAIV1.Info = {
+        ...patchTdai,
+        // The UI sends empty strings for cleared connection fields because JSON
+        // cannot transport "delete this key"; normalize them back to undefined
+        // so JSON.stringify / jsonc-parser modify drop the key entirely.
+        url: patchTdai.url === "" ? undefined : patchTdai.url,
+        apiKey: patchTdai.apiKey === "" ? undefined : patchTdai.apiKey,
+        agents: isRecord(patchAgents)
+          ? ({ ...patchAgents, ...deletedAgents } as ConfigTDAIV1.Info["agents"])
+          : patchTdai.agents,
+      }
+
+      return {
+        ...patch,
+        experimental: {
+          ...patch.experimental,
+          tdai: nextTdai,
+        },
+      } as Info
+    }
+
     const updateGlobal = Effect.fn("Config.updateGlobal")(function* (config: Info) {
       const file = globalConfigFile()
       const before = (yield* readConfigFile(file)) ?? "{}"
@@ -667,14 +705,19 @@ const layer = Layer.effect(
       let changed: boolean
       if (!file.endsWith(".jsonc")) {
         const existing = ConfigParse.jsonc(before, file)
-        ConfigParse.schema(ConfigV1.Info, ConfigV2Compat.lower(normalizeLoadedConfig(existing), file).value, file)
-        const merged = mergeDeep(isRecord(existing) ? existing : {}, patch)
+        const validated = ConfigParse.schema(
+          ConfigV1.Info,
+          ConfigV2Compat.lower(normalizeLoadedConfig(existing), file).value,
+          file,
+        )
+        const merged = mergeDeep(isRecord(existing) ? existing : {}, withTDAIDeletions(validated, patch))
         const serialized = JSON.stringify(merged, null, 2)
         next = yield* decodeConfig(merged, file)
         changed = serialized !== before
         if (changed) yield* fs.writeFileString(file, serialized).pipe(Effect.orDie)
       } else {
-        const updated = patchJsonc(before, patch)
+        const existing = yield* decodeConfig(ConfigParse.jsonc(before, file), file)
+        const updated = patchJsonc(before, withTDAIDeletions(existing, patch))
         next = yield* decodeConfig(ConfigParse.jsonc(updated, file), file)
         changed = updated !== before
         if (changed) yield* fs.writeFileString(file, updated).pipe(Effect.orDie)

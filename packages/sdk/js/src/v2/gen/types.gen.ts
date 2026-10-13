@@ -2049,6 +2049,32 @@ export type Config = {
     preserve_recent_tokens?: number
     reserved?: number
   }
+  memory?: {
+    generate_memories?: boolean
+    use_memories?: boolean
+    extract_model?: string
+    consolidation_model?: string
+    /**
+     * How long a session must be idle before it is eligible for extraction (clamped 1-48, default 6h)
+     */
+    min_rollout_idle_hours?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * Ignore sessions older than this many days for extraction (clamped 0-90, default 10)
+     */
+    max_rollout_age_days?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * Max sessions extracted per pass (clamped 1-128, default 2)
+     */
+    max_rollouts_per_startup?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * Prune memories unused for this long (clamped 0-365, default 30)
+     */
+    max_unused_days?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    /**
+     * How many raw memories feed each consolidation pass (clamped 1-4096, default 256)
+     */
+    max_raw_memories_for_consolidation?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  }
   experimental?: {
     disable_paste_summary?: boolean
     batch_tool?: boolean
@@ -2057,6 +2083,19 @@ export type Config = {
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
     policies?: Array<ConfigV2ExperimentalPolicy>
+    tdai?: {
+      url?: string
+      apiKey?: string
+      models?: Array<string>
+      agents?: {
+        [key: string]: {
+          name?: string
+          headers?: {
+            [key: string]: string
+          }
+        }
+      }
+    }
   }
 }
 

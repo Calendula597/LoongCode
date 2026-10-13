@@ -24,6 +24,7 @@ import { LocationServiceMap, locationServiceMapLayer } from "@loongcode/core/loc
 import { Reference } from "@loongcode/core/reference"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@loongcode/core/v1/permission"
+import { MemoryPrompt } from "@/memory/prompt"
 
 export function provider(model: Provider.Model) {
   if (model.api.id.includes("muse")) {
@@ -54,6 +55,7 @@ export interface Interface {
   readonly environment: (model: Provider.Model) => Effect.Effect<string[]>
   readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
   readonly mcp: (agent: Agent.Info, permission?: PermissionV1.Ruleset) => Effect.Effect<string | undefined>
+  readonly memory: () => Effect.Effect<string | undefined>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@loongcode/SystemPrompt") {}
@@ -64,6 +66,7 @@ const layer = Layer.effect(
     const skill = yield* Skill.Service
     const mcp = yield* MCP.Service
     const locations = yield* LocationServiceMap.Service
+    const memory = yield* MemoryPrompt.Service
 
     return Service.of({
       environment: Effect.fn("SystemPrompt.environment")(function* (model: Provider.Model) {
@@ -135,6 +138,12 @@ const layer = Layer.effect(
           "</mcp_instructions>",
         ].join("\n")
       }),
+
+      memory: Effect.fn("SystemPrompt.memory")(function* () {
+        // Memory sub-agents must never see the summary: the consolidator citing
+        // its own memories would self-amplify usage accounting.
+        return yield* memory.summary()
+      }),
     })
   }),
 )
@@ -148,7 +157,7 @@ const locationServiceMapNode = LayerNode.make({
 export const node = LayerNode.make({
   service: Service,
   layer: layer,
-  deps: [Skill.node, MCP.node, locationServiceMapNode],
+  deps: [Skill.node, MCP.node, locationServiceMapNode, MemoryPrompt.node],
 })
 
 export * as SystemPrompt from "./system"
