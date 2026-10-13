@@ -45,6 +45,7 @@ jobs:
         working-directory: packages/desktop
         env:
           LOONGCODE_CHANNEL: ${{ inputs.channel }}
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Package
         run: npx electron-builder --linux --publish never --config electron-builder.config.ts

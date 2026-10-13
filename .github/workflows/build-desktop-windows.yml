@@ -41,6 +41,8 @@ jobs:
         working-directory: packages/desktop
         env:
           LOONGCODE_CHANNEL: ${{ inputs.channel }}
+          # electron-vite（Node/V8）默认堆 2GB，打整个 renderer 会 OOM
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Package (x64 + arm64 一次出双架构，生成单一含两架构的 latest.yml)
         run: npx electron-builder --win --x64 --arm64 --publish never --config electron-builder.config.ts
