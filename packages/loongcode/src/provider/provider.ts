@@ -157,6 +157,7 @@ type CustomDep = {
   config: () => Effect.Effect<ConfigV1.Info>
   env: () => Effect.Effect<Record<string, string | undefined>>
   get: (key: string) => Effect.Effect<string | undefined>
+  modelsDev: () => Effect.Effect<Record<string, ModelsDev.Provider>>
 }
 
 function selectAzureLanguageModel(sdk: any, modelID: string, useChat: boolean) {
@@ -367,6 +368,23 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
 
       const baseURL = input.options?.baseURL ?? "https://tokens.store/v1"
 
+      // tokens.store's /models omits context limits and modalities; enrich from
+      // the models.dev catalog (keyed by model id) and fall back to defaults.
+      // Index both full ids and their unprefixed suffix ("anthropic/claude-fable-5"
+      // also answers "claude-fable-5"), first entry wins on collision.
+      const known = new Map<string, ModelsDev.Model>()
+      for (const provider of Object.values(yield* dep.modelsDev())) {
+        for (const model of Object.values(provider.models)) {
+          const id = model.id.toLowerCase()
+          if (!known.has(id)) known.set(id, model)
+          const slash = id.lastIndexOf("/")
+          if (slash > 0) {
+            const suffix = id.slice(slash + 1)
+            if (!known.has(suffix)) known.set(suffix, model)
+          }
+        }
+      }
+
       return {
         autoload: true,
         options: {},
@@ -446,11 +464,17 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
                 modelIdLower.includes("glm-5") ||
                 modelIdLower.includes("minimax")
 
+              const idLower = id.toLowerCase()
+              const idSlash = idLower.lastIndexOf("/")
+              const knownModel = known.get(idLower) ?? (idSlash > 0 ? known.get(idLower.slice(idSlash + 1)) : undefined)
+              const inputModalities = knownModel?.modalities?.input
+              const outputModalities = knownModel?.modalities?.output
+
               models[id] = {
                 id: ModelV2.ID.make(id),
                 providerID: ProviderV2.ID.make("tokenStore"),
-                name: id,
-                family: "",
+                name: knownModel?.name ?? id,
+                family: knownModel?.family ?? "",
                 api: {
                   id,
                   url: baseURL,
@@ -465,32 +489,32 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
                   cache: { read: 0, write: 0 },
                 },
                 limit: {
-                  context: 128000,
-                  input: 128000,
-                  output: 8192,
+                  context: knownModel?.limit.context ?? 128000,
+                  input: knownModel?.limit.input ?? 128000,
+                  output: knownModel?.limit.output ?? 8192,
                 },
                 capabilities: {
-                  temperature: true,
-                  reasoning: hasReasoning,
-                  attachment: false,
-                  toolcall: true,
+                  temperature: knownModel?.temperature ?? true,
+                  reasoning: knownModel?.reasoning ?? hasReasoning,
+                  attachment: knownModel?.attachment ?? false,
+                  toolcall: knownModel?.tool_call ?? true,
                   input: {
-                    text: true,
-                    audio: false,
-                    image: hasVision,
-                    video: false,
-                    pdf: false,
+                    text: inputModalities?.includes("text") ?? true,
+                    audio: inputModalities?.includes("audio") ?? false,
+                    image: inputModalities?.includes("image") ?? hasVision,
+                    video: inputModalities?.includes("video") ?? false,
+                    pdf: inputModalities?.includes("pdf") ?? false,
                   },
                   output: {
-                    text: true,
-                    audio: false,
-                    image: false,
-                    video: false,
-                    pdf: false,
+                    text: outputModalities?.includes("text") ?? true,
+                    audio: outputModalities?.includes("audio") ?? false,
+                    image: outputModalities?.includes("image") ?? false,
+                    video: outputModalities?.includes("video") ?? false,
+                    pdf: outputModalities?.includes("pdf") ?? false,
                   },
                   interleaved: false,
                 },
-                release_date: "",
+                release_date: knownModel?.release_date ?? "",
               }
             }
 
@@ -1755,6 +1779,7 @@ const layer = Layer.effect(
           config: () => config.get(),
           env: () => env.all(),
           get: (key: string) => env.get(key),
+          modelsDev: () => modelsDevSvc.get(),
         }
 
         function mergeProvider(providerID: ProviderV2.ID, provider: Partial<Info>) {

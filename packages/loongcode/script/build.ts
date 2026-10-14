@@ -210,7 +210,7 @@ for (const item of targets) {
     define: {
       FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),
       LOONGCODE_VERSION: `'${Script.version}'`,
-      LOONGCODE_MODELS_DEV: JSON.stringify(generated.modelsData),
+      LOONGCODE_MODELS_DEV: generated.modelsData,
       OTUI_TREE_SITTER_WORKER_PATH: JSON.stringify(bunfsRoot + treeSitterWorkerPath),
       LOONGCODE_WORKER_PATH: JSON.stringify(workerPath),
       LOONGCODE_CHANNEL: `'${Script.channel}'`,
