@@ -490,7 +490,10 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
                 },
                 limit: {
                   context: knownModel?.limit.context ?? 128000,
-                  input: knownModel?.limit.input ?? 128000,
+                  // Overflow checks prefer limit.input over context; only fall back
+                  // to the legacy 128000 when nothing is known about the model,
+                  // otherwise leave input absent so context wins.
+                  input: knownModel === undefined ? 128000 : knownModel.limit.input,
                   output: knownModel?.limit.output ?? 8192,
                 },
                 capabilities: {
