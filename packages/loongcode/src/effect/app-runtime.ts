@@ -58,14 +58,6 @@ import { Memory } from "@/memory"
 import { MemoryScheduler } from "@/memory/scheduler"
 import { MemoryStore } from "@loongcode/core/memory/store"
 
-// The scheduler module predates the LayerNode migration and exports no node of
-// its own, so it is wired inline here on the node graph.
-const memorySchedulerNode = LayerNode.make({
-  service: MemoryScheduler.Service,
-  layer: MemoryScheduler.layer,
-  deps: [Config.node, EventV2Bridge.node],
-})
-
 export const AppLayer = AppNodeBuilderV1.build(
   LayerNode.group([
     Npm.node,
@@ -95,7 +87,7 @@ export const AppLayer = AppNodeBuilderV1.build(
     EventV2Bridge.node,
     Memory.node,
     MemoryStore.node,
-    memorySchedulerNode,
+    MemoryScheduler.node,
     SessionRunState.node,
     SessionProcessor.node,
     SessionCompaction.node,

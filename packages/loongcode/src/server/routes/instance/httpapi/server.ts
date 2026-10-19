@@ -17,6 +17,8 @@ import { Format } from "@/format"
 import { Git } from "@/git"
 import { Installation } from "@/installation"
 import { LSP } from "@/lsp/lsp"
+import { Memory } from "@/memory"
+import { MemoryScheduler } from "@/memory/scheduler"
 import { MCP } from "@/mcp"
 import { McpAuth } from "@/mcp/auth"
 import { Permission } from "@/permission"
@@ -55,6 +57,7 @@ import { AppNodeBuilderV1 } from "@/effect/app-node-builder-v1"
 import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { httpClient } from "@loongcode/core/effect/app-node-platform"
 import { EventV2 } from "@loongcode/core/event"
+import { MemoryStore } from "@loongcode/core/memory/store"
 import { ModelsDev } from "@loongcode/core/models-dev"
 import { Npm } from "@loongcode/core/npm"
 import { PermissionSaved } from "@loongcode/core/permission/saved"
@@ -243,6 +246,9 @@ const app = LayerNode.group([
   BackgroundJob.node,
   RuntimeFlags.node,
   EventV2Bridge.node,
+  Memory.node,
+  MemoryStore.node,
+  MemoryScheduler.node,
   SessionRunState.node,
   SessionProcessor.node,
   SessionCompaction.node,
