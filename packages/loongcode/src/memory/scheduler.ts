@@ -1,6 +1,6 @@
 export * as MemoryScheduler from "./scheduler"
 
-import { Context, Duration, Effect, Layer, Ref, Schedule, Scope } from "effect"
+import { Cause, Context, Duration, Effect, Layer, Ref, Schedule, Scope } from "effect"
 import { LayerNode } from "@loongcode/core/effect/layer-node"
 import { Config } from "@/config/config"
 import { MemoryOptions } from "@loongcode/core/memory/options"
@@ -36,6 +36,7 @@ export const layer = Layer.effect(
       const released = Ref.set(inFlight, false)
       try {
         const opts = MemoryOptions.fromConfig((yield* config.get()).memory)
+        yield* Effect.logInfo("memory scheduler kick", { generateMemories: opts.generateMemories })
         if (!opts.generateMemories) return
         // Lazy-load the write pipeline so a config without a `memory` section
         // never instantiates the heavy LLM/Agent/Session/Git dependency chain.
@@ -59,14 +60,24 @@ export const layer = Layer.effect(
                   maxAgeDays: opts.maxRolloutAgeDays,
                   limit: opts.maxRolloutsPerStartup,
                 })
+                yield* Effect.logInfo("memory scheduler discovered candidates", { count: candidates.length })
                 for (const sessionID of candidates) {
-                  yield* extraction.extract(sessionID).pipe(Effect.ignore)
+                  yield* extraction.extract(sessionID).pipe(
+                    Effect.tapCause((cause) =>
+                      Effect.logError("memory extraction failed", { sessionID, cause: Cause.pretty(cause) }),
+                    ),
+                    Effect.ignore,
+                  )
                 }
                 yield* consolidation.consolidate().pipe(Effect.ignore)
                 // Forgetting is part of the loop: prune extraction outputs that
                 // outlived max_unused_days (usage-driven expiry, CONTEXT.md).
                 yield* jobs.pruneOutputs(opts.maxUnusedDays).pipe(Effect.ignore)
               }),
+            ),
+          ).pipe(
+            Effect.tapCause((cause) =>
+              Effect.logError("memory scheduler pipeline failed", { cause: Cause.pretty(cause) }),
             ),
           ),
         )
