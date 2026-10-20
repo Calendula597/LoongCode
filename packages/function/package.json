@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "@loongcode/function",
-  "version": "0.0.70",
+  "version": "0.0.69",
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
   "type": "module",

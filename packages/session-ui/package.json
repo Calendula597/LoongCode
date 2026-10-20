@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "@loongcode/session-ui",
-  "version": "0.0.70",
+  "version": "0.0.69",
   "private": true,
   "type": "module",
   "license": "MIT",

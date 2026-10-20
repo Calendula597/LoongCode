@@ -1,8 +1,8 @@
-﻿{
+{
   "name": "loongcode-vscode",
   "displayName": "Loongcode",
   "description": "Loongcode AI coding agent for VS Code",
-  "version": "0.0.70",
+  "version": "0.0.69",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
